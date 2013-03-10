@@ -20,7 +20,9 @@
 
 ;;; Commentary:
 
-;; XXX
+;; This package defines basic building blocks not related to any
+;; particular functionality.  Functions include operations on lists
+;; and strings, buffer motion, and other auxiliary utilities.
 
 ;;; Code:
 
