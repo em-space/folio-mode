@@ -20,11 +20,12 @@
 
 ;;; Commentary:
 
-;;
+;; XXX
 
 ;;; Code:
 
-(require 'cl)
+(eval-when-compile
+  (require 'cl))
 
 ;; Randomize the seed in the random number generator.
 (random t)
