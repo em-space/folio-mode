@@ -23,8 +23,8 @@
 ;; This package defines auxillary functions for operating on time
 ;; stamps and the definintion and management of single-shot and
 ;; periodical timers.  Different from Emacs standard idle timers a
-;; timer defined by `folio-define-timer' can execute its worker
-;; function while Emacs is idle.
+;; timer defined by `folio-define-timer' executes its worker function
+;; while Emacs is idle.
 
 ;;; Code:
 
