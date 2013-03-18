@@ -340,11 +340,16 @@ length.")
 (defconst folio-language-ordinal-suffixes-german
   '("er" "te" "tes" "ten" "tem"))
 
+;;  XXX make the name, alt-name/native-name or so
 (defconst folio-language-info-alist
   '(("ang" . ((name . "Old English")
               (display . "Old English (ca. 450-1100)")))
-    ("cy" . ((name . "Welsh")
-             (display . "Cymraeg")))
+    ("ca" . ((name . "Català")
+             (display . "Catalan (Valencian)")))
+    ("cy" . ((name . "Cymraeg")
+             (display . "Welsh")))
+    ("da" . ((name . "Dansk")
+             (display . "Danish")))
     ("de-DE" . ((name . "Deutsch")
                 (display . "German")
                 (stop-words . folio-language-stop-words-german)
@@ -373,6 +378,8 @@ length.")
              (display . "Spanish (Castilian)")
              (stop-words . folio-language-stop-words-spanish)
              (regexp . folio-language-regexp-spanish)))
+    ("fi" . ((name . "Suomi")
+             (display . "Finnish")))
     ("fr" . ((name . "français")
              (display . "French")
              (stop-words . folio-language-stop-words-french)
@@ -397,10 +404,20 @@ length.")
              (regexp . folio-language-regexp-italian)))
     ("la" . ((name . "latine")
              (display . "Latin")))
-    ("pt-PT" . ((name . "português (Portugal)") ;; XXX BR: Brazil
+    ("nob" . ((name . "norvégien bokmål")
+              (display . "Norwegian Bokmål")))
+    ("nno" . ((name . "norvégien nynorsk")
+              (display . "Norwegian Nynorsk")))
+    ("oc" . ((name . "Occitani (Provençal)")
+             (display . "Occitan (Provenzale)")))
+    ("pt-PT" . ((name . "português (Portugal)")
                 (display . "Portuguese (Portugal)")
                 (stop-words . folio-language-stop-words-portuguese)
-                (regexp . folio-language-regexp-portuguese))))
+                (regexp . folio-language-regexp-portuguese)))
+    ("pt-BR" . ((name . "português brasileiro")
+                (display . "Brazilian Portuguese")))
+    ("sv" . ((name . "Svenska")
+             (display . "Swedish"))))
   "Alist pairing language codes with environment definitions.
 
 An element is of the form:
@@ -488,9 +505,10 @@ with KEY.  Meaningful values for KEY include
                         (and lang-score (> lang-score (cdr score))))
                 (setq score (cons lang lang-score)))))
           folio-language-info-alist)
-    ;; With a score at zero, or below some threshold (near 0.00158)
-    ;; there possibly should be a fallback to querying a spellchecker;
-    ;; this might be useful in particular when operating on a region.
+    ;; With a score at zero, or below some threshold (near 0.00158,
+    ;; empirical) there possibly should be a fallback to querying a
+    ;; spellchecker; this might be useful in particular when operating
+    ;; on a region.
     (if (called-interactively-p 'interactive) ;; Visual feedback only.
         (message (or (and score
                           (not (zerop (cdr score)))
