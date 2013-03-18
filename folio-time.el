@@ -5,12 +5,12 @@
 ;; Author: Christoph W. Kluge <shift.in.emphasis@gmail.com>
 ;; Keywords: wp
 
-;; This program is free software; you can redistribute it and/or modify
+;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; This program is distributed in the hope that it will be useful,
+;; This file is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
@@ -24,7 +24,11 @@
 ;; stamps and the definintion and management of single-shot and
 ;; periodical timers.  Different from Emacs standard idle timers a
 ;; timer defined by `folio-define-timer' executes its worker function
-;; while Emacs is idle.
+;; while Emacs is idle, i.e. the worker function is repeatedly
+;; executed until user input intercepts.  For fairness to other timers
+;; and in order to reduce latencies in the handling of keyboard and
+;; mouse events a non-trivial worker function itself should frequently
+;; yield or return after having processed a chunk of data.
 
 ;;; Code:
 
@@ -54,8 +58,8 @@ Useful keyword arguments are:
   :pause         Repeat the action every REPEAT seconds, if REPEAT is
                  non-nil.  SECS and REPEAT may be integers or
                  floating point numbers.  The action is to call
-                 FUNCTION with arguments from :args.
-  :buffer-local  XXX"
+                 FUNCTION with arguments from :args."
+  ;; XXX TODO :buffer-local
   (declare (doc-string 2)
            (indent 2))
   (let ((timer-symbol (folio--timer-symbol-interned (eval name)))
@@ -95,9 +99,6 @@ TIMER should be a symbol used with `folio-defined-timer'."
 (defun folio-timer-p (timer)
   "Return t if TIMER is a timer object created by `folio-define-timer'."
   (eq (folio-timer-get timer :class) 'folio-timer))
-
-;; XXX (folio-define-timer 'xspellcheck "goo" 10 #'(lambda (&rest ignore) (message "xxx spellcheck %s" (format "%S" (cadr (current-time))))) :repeat t :pause 2.3)
-;; (folio-timer-get 'xspellcheck :function)
 
 (defsubst folio-idle-time-seconds ()
   "Return current idle time in seconds.
@@ -189,23 +190,29 @@ TIMER should be the timer name used with `folio-define-timer'."
               timer (car-safe (cdr err))))))
 
 (defun folio-timer-running-p (timer)
-  "XXX"
+  "Return non-nil if TIMER is running.
+TIMER should be the symbol of a timer object originally set up
+with `folio-define-timer'."
   (let ((the-timer (folio--timer-symbol-interned timer)))
     (and (symbol-value the-timer)
          (member (symbol-value the-timer) timer-idle-list) t)))
 
 (defun folio-cancel-timer (timer)
-  "XXX"
+  "Cancel the timer TIMER.
+TIMER should be the symbol of a timer object originally set up
+with `folio-define-timer'."
   (let ((the-timer (folio--timer-symbol-interned timer)))
     (when (symbol-value the-timer)
       (cancel-timer (symbol-value the-timer)))))
 
 (defun folio-schedule-timer (timer &optional secs)
-  "XXX"
+  "Schedule or re-schedule the timer TIMER.
+SEC if non-nil overrides the scheduling time in seconds from now.
+TIMER should be the symbol of a timer object originally set up
+with `folio-define-timer'."
   (when secs
     (folio-timer-put timer :secs secs))
   (folio-cancel-timer timer)
-;;  (message "reschedule %s" (folio-timer-eval timer :secs))
   (let ((the-timer (folio--timer-symbol-interned timer)))
     (set the-timer (apply 'run-with-idle-timer
                           (folio-timer-eval timer :secs)
