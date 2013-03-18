@@ -35,21 +35,6 @@
       (concat word "s")
     word))
 
-  ;; '(("bg" . "bulgarian") ("ca" . "catalan") ("cs" . "czech")
-  ;;   ("da" . "danish") ("de" . "deutsch") ("de" . "german")
-  ;;   ("el" . "greek") ("en" . "english") ("eo" . "esperanto")
-  ;;   ("es" . "spanish") ("fi" . "finnish") ("fr" . "francais")
-  ;;   ("fr" . "french") ("hu" . "hungarian") ("it" . "italiano")
-  ;;   ("it" . "italian") ("la" . "latin") ("nl" . "dutch")
-  ;;   ("no" . "norwegian") ("pl" . "polish") ("pt" . "portuguese")
-  ;;   ("ro" . "romanian") ("ru" . "russian") ("sh" . "serbo-croatian")
-  ;;   ("sk" . "slovak") ("sv" . "swedish") ("tr" . "turkish"))
-
-
-
- ;;
-
-
 (defconst folio-language-stop-words-english
   (purecopy
    '("a" "about" "above" "after" "again" "against" "all" "am" "an" "and"
