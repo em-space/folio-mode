@@ -148,31 +148,6 @@ This alist is used for NSSpellChecker.")
     ("NSSpellChecker" . ns-spellchecker))
   "Alist of supported spell-checker engines.")
 
-(defcustom folio-spellcheck-language-engine-alist nil
-  "*List associating a language code to a spell-checker engine.
-`Default' means no particular spell-checker engine is preferred
-which is equivalent to not assigning an engine at all.  If a
-spell-checker engine is found to not support the assigned
-dictionary language at run-time Folio mode uses the first
-suitable engine instead.  The list of choices for the dictionary
-should not be empty."
-  :tag "Preferred spell-check engines"
-  :type `(alist
-          :key-type
-          (choice :tag "Dictionary"
-                  :format " %[%t%]: %v"
-                  ,@(mapcar (lambda (x)
-                              (list 'const :tag (format "%-8s" x)
-                                    :format "%t" x))
-                            (sort (folio-dictionary-list) #'string-lessp)))
-          :value-type
-          (choice :tag "Engine"
-                  :format "   %[%t%]: %v"
-                  ,@(mapcar (lambda (x)
-                              (list 'const :tag (car x) (cdr x)))
-                            folio-spellcheck-engine-alist)))
-  :group 'folio-spellcheck)
-
 (defcustom folio-aspell-program
   (locate-file "aspell" exec-path exec-suffixes 'file-executable-p)
   "File name of the Aspell program."
@@ -472,6 +447,31 @@ member constitute the ISO-639-1 language code."
                                       (folio-dictionary-language
                                        x engine)) dict-list) dicts))))
     (sort (delete-duplicates dicts :test #'string-equal) #'string-lessp)))
+
+(defcustom folio-spellcheck-language-engine-alist nil
+  "*List associating a language code to a spell-checker engine.
+`Default' means no particular spell-checker engine is preferred
+which is equivalent to not assigning an engine at all.  If a
+spell-checker engine is found to not support the assigned
+dictionary language at run-time Folio mode uses the first
+suitable engine instead.  The list of choices for the dictionary
+should not be empty."
+  :tag "Preferred spell-check engines"
+  :type `(alist
+          :key-type
+          (choice :tag "Dictionary"
+                  :format " %[%t%]: %v"
+                  ,@(mapcar (lambda (x)
+                              (list 'const :tag (format "%-8s" x)
+                                    :format "%t" x))
+                            (sort (folio-dictionary-list) #'string-lessp)))
+          :value-type
+          (choice :tag "Engine"
+                  :format "   %[%t%]: %v"
+                  ,@(mapcar (lambda (x)
+                              (list 'const :tag (car x) (cdr x)))
+                            folio-spellcheck-engine-alist)))
+  :group 'folio-spellcheck)
 
 ;; XXX language options: max number of run-together words; apostrophe
 ;; as word constituent
