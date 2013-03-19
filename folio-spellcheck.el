@@ -166,6 +166,20 @@ This alist is used for NSSpellChecker.")
   :group 'folio-spellcheck
   :group 'folio-external)
 
+(defvar folio-dictionaries nil
+  "*List of dictionaries to use with the current project.
+The primary dictionary is stored in the car; secondary
+dictionaries are in the cdr.")
+(make-variable-buffer-local 'folio-dictionaries)
+
+(defvar folio-dictionaries-history nil
+  "History of entered dictionary names.
+This variable is maintained with `folio-dictionaries' but
+globally.")
+
+(defvar folio-dictionary-change-hook nil
+  "Hook run when the primary or secondary dictionaries have changed.")
+
 (defsubst folio-spellcheck-get-specific
   (key value &optional target-key)
   "Retrieve spell-checker buffer data.
@@ -231,19 +245,90 @@ KEY and EXCEPT have the same meanings like in
     (folio-preferred-process-buffer
      (folio-spellcheck-get-all :buffer))))
 
-(defun folio-spellcheck-current-language (&optional buffer)
-  "Return the current spell-checker language.
-This is equivalent to the first parameter to
-`folio-with-spellcheck-language'."
-  (folio-spellcheck-get (or buffer (current-buffer)) :language))
-
 (defalias 'folio-spellcheck-next-buffer-p 'folio-spellcheck-next-buffer
   "Return non-nil if there is at least one buffer suitable for spell-checking.")
+
+(defsubst folio-spellcheck-engine-list ()
+  "Return a list of supported spell-checker engines."
+  (delq nil (mapcar #'cdr folio-spellcheck-engine-alist)))
 
 (defsubst folio-spellcheck-preferred-engine (lang)
   "Return the preferred spell-checker for LANG.
 If none is defined return nil."
   (assoc lang folio-spellcheck-language-engine-alist))
+
+(defun folio-dictionary-choices-list ()
+  "Return a list of dictionaries not in `folio-dictionaries'."
+  (let ((dicts (sort (folio-dictionary-list) 'string-lessp)))
+    (folio-filter-list
+     dicts (lambda (x)
+             (not (member x folio-dictionaries))))))
+
+(defsubst folio-primary-dictionary ()
+  "Return the primary dictionary.
+The return value is nil if none is set; there is no default."
+  (car folio-dictionaries))
+
+(defsubst folio-secondary-dictionaries ()
+  "Return the list of secondary dictionaries which may be nil."
+  (cdr folio-dictionaries))
+
+(defun folio-spellcheck-current-dictionary-language (&optional buffer)
+  "Return the current spell-checker language.
+This is equivalent to the first parameter to
+`folio-with-spellcheck-language'."
+  (folio-spellcheck-get (or buffer (current-buffer)) :language))
+
+;;;###autoload
+(defun folio-change-dictionary (primary &optional secondary)
+  "Change PRIMARY or SECONDARY dictionaries for spellchecking.
+The dictionary always is only set \"locally\", just for the
+current buffer.
+
+If called interactively read the new primary dictionary name from
+the minibuffer prompt.  Display the current primary dictionary if
+the prompt is answered with just RET.
+
+If called from Lisp set primary and secondary dictionaries to the
+values of PRIMARY and SECONDARY, respectively.  Setting only the
+primary dictionary resets all secondary dictionaries.
+
+Run the normal hook `folio-dictionary-change-hook' if any
+dictionary has changed."
+  (interactive
+   (let ((completion-ignore-case t))
+     (list (completing-read
+            "Use new dictionary (RET for current, SPC to complete): "
+            (folio-dictionary-list)
+            nil t nil 'folio-dictionaries-history) nil)))
+  (assert (not (null primary)))
+  (if (string= primary "") ; from completing read: query current
+      (progn
+        (setq primary (car folio-dictionaries))
+        (if (called-interactively-p 'any)
+            (if primary
+                (message "Using dictionary `%s' (%s)"
+                         primary (folio-language-info primary 'alt-name))
+              (message "No dictionary set"))
+          primary))
+    (let ((old (car folio-dictionaries))
+          changed)
+      (if (string-equal old primary) ; non-nil per the assert above
+          (when (called-interactively-p 'any)
+            (message "Dictionary unchanged from `%s' (%s)"
+                     primary (folio-language-info primary 'alt-name)))
+        (setq changed (if folio-dictionaries
+                          (setcar folio-dictionaries primary)
+                        (setq folio-dictionaries (list primary))))
+        (when (called-interactively-p 'any)
+          (message "Using dictionary `%s' (%s)"
+                   primary (folio-language-info primary 'alt-name))))
+      (setq changed (or changed
+                        (equal (cdr folio-dictionaries) secondary)))
+      (setcdr folio-dictionaries secondary)
+      (when changed
+        (run-hooks 'folio-dictionary-change-hook))))
+    folio-dictionaries)
 
 (defun folio-language-dictionary (lang engine)
   "Return the dictionary name for the language name LANG."
@@ -406,10 +491,6 @@ value is the dictionary name of ENGINE for language LANG."
     (when dicts
       (car (member (folio-language-dictionary lang engine)
                    (funcall dicts))))))
-
-(defsubst folio-spellcheck-engine-list ()
-  "Return a list of supported spell-checker engines."
-  (delq nil (mapcar #'cdr folio-spellcheck-engine-alist)))
 
 (defun folio-spellchecker (lang)
   "Return a cons of spell-checker engine and dictionary for language LANG.
