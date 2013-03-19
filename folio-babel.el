@@ -340,84 +340,83 @@ length.")
 (defconst folio-language-ordinal-suffixes-german
   '("er" "te" "tes" "ten" "tem"))
 
-;;  XXX make the name, alt-name/native-name or so
 (defconst folio-language-info-alist
   '(("ang" . ((name . "Old English")
-              (display . "Old English (ca. 450-1100)")))
+              (alt-name . "Old English (ca. 450-1100)")))
     ("ca" . ((name . "Català")
-             (display . "Catalan (Valencian)")))
+             (alt-name . "Catalan (Valencian)")))
     ("cy" . ((name . "Cymraeg")
-             (display . "Welsh")))
+             (alt-name . "Welsh")))
     ("da" . ((name . "Dansk")
-             (display . "Danish")))
-    ("de-DE" . ((name . "Deutsch")
-                (display . "German")
-                (stop-words . folio-language-stop-words-german)
-                (regexp . folio-language-regexp-german)))
+             (alt-name . "Danish")))
+    ("de" . ((name . "Deutsch")
+             (alt-name . "German")
+             (stop-words . folio-language-stop-words-german)
+             (regexp . folio-language-regexp-german)))
     ("de-1901" . ((name . "Deutsch (Rechtschreibung von 1901)")
-                  (display . "German (orthography of 1901)")
+                  (alt-name . "German (orthography of 1901)")
                   (stop-words . folio-language-stop-words-german)
                   (regexp . folio-language-regexp-german)))
     ("el" . ((name . "Ελληνικά (1453-)")
-             (display . "Modern Greek (1453-)")))
+             (alt-name . "Modern Greek (1453-)")))
     ("en-GB" . ((base . "en")
                 (name . "British English")
-                (display . "English (GB)")
+                (alt-name . "English (GB)")
                 (stop-words . folio-language-stop-words-english)
                 (common-words . folio-language-common-words-english)
                 (regexp . folio-language-regexp-british-english)))
     ("en-US" . ((base . "en")
                 (name . "American English")
-                (display . "English (US)")
+                (alt-name . "English (US)")
                 (stop-words . folio-language-stop-words-english)
                 (common-words . folio-language-common-words-english)
                 (regexp . folio-language-regexp-american-english)))
     ("enm" . ((name . "Middle English (1100-1500)")
-              (display . "Middle English (1100-1500)")))
+              (alt-name . "Middle English (1100-1500)")))
     ("es" . ((name . "español (castellano)")
-             (display . "Spanish (Castilian)")
+             (alt-name . "Spanish (Castilian)")
              (stop-words . folio-language-stop-words-spanish)
              (regexp . folio-language-regexp-spanish)))
-    ("fi" . ((name . "Suomi")
-             (display . "Finnish")))
+    ("fi" . ((name . "suomi")
+             (alt-name . "Finnish")))
     ("fr" . ((name . "français")
-             (display . "French")
+             (alt-name . "French")
              (stop-words . folio-language-stop-words-french)
              (regexp . folio-language-regexp-french)))
     ("frm" . ((name . "moyen français")
-              (display . "Middle French (ca. 1400-1600)")))
+              (alt-name . "Middle French (ca. 1400-1600)")))
     ("fro" . ((name . "ancien français")
-              (display . "Old French (842-ca. 1400)")))
+              (alt-name . "Old French (842-ca. 1400)")))
     ("gd" . ((name . "Gàidhlig")
-             (display . "Scottish Gaelic")))
+             (alt-name . "Scottish Gaelic")))
     ("grc" . ((name . "Ἑλληνικά (to 1453)")
-              (display . "Ancient Greek (to 1453)")))
+              (alt-name . "Ancient Greek (to 1453)")))
     ("he" . ((name . "עִבְרִית, עברית")
-             (display . "Hebrew")
+             (alt-name . "Hebrew")
              (dir . rtl)))
     ("hbo" . ((name . "עִבְרִית, עברית (ancient)")
-              (display . "Ancient Hebrew")
+              (alt-name . "Ancient Hebrew")
               (dir . rtl)))
     ("it" . ((name . "italiano")
-             (display . "Italian")
+             (alt-name . "Italian")
              (stop-words . folio-language-stop-words-italian)
              (regexp . folio-language-regexp-italian)))
     ("la" . ((name . "latine")
-             (display . "Latin")))
+             (alt-name . "Latin")))
     ("nob" . ((name . "norvégien bokmål")
-              (display . "Norwegian Bokmål")))
+              (alt-name . "Norwegian Bokmål")))
     ("nno" . ((name . "norvégien nynorsk")
-              (display . "Norwegian Nynorsk")))
+              (alt-name . "Norwegian Nynorsk")))
     ("oc" . ((name . "Occitani (Provençal)")
-             (display . "Occitan (Provenzale)")))
+             (alt-name . "Occitan (Provenzale)")))
     ("pt-PT" . ((name . "português (Portugal)")
-                (display . "Portuguese (Portugal)")
+                (alt-name . "Portuguese (Portugal)")
                 (stop-words . folio-language-stop-words-portuguese)
                 (regexp . folio-language-regexp-portuguese)))
     ("pt-BR" . ((name . "português brasileiro")
-                (display . "Brazilian Portuguese")))
+                (alt-name . "Brazilian Portuguese")))
     ("sv" . ((name . "Svenska")
-             (display . "Swedish"))))
+             (alt-name . "Swedish"))))
   "Alist pairing language codes with environment definitions.
 
 An element is of the form:
@@ -432,9 +431,12 @@ with KEY.  Meaningful values for KEY include
   base               value is a LANGUAGE-CODE specifying the base
                         language of this entry; \"en-GB\" for instance
                         should have an entry \(base . \"en\"\).
-  display            value is a human readable string identifying the
+  name               value is a human readable string identifying the
                         environment as a verbatim alternative to the
                         LANGUAGE-CODE.
+  alt-name           value is a human readable string identifying the
+                        environment as a verbatim alternative to the
+                        LANGUAGE-CODE, and an alternative to name.
   common-words       value is the symbol of a list of words common in
                         that language, excluding stop-words.
   stop-words         value is the symbol of a list of stop-words.
@@ -446,6 +448,10 @@ with KEY.  Meaningful values for KEY include
 
 ;;;###autoload
 (defun folio-language-info (lang key &optional sub-key)
+  "Return the language info entry for the tag LANG.
+KEY identifies the entry, SUB-KEY an optional sub-key.  For
+possible values of KEY and SUB-KEY see
+`folio-language-info-alist'."
   (let ((entry (cdr (assoc lang folio-language-info-alist))))
     (when entry
       (let ((value (cdr (assoc key entry))))
