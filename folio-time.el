@@ -45,7 +45,7 @@ NAME should be a (quoted) symbol.  DOCSTRING describes the timer.
 The timer is set up to perform an action by calling FUNCTION
 after a delay of SECS seconds, optionally repeatedly whenever
 Emacs is idle.  SECS may by any expression that evaluates into an
-integer or floating point number.  ARGS are addtional keyword
+integer or a floating point number.  ARGS are addtional keyword
 arguments and arguments to FUNCTION.
 
 Useful keyword arguments are:
@@ -87,7 +87,7 @@ Useful keyword arguments are:
 
 (defsubst folio-timer-get (timer propname)
   "Return the value of TIMER's PROPNAME property.
-TIMER should be a symbol used with `folio-defined-timer'."
+TIMER should be a symbol used with `folio-define-timer'."
   (let ((timer-symbol (folio--timer-symbol-interned timer)))
     (get timer-symbol propname)))
 
@@ -128,10 +128,14 @@ format the result different from the default, using
                    (time-subtract (or now (current-time))
                                   since))))
 
-;; XXX defcustom
-(defun folio-yield (count &optional seconds)
-  "XXX"
-  (when (zerop (% count 10))
+(defun folio-yield (count &optional seconds nth)
+  "Yield every 10th call and check for pending input.
+COUNT is the current call number or an equivalent thereof.
+SECONDS if non-nil is the maximal time to wait for input.  The
+default is not to wait at all.  NTH if non-nil means to perform
+this check every NTH call instead.  Return t if input is pending
+or nil otherwise.  This function may also trigger a redisplay."
+  (when (zerop (% count (or 10 nth)))
     (save-current-buffer (sit-for (or seconds 0)))))
 
 (defsubst folio-time-elapsed (since)
@@ -219,6 +223,7 @@ with `folio-define-timer'."
                           (folio-timer-get timer :repeat)
                           'folio-timer-run-while-idle (list timer)))))
 
+
 (provide 'folio-time)
 
 ;; Local Variables:
