@@ -110,6 +110,7 @@ primitive type, both then also coerced into a flat list."
     (append (folio-flatten (car arg)) (folio-flatten (cdr arg))))
    (t (list arg))))
 
+
 ;;;###autoload
 (defun folio-map-range (ra1 ra2 rb1 rb2 f)
   "Linearly map the number F from one into another range.
@@ -278,6 +279,18 @@ or nil otherwise."
   'folio-case-fold-string-equal 'folio-case-fold-string-hash)
 
 ;;;###autoload
+(defsubst folio-lower-case-char-at-p (&optional pos)
+  "Return t if the character after POS is in lowercase.
+If POS is nil check the character at point instead."
+  (let ((c (char-after (or pos (point)))))
+    (eq c (char-table-range (current-case-table) c))))
+
+;;;###autoload
+(defsubst folio-upper-case-char-at-p (&optional pos)
+  "Return t if the character after POS is in uppercase.
+If POS is nil check the character at point instead."
+  (not (folio-lower-case-char-at-p (or pos (point)))))
+
 
 ;;;###autoload
 (defun folio-copy-other-window (beg end)
