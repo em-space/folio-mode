@@ -447,6 +447,77 @@ with KEY.  Meaningful values for KEY include
                         lists, optimized for scanning a buffer.")
 
 ;;;###autoload
+(defun folio-left-to-right-mark ()
+  "Insert an implicit left-to-right marker."
+  (interactive)
+  (insert-char ?\u200E))
+
+;;;###autoload
+(defun folio-right-to-left-mark ()
+  "Insert an implicit right-to-left marker."
+  (interactive)
+  (insert-char ?\u200F))
+
+;;;###autoload
+(defun folio-left-to-right-embedding ()
+  "Insert an explicit left-to-right marker U+202A.
+The marker should be paired by U+202C as with
+`folio-pop-directional-formatting'."
+  (interactive)
+  (insert-char ?\u202A))
+
+;;;###autoload
+(defun folio-right-to-left-embedding ()
+  "Insert an implicit right-to-left embedding marker U+202B. The
+marker should be paired by U+202C as with
+`folio-pop-directional-formatting'."
+  (interactive)
+  (insert-char ?\u202B))
+
+;;;###autoload
+(defun folio-left-to-right-override ()
+  "Insert an explicit left-to-right override marker U+202D.
+The marker should be paired by U+202C as with
+`folio-pop-directional-formatting'."
+  (interactive)
+  (insert-char ?\u202D))
+
+;;;###autoload
+(defun folio-right-to-left-override ()
+  "Insert an explicit right-to-left override marker U+202E. The
+marker should be paired by U+202C as with
+`folio-pop-directional-formatting'."
+  (interactive)
+  (insert-char ?\u202E))
+
+;;;###autoload
+(defun folio-pop-directional-formatting ()
+  "Pop the directional formatting stack."
+  (interactive)
+  (insert-char ?\u202C))
+
+;; XXX TODO
+(defvar folio-directional-formatting-keymap
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-x a l") 'folio-left-to-right-mark)
+    (define-key map (kbd "C-x a r") 'folio-right-to-left-mark)
+    map))
+
+;;;###autoload
+(defvar folio-directional-formatting-menu
+  (let ((map (make-sparse-keymap "Insert BiDi control characters")))
+    (define-key map [folio-left-to-right-mark]
+      '(menu-item "Insert `LRM'" folio-left-to-right-mark :keys "C-x a l"))
+    (define-key map [folio-right-to-left-mark]
+      '(menu-item "Insert `RLM'" folio-right-to-left-mark :keys "C-x a r"))
+    map))
+
+;; XXX TODO properly position
+;;;###autoload
+(define-key menu-bar-edit-menu [folio-directional-formatting-menu]
+  `(menu-item "Insert BiDi control characters" ,folio-directional-formatting-menu))
+
+;;;###autoload
 (defun folio-language-info (lang key &optional sub-key)
   "Return the language info entry for the tag LANG.
 KEY identifies the entry, SUB-KEY an optional sub-key.  For
@@ -522,6 +593,7 @@ possible values of KEY and SUB-KEY see
       (when score
         (car score)))))
 
+
 (provide 'folio-babel)
 
 ;;; folio-babel.el ends here
