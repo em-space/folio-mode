@@ -119,6 +119,42 @@ numbers."
   (+ (float rb1) (* (- (float f) ra1)
                     (/ (- rb2 (float rb1)) (- ra2 (float ra1))))))
 
+;;; XXX unused
+(defun folio-cycle-state-scope (state item pred)
+  (let ((last-scope (get state 'folio-cycle-scope))
+        scope)
+    (when (functionp pred)
+      (setq scope (funcall pred item last-scope)))
+    (put state 'folio-cycle-scope scope)
+    scope))
+
+;;;###autoload
+(defun folio-cycle-state (state &optional item &rest keywords)
+  "Advance the cyclic state variable STATE by one.
+STATE should be the symbol of a non-empty sequence.  If item is
+non-nil assume its position in STATE for the current state.  KEYS
+are additional keyword parameters.  Return a cons of the state
+index positions of the old and the new state.
+\nKeywords supported:  :test :scope
+\n(fn STATE [ITEM [KEYWORD VALUE]...])"
+  (let ((num-states (length (symbol-value state)))
+        current next test scope)
+    (when keywords
+      (while (keywordp (car keywords))
+        (pcase (pop keywords)
+          (`:test (setq test (list :test (pop keywords))))
+          (`:scope (setq scope (pop keywords)))
+          (_ (error "unknown keyword")))))
+    (setq current (or (when item
+                        (apply 'cl-position
+                               item (symbol-value state) test))
+                      (get state 'folio-cycle-state)
+                      0))
+    (setq next (% (+ current 1) num-states))
+    (put state 'folio-cycle-state next)
+    (cons current next)))
+
+
 (defun folio-join-regions (a b)
   "Join regions A and B.
 Either region may be nil, and regions may intersect or be
