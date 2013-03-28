@@ -503,10 +503,10 @@ possible values of KEY and SUB-KEY see
     (mapc (lambda (x)
             (let* ((lang (car x))
                    (regexp (cdr (assoc 'regexp (cdr x))))
-                   (lang-score (progn
-                                 ;; Might (folio-yield 0) here.
-                                 (save-excursion
-                                   (folio-guess-language-1 regexp words)))))
+                   (lang-score (or (when regexp
+                                     ;; Might (folio-yield 0) here.
+                                     (folio-guess-language-1
+                                      regexp words)) 0)))
               (when (or (null score)
                         (and lang-score (> lang-score (cdr score))))
                 (setq score (cons lang lang-score)))))
