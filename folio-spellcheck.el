@@ -668,16 +668,16 @@ The return value is the value of the last form in BODY."
         (goto-char (point-min))
         (let ((search-spaces-regexp nil)) ;; Treat spaces literally.
           (save-match-data
-          (while (re-search-forward
-                  "^& \\([^ ]+\\) \\([0-9]+\\) [0-9]+: \\(.+\\)$" nil t)
-            (let ((misspelled (match-string-no-properties 1))
-                  (count (string-to-number
-                          (match-string-no-properties 2)))
-                  (guess-list (split-string
-                               (match-string-no-properties 3) ", " t)))
-              (push (cons misspelled
-                          (folio-sublist
-                           guess-list 0 count)) result)))))))
+            (while (re-search-forward
+                    "^& \\([^ ]+\\) \\([0-9]+\\) [0-9]+: \\(.+\\)$" nil t)
+              (let ((misspelled (match-string-no-properties 1))
+                    (count (string-to-number
+                            (match-string-no-properties 2)))
+                    (guess-list (split-string
+                                 (match-string-no-properties 3) ", " t)))
+                (push (cons misspelled
+                            (folio-sublist
+                             guess-list 0 count)) result)))))))
     result))
 
 (defun folio-spellcheck-receive-data ()
