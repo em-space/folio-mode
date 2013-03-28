@@ -258,11 +258,6 @@ KEY and EXCEPT have the same meanings like in
   "Return a list of supported spell-checker engines."
   (delq nil (mapcar #'cdr folio-spellcheck-engine-alist)))
 
-(defsubst folio-spellcheck-preferred-engine (lang)
-  "Return the preferred spell-checker for LANG.
-If none is defined return nil."
-  (assoc lang folio-spellcheck-language-engine-alist))
-
 (defun folio-dictionary-choices-list ()
   "Return a list of dictionaries not in `folio-dictionaries'."
   (let ((dicts (sort (folio-dictionary-list) 'string-lessp)))
@@ -278,6 +273,16 @@ The return value is nil if none is set; there is no default."
 (defsubst folio-secondary-dictionaries ()
   "Return the list of secondary dictionaries which may be nil."
   (cdr folio-dictionaries))
+
+(defvar folio-spellcheck-current-language nil
+  "The current spell-checker language.
+This is equivalent to the first parameter to
+`folio-with-spellcheck-language' and let-bound for its body
+forms.")
+
+(defvar folio-spellcheck-current-syntax-table nil
+  "The syntax-table for the current spell-checker language.
+This is let-bound for the body forms of `folio-with-spellcheck-language'.")
 
 (defun folio-spellcheck-current-dictionary-language (&optional buffer)
   "Return the current spell-checker language.
@@ -560,22 +565,27 @@ should not be empty."
                             folio-spellcheck-engine-alist)))
   :group 'folio-spellcheck)
 
+(defsubst folio-spellcheck-preferred-engine (lang)
+  "Return the preferred spell-checker for LANG.
+If none is defined return nil."
+  (assoc lang folio-spellcheck-language-engine-alist))
+
 ;; XXX language options: max number of run-together words; apostrophe
 ;; as word constituent
 
 ;; XXX from language options assemble regexp for scanning for 'words'
 
-(defun folio-spellcheck-set-buffer (buffer &optional undo)
+(defun folio-spellcheck-set-buffer (buffer &optional release)
   "Prepare BUFFER for spell-checking.
 This function should be called before any spell-checking activity
-starts or, with UNDO set to non-nil, after it has stopped for any
+starts or, with RELEASE set to non-nil, after it has stopped for any
 length of time, for instance by calling it from a mode hook."
   (when (not (bufferp buffer))
     (error "Invalid buffer"))
   (let ((old (remq nil (folio-spellcheck-get-all :process))))
     ;; Remove dead buffers.
     (mapc (lambda (x)
-            (when (or (and undo (eq x buffer))
+            (when (or (and release (eq x buffer))
                       (not (buffer-live-p x)))
               (folio-spellcheck-delete x)))
           (folio-spellcheck-get-all :buffer))
@@ -587,6 +597,15 @@ length of time, for instance by calling it from a mode hook."
                 (when (process-buffer x)
                   (kill-buffer (process-buffer x)))
                 (delete-process x))) old))))
+
+(defun folio-spellcheck-unset-buffer (buffer)
+  "Release spell-checker resources for the buffer BUFFER.
+This function should be called after any spell-checking activity
+for BUFFER has stopped for any length of time, for instance by
+calling it from a mode hook.  It is equivalent to calling
+`folio-spellcheck-set-buffer' with the argument RELEASE set to
+non-nil."
+  (folio-spellcheck-set-buffer buffer 'release))
 
 (defmacro folio-with-spellcheck-language (language &rest body)
   "Switch the spell-checker to LANGUAGE and eval BODY.
