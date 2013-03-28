@@ -288,7 +288,9 @@ This is let-bound for the body forms of `folio-with-spellcheck-language'.")
   "Return the current spell-checker language.
 This is equivalent to the first parameter to
 `folio-with-spellcheck-language'."
-  (folio-spellcheck-get (or buffer (current-buffer)) :language))
+  (or (folio-spellcheck-get
+       (or buffer (current-buffer)) :language)
+      (folio-primary-dictionary)))
 
 ;;;###autoload
 (defun folio-change-dictionary (primary &optional secondary)
@@ -611,25 +613,25 @@ non-nil."
   "Switch the spell-checker to LANGUAGE and eval BODY.
 The return value is the value of the last form in BODY."
   (declare (indent 1) (debug t))
-  (let ((the-buffer (make-symbol "the-buffer"))
-        (the-engine (make-symbol "the-engine"))
-        (the-dict (make-symbol "the-dict")))
-    `(destructuring-bind (,the-buffer ,the-engine . ,the-dict)
+  (let ((buffer (make-symbol "buffer"))
+        (engine (make-symbol "engine"))
+        (dict (make-symbol "dict")))
+    `(destructuring-bind (,buffer ,engine . ,dict)
          (cons (current-buffer) (or (folio-spellchecker ,language)
                                     (cons nil nil)))
        (cond
-        ((eq ,the-engine 'aspell)
+        ((eq ,engine 'aspell)
          (let ((process (folio-spellcheck-get
-                         ,the-buffer :process))
+                         ,buffer :process))
                (process-language (folio-spellcheck-get
-                                  ,the-buffer :language)))
+                                  ,buffer :language)))
          (when (or (null process)
                    (not (folio-process-running-p process))
                    (not (string= ,language process-language)))
            (let ((program folio-aspell-program)
                  (args (list "-a"
                              "-d"
-                             ,the-dict
+                             ,dict
                              "--encoding=utf-8")))
              (when (null program)
                (error "Aspell spell-checker not available"))
@@ -643,34 +645,72 @@ The return value is the value of the last form in BODY."
              (set-process-query-on-exit-flag process nil)
              ;; Put Aspell in terse mode.
              (process-send-string process "!\n")
+             ;; Read off any stale data, including the banner message,
+             ;; if any.  This maybe should be made more robust by
+             ;; explicitly checking for warning and error messages.
+             (with-local-quit
+               (accept-process-output process))
              ;; Set the output handler and associated buffer.
              (set-process-filter
               process #'folio-spellcheck-process-filter)
 
              ;; Register actual engine, process and process language.
-             (folio-spellcheck-put ,the-buffer :engine ,the-engine)
-             (folio-spellcheck-put ,the-buffer :process process)
-             (folio-spellcheck-put ,the-buffer :language ,language)))
-
+             (folio-spellcheck-put ,buffer :engine ,engine)
+             (folio-spellcheck-put ,buffer :process process)
+             (folio-spellcheck-put ,buffer :language ,language)))
+         ;; XXX syntax table from folio-language-info-alist
          ;; Splice in the BODY forms.
-         (with-current-buffer ,the-buffer
-           ,@body)))
+         (with-current-buffer ,buffer
+           (let ((folio-spellcheck-current-language ,language)
+                 (folio-spellcheck-current-syntax-table (syntax-table)))
+             ,@body))))
         ;; XXX hunspell
-      ((eq ,the-engine 'ns-spellchecker)) ;; XXX
-      ((null ,the-engine)
+      ((eq ,engine 'ns-spellchecker)
+       (let ((process-language (folio-spellcheck-get
+                                ,buffer :language)))
+         (if (and (fboundp 'ns-spellchecker-current-language)
+                  (fboundp 'ns-spellchecker-set-language))
+             (unless (string= (ns-spellchecker-current-language)
+                              process-language)
+               (ns-spellchecker-set-language ,dict)
+               ;; Register actual engine, process and process language.
+               (folio-spellcheck-put ,buffer :engine ,engine)
+               (folio-spellcheck-put ,buffer :language ,language))
+           (error "Unsupported spell-checker engine")))
+         ;; Splice in the BODY forms.
+       (with-current-buffer ,buffer
+         (let ((folio-spellcheck-current-language ,language)
+               (folio-spellcheck-current-syntax-table (syntax-table)))
+         ,@body)))
+      ((null ,engine)
        (error "Undefined spell-checker engine"))
       (t
        (error "Unsupported spell-checker engine"))))))
 
 (defun folio-spellcheck-process-filter (process output)
   "Process filter function for asynchronously receiving responses."
-  (let* ((buffer (folio-spellcheck-get-specific
-                  :process process :buffer))
-         (pending (folio-spellcheck-get buffer :received)))
-    (folio-spellcheck-put
-     buffer :received (concat pending output))))
+  (let ((buffer (folio-spellcheck-get-specific
+                 :process process :buffer)))
+    (unless (string= output "\n")
+      (folio-spellcheck-put
+       buffer :received (concat (folio-spellcheck-get
+                                 buffer :received) output)))))
 
-(defun folio-spellcheck-send-data (strings)
+(defun folio-ns-spellchecker-check (word &optional buffer)
+  "Spell-check WORD using NSSpellChecker.
+If WORD is misspelled return a list of suggestions with WORD in
+the car.  Otherwise return nil."
+  (when (and (fboundp 'ns-spellchecker-check-spelling)
+             (fboundp 'ns-spellchecker-get-suggestions))
+    (let ((output (ns-spellchecker-check-spelling
+                   word (or buffer (current-buffer))))
+          result)
+      (when (car output)
+        (setq result (list word))
+        (nconc result (ns-spellchecker-get-suggestions word)))
+      result)))
+
+(defun folio-spellcheck-send-data (words)
   (let* ((buffer (current-buffer))
          (engine (folio-spellcheck-get buffer :engine)))
     (cond
@@ -678,9 +718,17 @@ The return value is the value of the last form in BODY."
       (let ((process (folio-spellcheck-get buffer :process))
             (data (concat (mapconcat (lambda (x)
                                        (concat "^" x))
-                                     strings "\n") "\n")))
+                                     words "\n") "\n")))
         (process-send-string process data)))
-     ((eq engine 'ns-spellchecker))
+     ((eq engine 'ns-spellchecker)
+      (let ((received
+             (delq nil (mapcar (lambda (x)
+                                 (folio-ns-spellchecker-check
+                                  x buffer)) words))))
+        (when received
+          (folio-spellcheck-put
+           buffer :received (append (folio-spellcheck-get
+                                     buffer :received) received)))))
      (t
       (error "Unsupported spell-checker engine")))))
 
@@ -721,7 +769,7 @@ The return value is the value of the last form in BODY."
               ;; data might get read with the next call to this defun
               ;; which should be okay in most cases.
               (with-local-quit
-                (accept-process-output process)) ;; XXX 0 0 t))
+                (accept-process-output process))
               ;; Parse the response here rather than from within the
               ;; filter itself; this makes errors easier to observe.
               ;; Read-write access to the :received variable should be
@@ -731,6 +779,7 @@ The return value is the value of the last form in BODY."
                      (folio-spellcheck-get buffer :received)))
               (folio-spellcheck-put buffer :received nil))))
          ((eq engine 'ns-spellchecker)
+          (setq result (folio-spellcheck-get buffer :received))
           (folio-spellcheck-put buffer :received nil))
          (t
           (error "Unsupported spell-checker engine")))
@@ -739,6 +788,7 @@ The return value is the value of the last form in BODY."
        (message "Failure parsing spell-checker data: %s" (cdr err))))
     result))
 
+
 (provide 'folio-spellcheck)
 
 ;; Local Variables:
