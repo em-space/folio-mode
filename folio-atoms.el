@@ -278,6 +278,25 @@ or nil otherwise."
   'folio-case-fold-string-equal 'folio-case-fold-string-hash)
 
 ;;;###autoload
+
+;;;###autoload
+(defun folio-copy-other-window (beg end)
+  "Copy region text or word to buffer in other window.
+Text properties are not retained."
+  (interactive "r")
+  (let ((s (if (use-region-p)
+               (buffer-substring-no-properties beg end)
+             (current-word nil 'really-word)))) ;; not symbol
+    (if s
+        (progn
+          ;; XXX TODO not just other, but also dedicated, supported by
+          ;; a history variable
+          (other-window 1)
+          (insert s))
+      (user-error "No word nearby"))))
+
+
+;;;###autoload
 (defmacro folio-with-muted-message (&rest body)
   "Redefine `message' to be silent.
 Eval BODY forms sequentially and return value of last one.  Upon
