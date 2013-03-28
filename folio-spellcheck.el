@@ -148,6 +148,12 @@ This alist is used for NSSpellChecker.")
     ("NSSpellChecker" . ns-spellchecker))
   "Alist of supported spell-checker engines.")
 
+(defgroup folio-spellcheck nil
+  "Settings related to spellchecks."
+  :tag "Folio spell-checking"
+  :group 'folio
+  :version "24.1")
+
 (defcustom folio-aspell-program
   (locate-file "aspell" exec-path exec-suffixes 'file-executable-p)
   "File name of the Aspell program."
