@@ -689,12 +689,14 @@ The return value is the value of the last form in BODY."
 
 (defun folio-spellcheck-process-filter (process output)
   "Process filter function for asynchronously receiving responses."
-  (let ((buffer (folio-spellcheck-get-specific
-                 :process process :buffer)))
-    (unless (string= output "\n")
+  (let* ((buffer (folio-spellcheck-get-specific
+                  :process process :buffer))
+         (received (folio-spellcheck-get buffer :received)))
+    (if received
+        (folio-spellcheck-put
+         buffer :received (concat received output))
       (folio-spellcheck-put
-       buffer :received (concat (folio-spellcheck-get
-                                 buffer :received) output)))))
+       buffer :received output))))
 
 (defun folio-ns-spellchecker-check (word &optional buffer)
   "Spell-check WORD using NSSpellChecker.
@@ -732,35 +734,86 @@ the car.  Otherwise return nil."
      (t
       (error "Unsupported spell-checker engine")))))
 
-(defun folio-parse-aspell-suggestions (string)
+(defun folio-aspell-parse-suggestions (string)
   "Parse spelling suggestions for Aspell-compatible programs."
   (let (result)
     (when string
+      (let ((search-spaces-regexp nil)) ;; Treat spaces literally.
+        (save-match-data
+          (when (string-match
+                 "^\\([&*#]\\) \\([^ ]+\\) \\([0-9]+\\)\
+\\( [0-9]+: \\(.+\\)\\)?$" string)
+            (let ((code (match-string 1 string)))
+              (unless (string= code "*")
+                (let* ((misspelled (match-string 2 string))
+                       (count (string-to-number
+                               (match-string 3 string)))
+                       (guess-list (when (string= code "&")
+                                   (split-string
+                                    (match-string 5 string)
+                                    ", " t)))
+                       (guess-count (min count
+                                         (length guess-list))))
+                  (push (cons misspelled
+                              (when guess-list
+                                (subseq
+                                 guess-list 0 guess-count)))
+                        result))))))))
+    result))
+
+(defun folio-aspell-parse-suggestions-multiple (response)
+  "Parse spelling suggestions for Aspell-compatible programs.
+This is like `folio-aspell-parse-suggestions' except that multiple
+responses are parsed."
+  ;; This function is a factor two slower than
+  ;; `folio-aspell-parse-suggestions' extending spellchecking of a 500
+  ;; pages textbook from 23 to more than 50 seconds. It is therefore
+  ;; currently unused.
+  (let (result)
+    (unless (zerop (length response))
       (with-temp-buffer
-        (insert string)
+        (insert response)
         (goto-char (point-min))
         (let ((search-spaces-regexp nil)) ;; Treat spaces literally.
           (save-match-data
             (while (re-search-forward
-                    "^& \\([^ ]+\\) \\([0-9]+\\) [0-9]+: \\(.+\\)$" nil t)
-              (let ((misspelled (match-string-no-properties 1))
-                    (count (string-to-number
-                            (match-string-no-properties 2)))
-                    (guess-list (split-string
-                                 (match-string-no-properties 3) ", " t)))
-                (push (cons misspelled
-                            (folio-sublist
-                             guess-list 0 count)) result)))))))
+                    "^\\([&*#]\\) \\([^ ]+\\) \\([0-9]+\\)\
+\\( [0-9]+: \\(.+\\)\\)?$" nil t)
+              (let ((code (match-string-no-properties 1)))
+                (unless (string= code "*")
+                  (let* ((misspelled (match-string-no-properties 2))
+                         (count (string-to-number
+                                 (match-string-no-properties 3)))
+                         (guess-list (when (string= code "&")
+                                       (split-string
+                                        (match-string-no-properties 5)
+                                        ", " t)))
+                         (guess-count (min count
+                                           (length guess-list))))
+                    (push (cons misspelled
+                                (when guess-list
+                                  (subseq
+                                   guess-list 0 guess-count)))
+                          result)))))))))
     result))
 
+(defun folio-aspell-completed-response-p (response)
+  "Return non-nil if RESPONSE is complete.
+The Aspell program must be in terse mode."
+  (or (string= response "\n")
+      (and (folio-string-suffix-p "\n\n" response)
+           (memq (aref response 0) '(?& ?#)))))
+
 (defun folio-spellcheck-receive-data ()
+  "Retrieve spell-checker results."
   (let* ((buffer (current-buffer))
          (engine (folio-spellcheck-get buffer :engine))
          result)
     (condition-case err
         (cond
          ((eq engine 'aspell)
-          (let ((process (folio-spellcheck-get buffer :process)))
+          (let ((process (folio-spellcheck-get buffer :process))
+                received)
             (when (folio-process-running-p process)
               ;; Intercept and wait for output to arrive in the
               ;; filter.  This call shouldn't hang in select (2), or
@@ -769,15 +822,23 @@ the car.  Otherwise return nil."
               ;; data might get read with the next call to this defun
               ;; which should be okay in most cases.
               (with-local-quit
-                (accept-process-output process))
+                (while (progn
+                         (accept-process-output process)
+                         (not (folio-aspell-completed-response-p
+                               (setq received
+                                     (folio-spellcheck-get
+                                      buffer :received)))))))
               ;; Parse the response here rather than from within the
               ;; filter itself; this makes errors easier to observe.
               ;; Read-write access to the :received variable should be
               ;; naturally synchronized.
-              (setq result
-                    (folio-parse-aspell-suggestions
-                     (folio-spellcheck-get buffer :received)))
-              (folio-spellcheck-put buffer :received nil))))
+              (setq received (split-string received "\n"))
+              (while (string= (car received) "")
+                (pop received))
+              (when (car received)
+                (setq result (folio-aspell-parse-suggestions
+                              (car received))))))
+              (folio-spellcheck-put buffer :received nil))
          ((eq engine 'ns-spellchecker)
           (setq result (folio-spellcheck-get buffer :received))
           (folio-spellcheck-put buffer :received nil))
