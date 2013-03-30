@@ -175,6 +175,42 @@ region."
      ((not a) (list b))
      (t (append (list a) b)))))
 
+
+;;;; text properties
+
+;;;###autoload
+(defun folio-propertize-region (beg end props &optional restrict
+                                    fontify)
+  "Mark a region by adding text properties.
+BEG and END are buffer positions.  PROPS is plist with text
+properties to add or, if UNDO is non-nil, to instead remove.
+Search case-sensitivity is determined by the value of the
+variable `case-fold-search', which see."
+  (with-silent-modifications
+    (if restrict
+        (progn
+          (goto-char beg)
+          (while (re-search-forward restrict end t)
+            (add-text-properties
+             (match-beginning 0) (match-end 0) props)))
+      (add-text-properties beg end props))
+    (when fontify
+      (font-lock-fontify-region beg end))))
+
+;;;###autoload
+(defun folio-unpropertize-region (beg end props &optional
+                                      fontify)
+  "Remove the text properties PROPS from the region BEG, END.
+PROPS and FONTIFY have the same meaning like for
+`folio-propertize-region', which see."
+  (with-silent-modifications
+    (remove-list-of-text-properties beg end props)
+    (when fontify
+      (font-lock-fontify-region beg end))))
+
+
+;;;; motion
+
 ;;;###autoload
 (defun folio-current-line ()
   "Return current line number of point.
