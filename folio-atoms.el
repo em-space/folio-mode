@@ -268,22 +268,65 @@ Return the number of lines left to move."
          value-extract lower-test upper-test))))))
 
 ;;;###autoload
-(defsubst folio-starts-with-p (s beginning)
-  "Return t if string S starts with BEGINNING.
-S or BEGINNING also can be symbols in which case their print
-names are compared.  Text properties are ignored.  See also
-`folio-ends-with-p'."
-  (cond ((>= (length s) (length beginning))
-         (string-equal (substring s 0 (length beginning)) beginning))
-        (t nil)))
+(defsubst folio-string-prefix-p (prefix s &optional ignore-case)
+  "Return non-nil if PREFIX is a prefix of S.
+If IGNORE-CASE is non-nil, the comparison is done without paying
+attention to case differences.  Text properties are ignored.  See
+also `folio-string-suffix-p'."
+  (eq t (compare-strings prefix nil nil
+                         s 0 (length prefix) ignore-case)))
 
 ;;;###autoload
-(defsubst folio-ends-with-p (s ending)
-  "Return t if string S ends with ENDING.
-S or ENDING also can be symbols in which case their print names
-are compared.  Text properties are ignored.  See also
-`folio-starts-with-p'"
-  (string-equal (substring s (- (length ending))) ending))
+(defun folio-string-suffix-p (suffix s &optional ignore-case)
+  "Return non-nil if SUFFIX is a suffix of S.
+If IGNORE-CASE is non-nil, the comparison is done without paying
+attention to case differences.  Text properties are ignored.  See
+also `folio-string-prefix-p'."
+  (let ((s-len (length s))
+        (suffix-len (length suffix)))
+    (when (>= s-len suffix-len)
+      (eq t (compare-strings s (- s-len suffix-len) nil
+                             suffix 0 suffix-len ignore-case)))))
+
+(defun folio-cprintcharfun (c)
+  "Print character function for `folio-cprinc'."
+  (cond
+   ((>= c 127)
+    (format "\\%03o" c))
+   ((eq c ?\\)
+    "\\")
+   ((eq c ?\")
+    "\\\"")
+   ((eq c ?\')
+    "\\'")
+   ((>= c 32)
+    (format "%c" c))
+   ((eq c ?\a)
+    "\\a")
+   ((eq c ?\b)
+    "\\b")
+   ((eq c ?\f)
+    "\\f")
+   ((eq c ?\n)
+    "\\n")
+   ((eq c ?\r)
+    "\\r")
+   ((eq c ?\t)
+    "\\t")
+   ((eq c ?\v)
+    "\\v")
+   (t
+    (format "\\%03o" c))))
+
+(defun folio-cprinc (object)
+  "Print a string representation of OBJECT.
+This is similar to `princ' only that for a string valued OBJECT
+non-printable characters are represented quoted, and 8bit
+characters by their octal codes.  The function is most useful for
+debugging."
+  (if (and object (stringp object))
+      (mapconcat #'folio-cprintcharfun (string-to-list object) "")
+    (princ object)))
 
 ;;;###autoload
 (defun folio-chomp (str)
