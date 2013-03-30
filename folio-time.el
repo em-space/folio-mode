@@ -190,8 +190,8 @@ TIMER should be the timer name used with `folio-define-timer'."
           (funcall notify timer)))
     (error
      (folio-cancel-timer timer)
-     (message "Error in asynchronous execution of timer `%S': %s"
-              timer (car-safe (cdr err))))))
+     (message "Error in asynchronous execution of timer `%S': %S"
+              timer err))))
 
 (defun folio-timer-running-p (timer)
   "Return non-nil if TIMER is running.
