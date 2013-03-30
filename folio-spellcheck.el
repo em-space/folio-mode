@@ -785,7 +785,7 @@ the car.  Otherwise return nil."
           (error "Unsupported spell-checker engine")))
       (error
        (folio-spellcheck-delete buffer)
-       (message "Failure parsing spell-checker data: %s" (cdr err))))
+       (message "Failure parsing spell-checker data: %S" err)))
     result))
 
 
