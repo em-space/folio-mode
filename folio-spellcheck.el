@@ -570,7 +570,7 @@ should not be empty."
 (defsubst folio-spellcheck-preferred-engine (lang)
   "Return the preferred spell-checker for LANG.
 If none is defined return nil."
-  (assoc lang folio-spellcheck-language-engine-alist))
+  (cdr (assoc lang folio-spellcheck-language-engine-alist)))
 
 ;; XXX language options: max number of run-together words; apostrophe
 ;; as word constituent
