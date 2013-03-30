@@ -128,14 +128,14 @@ format the result different from the default, using
                    (time-subtract (or now (current-time))
                                   since))))
 
-(defun folio-yield (count &optional seconds nth)
+(defun folio-yield (&optional count seconds nth)
   "Yield every 10th call and check for pending input.
 COUNT is the current call number or an equivalent thereof.
 SECONDS if non-nil is the maximal time to wait for input.  The
 default is not to wait at all.  NTH if non-nil means to perform
 this check every NTH call instead.  Return t if input is pending
 or nil otherwise.  This function may also trigger a redisplay."
-  (when (zerop (% count (or 10 nth)))
+  (when (or (null count) (zerop (% count (or 10 nth))))
     (save-current-buffer (sit-for (or seconds 0)))))
 
 (defsubst folio-time-elapsed (since)
