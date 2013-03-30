@@ -245,9 +245,9 @@ Return the number of lines left to move."
                                 lower-test upper-test))
 
 ;;;###autoload
-(defun folio-binary-search-internal
-  (value ordered-seq start end
-         value-extract lower-test upper-test)
+(defun folio-binary-search-internal (value ordered-seq start end
+                                           value-extract
+                                           lower-test upper-test)
   (cond
    ((= (- end start) 1)
     (if (and (funcall lower-test
