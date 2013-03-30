@@ -167,25 +167,30 @@ TIMER should be the timer name used with `folio-define-timer'."
       (let ((debug-on-error t)
             (function (folio-timer-get timer :function))
             (args (folio-timer-get timer :args))
-            (notify (folio-timer-get timer :notify)))
+            (notify (folio-timer-get timer :notify))
+            resume)
         (if (folio-timer-get timer :include-runtime)
             (let ((now (current-time)))
-              (apply function args)
+              (setq resume (apply function args))
               (let ((break-time (folio-timer-eval timer :pause)))
                 (when break-time
-                  (while (sit-for (- break-time
-                                     (folio-time-elapsed now)))
-                    (setq now (current-time))
-                    (apply function args)
-                    (setq break-time (folio-timer-eval timer :pause))))))
-          (apply function args)
+                  (while (and resume
+                              (sit-for (- break-time
+                                          (folio-time-elapsed now))))
+                    (setq now (current-time)
+                          resume (apply function args)
+                          break-time (folio-timer-eval
+                                      timer :pause))))))
+          (setq resume (apply function args))
           (let ((break-time (folio-timer-eval timer :pause)))
-            (while (and break-time
+            (while (and resume
+                        break-time
                         (sit-for break-time))
-              (apply function args)
-              (setq break-time (folio-timer-eval timer :pause)))))
-        (when (folio-timer-get timer :repeat)
-          (folio-schedule-timer timer))
+              (setq resume (apply function args)
+                    break-time (folio-timer-eval timer :pause)))))
+        (when resume
+          (when (folio-timer-get timer :repeat)
+            (folio-schedule-timer timer)))
         (when notify
           (funcall notify timer)))
     (error
