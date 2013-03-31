@@ -111,6 +111,13 @@ primitive type, both then also coerced into a flat list."
    (t (list arg))))
 
 
+(defun folio-hash-md5 (buffer)
+  "Return a MD5 message digest of the buffer contents of BUFFER."
+  (if (fboundp 'secure-hash) ;; Emacs 24.
+      (secure-hash 'md5 (current-buffer))
+    (md5 (current-buffer))))
+
+
 ;;;###autoload
 (defun folio-map-range (ra1 ra2 rb1 rb2 f)
   "Linearly map the number F from one into another range.
