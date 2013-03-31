@@ -39,7 +39,7 @@
 ;; `folio-spellcheck-receive-data':
 
 ;;  (folio-with-spellcheck-language "en-US"
-;;    (folio-spellcheck-send-data (list "check" "my" "bad" "spellig")))
+;;    (folio-spellcheck-send-data (list "check" "my" "bad" "spellynges")))
 ;;    (folio-spellcheck-receive-data)))
 ;;
 ;; `folio-spellcheck-receive-data' is implemented to return a list of
@@ -79,7 +79,7 @@
      ("fr" . "francais")
      ("fr-CH" . "suisse")
      ("it" . "italiano")
-     ("grc" . "grc")
+     ("grc" . "grc") ; Ancient Greek
      ("he" . "hebrew")
      ;; ("XXX" . "polish")
      ("nl" . "dutch")
@@ -126,17 +126,17 @@ This alist is used for hunspell.")
      ("de" . "de")
      ("el" . "el")
      ("en" . "en")
-     ;; ("en_AU" . "en_AU")
-     ;; ("en_CA" . "en_CA")
+     ("en-AU" . "en_AU")
+     ("en-CA" . "en_CA")
      ("en-GB" . "en_GB")
      ("es" . "es")
      ("fr" . "fr")
      ("it" . "it")
-     ;; ("nl" . "nl")
-     ;; ("pt_BR" . "pt_BR")
+     ("nl" . "nl")
+     ("pt-BR" . "pt_BR")
      ("pt-PT" . "pt_PT")
      ;; ("ru" . "ru")
-     ;; ("sv" . "sv")
+     ("sv" . "sv")
      ("he" . "he")))
   "Alist mapping language to dictionary name and vice versa.
 This alist is used for NSSpellChecker.")
