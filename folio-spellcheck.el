@@ -33,21 +33,26 @@
 ;; spell-checker language, independent of any spell-checker dependent
 ;; dictionary names.  This language tag can also be used for
 ;; attributing XHTML output formats with xml:lang.
-
+;;
 ;; Spell-checking basically is setup and applied by
 ;; `folio-with-spellcheck-language', `folio-spellcheck-send-data', and
 ;; `folio-spellcheck-receive-data':
-
-;;  (folio-with-spellcheck-language "en-US"
-;;    (folio-spellcheck-send-data (list "check" "my" "bad" "spellynges")))
-;;    (folio-spellcheck-receive-data)))
 ;;
-;; `folio-spellcheck-receive-data' is implemented to return a list of
-;; lists with the misspelled word in the car of a member, and any
-;; suggestions reported by the spell-checker in the member's cdr.
-
+;; (folio-spellcheck-set-buffer (current-buffer))
+;;
+;; (folio-with-spellcheck-language "en-GB"
+;;   (let ((words (list "check" "my" "bad" "spellynges")))
+;;     (while (progn
+;;              (folio-spellcheck-send-data (car words))
+;;              (folio-spellcheck-receive-data)
+;;              (setq words (cdr words)))))))
+;;
+;; `folio-spellcheck-receive-data' is implemented to return a list
+;; with the misspelled word in the car, and any suggestions reported
+;; by the spell-checker in the cdr.
+;;
 ;; The input encoding unconditionally is assumed to be UTF-8.
-
+;;
 ;; The high-level layer is in folio-etaoin-shrdlu.el which also
 ;; includes the actual text scanner extracting individual words and
 ;; the spell-checker drivers.
@@ -712,21 +717,17 @@ the car.  Otherwise return nil."
         (nconc result (ns-spellchecker-get-suggestions word)))
       result)))
 
-(defun folio-spellcheck-send-data (words)
+(defun folio-spellcheck-send-data (word)
   (let* ((buffer (current-buffer))
          (engine (folio-spellcheck-get buffer :engine)))
+    (folio-spellcheck-put buffer :received nil)
     (cond
      ((eq engine 'aspell)
       (let ((process (folio-spellcheck-get buffer :process))
-            (data (concat (mapconcat (lambda (x)
-                                       (concat "^" x))
-                                     words "\n") "\n")))
+            (data (concat "^" word "\n")))
         (process-send-string process data)))
      ((eq engine 'ns-spellchecker)
-      (let ((received
-             (delq nil (mapcar (lambda (x)
-                                 (folio-ns-spellchecker-check
-                                  x buffer)) words))))
+      (let ((received (folio-ns-spellchecker-check word)))
         (when received
           (folio-spellcheck-put
            buffer :received (append (folio-spellcheck-get
@@ -741,60 +742,23 @@ the car.  Otherwise return nil."
       (let ((search-spaces-regexp nil)) ;; Treat spaces literally.
         (save-match-data
           (when (string-match
-                 "^\\([&*#]\\) \\([^ ]+\\) \\([0-9]+\\)\
+                 "^\\([&#]\\) \\([^ ]+\\) \\([0-9]+\\)\
 \\( [0-9]+: \\(.+\\)\\)?$" string)
-            (let ((code (match-string 1 string)))
-              (unless (string= code "*")
-                (let* ((misspelled (match-string 2 string))
-                       (count (string-to-number
-                               (match-string 3 string)))
-                       (guess-list (when (string= code "&")
-                                   (split-string
-                                    (match-string 5 string)
-                                    ", " t)))
-                       (guess-count (min count
-                                         (length guess-list))))
-                  (push (cons misspelled
-                              (when guess-list
-                                (subseq
-                                 guess-list 0 guess-count)))
-                        result))))))))
-    result))
-
-(defun folio-aspell-parse-suggestions-multiple (response)
-  "Parse spelling suggestions for Aspell-compatible programs.
-This is like `folio-aspell-parse-suggestions' except that multiple
-responses are parsed."
-  ;; This function is a factor two slower than
-  ;; `folio-aspell-parse-suggestions' extending spellchecking of a 500
-  ;; pages textbook from 23 to more than 50 seconds. It is therefore
-  ;; currently unused.
-  (let (result)
-    (unless (zerop (length response))
-      (with-temp-buffer
-        (insert response)
-        (goto-char (point-min))
-        (let ((search-spaces-regexp nil)) ;; Treat spaces literally.
-          (save-match-data
-            (while (re-search-forward
-                    "^\\([&*#]\\) \\([^ ]+\\) \\([0-9]+\\)\
-\\( [0-9]+: \\(.+\\)\\)?$" nil t)
-              (let ((code (match-string-no-properties 1)))
-                (unless (string= code "*")
-                  (let* ((misspelled (match-string-no-properties 2))
-                         (count (string-to-number
-                                 (match-string-no-properties 3)))
-                         (guess-list (when (string= code "&")
-                                       (split-string
-                                        (match-string-no-properties 5)
-                                        ", " t)))
-                         (guess-count (min count
-                                           (length guess-list))))
-                    (push (cons misspelled
-                                (when guess-list
-                                  (subseq
-                                   guess-list 0 guess-count)))
-                          result)))))))))
+            (let* ((code (match-string 1 string))
+                   (misspelled (match-string 2 string))
+                   (count (string-to-number
+                           (match-string 3 string)))
+                   (guess-list (when (string= code "&")
+                                 (split-string
+                                  (match-string 5 string)
+                                  ", " t)))
+                   (guess-count (min count
+                                     (length guess-list))))
+              (setq result
+                    (cons misspelled
+                          (when guess-list
+                            (subseq guess-list
+                                    0 guess-count)))))))))
     result))
 
 (defun folio-aspell-completed-response-p (response)
@@ -810,40 +774,40 @@ The Aspell program must be in terse mode."
          (engine (folio-spellcheck-get buffer :engine))
          result)
     (condition-case err
-        (cond
-         ((eq engine 'aspell)
-          (let ((process (folio-spellcheck-get buffer :process))
-                received)
-            (when (folio-process-running-p process)
-              ;; Intercept and wait for output to arrive in the
-              ;; filter.  This call shouldn't hang in select (2), or
-              ;; poll (2), or whatever is behind it; if it does
-              ;; however, quitting should abort it and the response
-              ;; data might get read with the next call to this defun
-              ;; which should be okay in most cases.
-              (with-local-quit
-                (while (progn
-                         (accept-process-output process)
-                         (not (folio-aspell-completed-response-p
-                               (setq received
-                                     (folio-spellcheck-get
-                                      buffer :received)))))))
-              ;; Parse the response here rather than from within the
-              ;; filter itself; this makes errors easier to observe.
-              ;; Read-write access to the :received variable should be
-              ;; naturally synchronized.
-              (setq received (split-string received "\n"))
-              (while (string= (car received) "")
-                (pop received))
-              (when (car received)
-                (setq result (folio-aspell-parse-suggestions
-                              (car received))))))
-              (folio-spellcheck-put buffer :received nil))
-         ((eq engine 'ns-spellchecker)
-          (setq result (folio-spellcheck-get buffer :received))
+        (progn
+          (cond
+           ((eq engine 'aspell)
+            (let ((process (folio-spellcheck-get buffer :process))
+                  received)
+              (when (folio-process-running-p process)
+                ;; Intercept and wait for output to arrive in the
+                ;; filter.  This call shouldn't hang in select (2), or
+                ;; poll (2), or whatever is behind it; if it does
+                ;; however, quitting should abort it and the response
+                ;; data might get read with the next call to this defun
+                ;; which should be okay in most cases.
+                (with-local-quit
+                  (while (progn
+                           (accept-process-output process)
+                           (not (folio-aspell-completed-response-p
+                                 (setq received
+                                       (folio-spellcheck-get
+                                        buffer :received)))))))
+                ;; Parse the response here rather than from within the
+                ;; filter itself; this makes errors easier to observe.
+                ;; Read-write access to the :received variable should be
+                ;; naturally synchronized.
+                (setq received (split-string received "\n"))
+                (while (string= (car received) "")
+                  (setq received (cdr received)))
+                (when (car received)
+                  (setq result (folio-aspell-parse-suggestions
+                                (car received)))))))
+           ((eq engine 'ns-spellchecker)
+            (setq result (folio-spellcheck-get buffer :received)))
+           (t
+            (error "Unsupported spell-checker engine")))
           (folio-spellcheck-put buffer :received nil))
-         (t
-          (error "Unsupported spell-checker engine")))
       (error
        (folio-spellcheck-delete buffer)
        (message "Failure parsing spell-checker data: %S" err)))
