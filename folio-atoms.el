@@ -239,6 +239,53 @@ Return the number of lines left to move."
   (goto-char (point-min))
   (forward-line (1- line)))
 
+;;;###autoload
+(defsubst folio-beginning-of-word-p ()
+  "Move to the beginning of the word at point.
+Return non-nil if point has moved.  See also
+`folio-within-word-p'."
+  (and (not (eq (char-syntax (or (char-before) ?\u0000)) ?w))
+       (eq (char-syntax (or (char-after) ?\u0000)) ?w)
+       t))
+
+;;;###autoload
+(defsubst folio-end-of-word-p ()
+  "Return non-nil if point is at the end of a word.
+See also `folio-within-word-p'."
+  (and (eq (char-syntax (or (char-before) ?\u0000)) ?w)
+       (not (eq (char-syntax (or (char-after) ?\u0000)) ?w))
+       t))
+
+;;;###autoload
+(defsubst folio-within-word-p ()
+  "Return non-nil if point is within a word.
+A word is defined as any stretch of characters from the syntax
+class of word constituents.  By the definition of this function
+the return value is nil if point is before the first character of
+a word but non-nil if it is at the last character."
+  (eq (char-syntax (or (char-after) ?\u0000)) ?w))
+
+;;;###autoload
+(defun folio-beginning-of-word ()
+  "Move to the beginning of the word at or before point.
+Return non-nil if point has moved.  See also
+`folio-within-word-p' and `folio-end-of-word-p'."
+  (if (and (not (folio-beginning-of-word-p))
+           (or (folio-within-word-p)
+               (folio-end-of-word-p)))
+      (and (forward-word -1) t)
+    nil))
+
+;;;###autoload
+(defun folio-end-of-word ()
+  "Move to the end of the word at point.
+Return non-nil if point has moved.  See also
+`folio-beginning-of-word'."
+  (if (or (folio-within-word-p)
+          (folio-beginning-of-word-p))
+      (and (forward-word 1) t)
+    nil))
+
 
 ;;;; search algorithms
 
