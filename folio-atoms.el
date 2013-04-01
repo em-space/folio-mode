@@ -32,6 +32,8 @@
 ;; Randomize the seed in the random number generator.
 (random t)
 
+;;;; lists
+
 ;;;###autoload
 (defsubst folio-filter-list (list pred)
   "Filter the elements of LIST according to the predicate PRED."
@@ -127,6 +129,9 @@ numbers."
   (+ (float rb1) (* (- (float f) ra1)
                     (/ (- rb2 (float rb1)) (- ra2 (float ra1))))))
 
+
+;;;; cyclic state variables.
+
 ;;; XXX unused
 (defun folio-cycle-state-scope (state item pred)
   (let ((last-scope (get state 'folio-cycle-scope))
@@ -163,6 +168,8 @@ index positions of the old and the new state.
     (cons current next)))
 
 
+;;;; regions
+
 (defun folio-join-regions (a b)
   "Join regions A and B.
 Either region may be nil, and regions may intersect or be
@@ -215,8 +222,8 @@ PROPS and FONTIFY have the same meaning like for
     (when fontify
       (font-lock-fontify-region beg end))))
 
-
 ;;;; motion
+
 
 ;;;###autoload
 (defun folio-current-line ()
@@ -231,6 +238,9 @@ For absolute line numbers, narrowing must not be in effect."
 Return the number of lines left to move."
   (goto-char (point-min))
   (forward-line (1- line)))
+
+
+;;;; search algorithms
 
 ;;; XXX TODO change those to accept &rest args, and pop keywords
 ;;;###autoload
@@ -273,6 +283,9 @@ Return the number of lines left to move."
            middle value-extract lower-test upper-test)
         (folio-binary-search-internal value ordered-seq middle end
          value-extract lower-test upper-test))))))
+
+
+;;;; string helper
 
 ;;;###autoload
 (defsubst folio-string-prefix-p (prefix s &optional ignore-case)
@@ -378,6 +391,8 @@ If POS is nil check the character at point instead."
   (not (folio-lower-case-char-at-p (or pos (point)))))
 
 
+;;;; windows
+
 ;;;###autoload
 (defun folio-copy-other-window (beg end)
   "Copy region text or word to buffer in other window.
@@ -395,6 +410,8 @@ Text properties are not retained."
       (user-error "No word nearby"))))
 
 
+;;;; pilot-machine interface
+
 ;;;###autoload
 (defmacro folio-with-muted-message (&rest body)
   "Redefine `message' to be silent.
@@ -406,10 +423,27 @@ return restore the normal behaviour of `message'."
          (progn ,@body)
        (fset 'message save-message))))
 
+;;;###autoload
+(defmacro folio-called-interactively-p (&optional kind)
+  "Return t if the containing function was called by `call-interactively'.
+With Emacs versions 23.2 or later this is equivalent to calling
+`called-interactively-p'."
+  (if (or (> emacs-major-version 23)
+          (and (= emacs-major-version 23)
+               (>= emacs-minor-version 2)))
+      ;; The KIND argument to called-interactively-p was introduced
+      ;; with Emacs 23.2.
+      `(with-no-warnings (called-interactively-p ,kind))
+    `(interactive-p)))
+
+
+;;;; external processes
+
 (defsubst folio-process-running-p (process)
   "Return t if PROCESS is running."
   (eq 'run (process-status process)))
 
+
 (provide 'folio-atoms)
 
 ;; Local Variables:
