@@ -5,28 +5,36 @@
 ;; Author: Christoph W. Kluge <shift.in.emphasis@gmail.com>
 ;; Keywords: wp
 
-;; This program is free software; you can redistribute it and/or modify
+;; This file is not part of GNU Emacs.
+
+;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; This program is distributed in the hope that it will be useful,
+;; This file is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this file.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
-;; XXX
+;; This package adds general support for languages and scripts to
+;; Folio mode.  That includes stop words and language guessing,
+;; ordinal suffixes, bidirectional formatting codes, and in particular
+;; the defun `folio-language-info' for retrieving data stored in
+;; key-value form for a given BCP 47 language tag.
 
 ;;; Code:
 
-;; XXX ordinal suffixes
 ;; XXX words not ending sentences: direct, indirect articles, pronouns
-;; XXX guess language
+;; XXX kinsoku processing--punctuation: EOL: opening parentheses,
+;;   opening quotes, English 'I'
+
+(require 'folio-time)
 
 ;;;###autoload
 (defun folio-pluralize (word number)
@@ -575,7 +583,7 @@ possible values of KEY and SUB-KEY see
             (let* ((lang (car x))
                    (regexp (cdr (assoc 'regexp (cdr x))))
                    (lang-score (or (when regexp
-                                     ;; Might (folio-yield 0) here.
+                                     (folio-yield)
                                      (folio-guess-language-1
                                       regexp words)) 0)))
               (when (or (null score)
