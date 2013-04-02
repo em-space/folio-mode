@@ -50,6 +50,14 @@
   :group 'folio
   :version "24.1")
 
+(defcustom folio-pgdp-projects-url "http://www.pgdp.net/projects/"
+  "HTTP base URL for PGDP projects.
+This URL for instance is used to fetch the DC document for an
+e-text from."
+  :tag "Folio base URL for PGDP projects"
+  :group 'folio-technical
+  :type 'string)
+
 (defconst folio-save-version "1.0"
   "Format version for the project save file.")
 
