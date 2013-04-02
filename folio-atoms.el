@@ -483,6 +483,16 @@ With Emacs versions 23.2 or later this is equivalent to calling
       `(with-no-warnings (called-interactively-p ,kind))
     `(interactive-p)))
 
+;;;###autoload
+(defun folio-user-error (format &rest args)
+  "Signal a pilot error, making error message by passing all args
+to `format'.  This defun is identical to `user-error' that was
+introduced with Emacs 24."
+  (if (> emacs-major-version 23)
+      (user-error format args)
+    (while t
+      (signal 'user-error (list (apply #'format format args))))))
+
 
 ;;;; external processes
 
