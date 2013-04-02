@@ -58,6 +58,16 @@ e-text from."
   :group 'folio-technical
   :type 'string)
 
+(defcustom folio-inverted-scrolling nil
+  "If non-nil revert the vertical scrolling direction such that
+scrolling up makes contents scroll down and vice versa.  This
+option might be convenient to Mac OS X users with a touch pad;
+users of a mouse wheel might want to leave this option
+off (nil)."
+  :tag "Folio Whether to invert the scrolling direction"
+  :type 'boolean
+  :group 'folio)
+
 (defconst folio-save-version "1.0"
   "Format version for the project save file.")
 
