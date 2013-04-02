@@ -22,7 +22,7 @@
 
 ;;; Commentary:
 
-;; This package provides defuns for processing Doublin Core documents.
+;; This package provides defuns for processing Dublin Core documents.
 
 ;;; Code:
 
