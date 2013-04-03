@@ -597,43 +597,6 @@ is reset when read."
     (folio-spellcheck-send-data word)
     (folio-spellcheck-receive-data)))
 
-(defun xxx-folio-vocabulary-check-word (word pos previous-check doublon)
-  "Process WORD at POS before updating the vocabulary table.
-Prepare a return value that if non-nil is stored in the value to the
-key WORD.  FIRST-OCCURRENCE is non-nil if this is the first occurrence
-of WORD in the current buffer."
-  (let ((spelling (when (zerop (car previous-check))
-                    (let ((poss (progn
-                                  (folio-spellcheck-send-data word)
-                                  (folio-spellcheck-receive-data))))
-                      (when poss
-                        (cons folio-spellcheck-current-language
-                              (cdr poss))))))  ; miss-list
-        (check previous-check)
-        props)
-    (when (car spelling)
-      (setq props (plist-put props 'folio-misspelled t))
-      ;; Update table data in cdr.
-      (setcdr check spelling))
-    (when (or doublon (and previous-check
-                           (cdr previous-check)
-                           (not (zerop (car previous-check)))))
-
-      (setq props (plist-put props 'folio-doublon t))
-      ;; Propertize sibling ...
-      (if doublon
-          (folio-spellcheck-propertize
-           doublon (+ doublon (length word)) props)
-        (folio-spellcheck-propertize
-         pos (+ pos (length word)) props)))
-    ;; ... and the original itself.
-    (when (or (car spelling) doublon)
-      (folio-spellcheck-propertize
-       pos (+ pos (length word)) props))
-    ;; Update table data in car.
-    (setcar check (1+ (car check)))
-    check))
-
 (defun folio-vocabulary-process-word (word pos doublon)
   "Process WORD at POS before updating the vocabulary table.
 DOUBLON if non-nil marks WORD as a doublon."
@@ -689,31 +652,7 @@ This function moves point.  Also match data is modified."
             (folio-vocabulary-process-word word pos doublon)))))
     (set-marker folio-vocabulary-marker (point))))
 
-(defun xxx-folio-vocabulary-process-chunk (buffer beg end)
-  "Collect and process words in the region defined by BEG and END.
-This function moves point.  Also match data is modified."
-  (goto-char beg)
-  (while (re-search-forward folio-vocabulary-regexp end t)
-    (unless (and (null folio-apostrophe-always-word-constituent)
-                 (eq (char-before) ?')
-                 (member (char-syntax (or (char-before 2) ?w))
-                         '(?\ ?.)))
-      (let* ((check (match-string 1))
-             (skip (get-text-property
-                    0 'folio-spellcheck-skip check)))
-        (unless skip
-          (let* ((word (substring-no-properties check))
-                 (current (gethash word folio-vocabulary (cons 0 nil)))
-                 (pos (match-beginning 1))
-                 (doublon (match-beginning 3))
-                 (next (folio-vocabulary-check-word
-                        word pos current doublon)))
-            ;; font-lock fontification of the region is deferred to the
-            ;; `folio-vocabulary-build-progress-hooks'.
-            (puthash word next folio-vocabulary)))))
-    (set-marker folio-vocabulary-marker (point))))
-
-;folio-dict-entry-substitute-functions
+;; XXX folio-dict-entry-substitute-functions
 
 (defun folio-vocabulary-build-active-p (&optional buffer-or-name)
   "Return non-nil if a vocabulary build is in progress.
