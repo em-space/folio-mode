@@ -72,7 +72,7 @@ spelling and punctuation.  This heading must be child to
          (context (when (and (> (length item-data) 3)
                              (> (length (elt item-data 3)) 1))
                     (elt item-data 3)))
-         (item (format "Page %d, \"%s\" ammended to \"%s"
+         (item (format "Page %d, \"%s\" corrected to \"%s"
                        page bad good)))
     (if context
         (progn
