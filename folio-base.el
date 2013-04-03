@@ -579,6 +579,17 @@ hook."
       (error "failure restoring project data.")))))
 
 
+(defun folio-delete-processes ()
+  "Delete all inferior Folio mode processes.
+Retain processes having the `query-on-exit' flag set."
+  (dolist (p (process-list))
+    (cond ((or (memq (process-status p) '(exit signal closed))
+               (and (not (process-query-on-exit-flag p))
+                    (folio-string-prefix-p
+                     "folio-" (process-name p)))
+           (delete-process p))))))
+
+
 (provide 'folio-base)
 
 ;;; folio-base.el ends here
