@@ -102,13 +102,13 @@ maybe are unique."
   :type 'number)
 
 (defcustom folio-vocabulary-build-delay 0.3
-  "Time in seconds to wait before resuming vocabulary build and spellcheck."
+  "Time in seconds to wait before resuming vocabulary build and spell-check."
   :group 'folio-spellcheck
   :tag "Vocabulary Build Delay"
   :type 'number)
 
 (defcustom folio-vocabulary-build-pause 0.1
-  "Time in seconds to pause a vocabulary build or spellcheck run."
+  "Time in seconds to pause a vocabulary build or spell-check run."
   :group 'folio-spellcheck
   :tag "Vocabulary Build Pause"
   :type 'number)
@@ -535,7 +535,7 @@ If END is non-nil read the arguments as a region."
 
 (defvar folio-spellcheck-props
   '(folio-spellcheck folio-misspelled folio-doublon)
-  "*List of text properties used in spellchecking.")
+  "*List of text properties used in spell-checking.")
 
 (defun folio-spellcheck-propertize (beg end props)
   "Mark a region interesting by adding spellchecker properties.
@@ -748,7 +748,7 @@ pending input is observed."
                       (format "%s: %d words, "
                               (buffer-name buffer)
                               (count-words (point-min) (point-max)))
-                      (format "%d unique words spellchecked, "
+                      (format "%d unique words spell-checked, "
                               (folio-vocabulary-word-count))
                       (format "%d misses, "
                               (folio-vocabulary-miss-count))
@@ -829,6 +829,9 @@ pending input is observed."
 ;; START, END, and OLD-LEN have the usual meanings, see `XXX'.")
 
 (defun folio-spellcheck-font-lock-matcher (bound prop)
+  "Return a FontLock matcher suitable for spell-checking.
+Perform buffer scanning within the boundaries of point and BOUND.
+PROP is the text property to check."
   (let ((opoint (point))
         match)
     (while (and (null match) (< (point) bound))
@@ -845,20 +848,27 @@ pending input is observed."
     match))
 
 (defsubst folio-spellcheck-font-lock-misspelled (bound)
+  "Return a FontLock matcher for misspelled words."
   (folio-spellcheck-font-lock-matcher bound 'folio-misspelled))
 
 (defsubst folio-spellcheck-font-lock-doublon (bound)
+  "Return a FontLock matcher for doublons."
   (folio-spellcheck-font-lock-matcher bound 'folio-doublon))
 
 (defvar folio-spellcheck-font-lock-misspelled-keywords
   (list (list #'folio-spellcheck-font-lock-misspelled
-              0 (quote 'folio-misspelled) 'prepend)))
+              0 (quote 'folio-misspelled) 'prepend))
+  "FontLock keywords for misspelled words using matcher.")
 
 (defvar folio-spellcheck-font-lock-doublon-keywords
   (list (list #'folio-spellcheck-font-lock-doublon
-              0 (quote 'folio-doublon) 'prepend)))
+              0 (quote 'folio-doublon) 'prepend))
+  "FontLock keywords for doublons using matcher.")
 
 (defun folio-spellcheck-font-lock (&optional disable)
+  "Enable or disable FontLock for spell-checking.
+If DISABLE is nil register FontLock keywords using a suitable matcher,
+otherwise remove the keywords."
   (if disable
       (progn
         (font-lock-remove-keywords
@@ -884,7 +894,8 @@ pending input is observed."
 
 ;; TODO after-change, outline-view-change-hook?
 
-(defun folio-spellcheck-add-local-hooks (buffer &optional undo)
+(defun folio-spellcheck-add-local-hooks (buffer &optional remove)
+  "Register or deregister local mode hooks."
   (with-current-buffer buffer
     (dolist (hook '((kill-buffer-hook
                      . folio-spellcheck-kill-buffer-hook)
@@ -897,12 +908,13 @@ pending input is observed."
                      . folio-locate-word)
                     (folio-word-substitution-functions
                      . folio-replace-word)))
-      (if undo
+      (if remove
           (remove-hook (car hook) (cdr hook) t)
         (add-hook (car hook) (cdr hook) nil t)))))
 
 (defsubst folio-spellcheck-remove-local-hooks (buffer)
-  (folio-spellcheck-add-local-hooks buffer 'undo))
+  "Deregister local mode hooks."
+  (folio-spellcheck-add-local-hooks buffer 'remove))
 
 
 ;;;; Mode setup and teardown
