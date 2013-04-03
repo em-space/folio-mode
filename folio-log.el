@@ -90,9 +90,7 @@ spelling and punctuation.  This heading must be child to
 (defun folio-log-spelling-correction (entry)
   "Log an entry for a correction in spelling or punctuation."
   (interactive "sEntry: ")
-
   (with-current-buffer (folio-get-log-buffer (current-buffer))
-
     (goto-char (point-min))
     (let ((pos (condition-case nil
                    (org-find-olp `(,folio-log-correction-heading
@@ -117,25 +115,25 @@ spelling and punctuation.  This heading must be child to
           (while (> (or (org-current-level) 1) 1)
             (org-promote-subtree))
           (forward-line 1)
-          (org-end-of-subtree nil)))
-      (end-of-line)
-      (when (= (forward-line 1) 1)
-        (insert "\n"))
-      (let ((struct (org-list-struct)))
-        (if struct
-            (progn
-              (org-end-of-item-list)
-              (when (org-at-heading-p)
-                (forward-char -1))
-              (org-insert-heading)
-              (end-of-line))
-          (insert-char ?\ (1+ (org-current-level)))
-          (insert (org-list-bullet-string "-"))))
-      (insert (if (listp entry)
-                  (folio-log-format-spelling-correction entry)
-                entry)))
-    (org-end-of-item-list)
-    (forward-char -1)))
+          (org-end-of-subtree nil))
+        (end-of-line)
+        (when (= (forward-line 1) 1)
+          (insert "\n"))
+        (let ((struct (org-list-struct)))
+          (if struct
+              (progn
+                (org-end-of-item-list)
+                (when (org-at-heading-p)
+                  (forward-char -1))
+                (org-insert-heading)
+                (end-of-line))
+            (insert-char ?\ (1+ (org-current-level)))
+            (insert (org-list-bullet-string "-"))))
+        (insert (if (listp entry)
+                    (folio-log-format-spelling-correction entry)
+                  entry)))
+      (org-end-of-item-list)
+      (forward-char -1))))
 
 
 (provide 'folio-log)
