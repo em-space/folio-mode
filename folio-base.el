@@ -136,10 +136,12 @@ not auxillary modes like folio-image-mode, or folio-form-mode."
     (derived-mode-p 'folio-text-mode 'folio-xhtml-mode)))
 
 ;;;###autoload
-(defun folio-mode-buffer-p ()
+(defun folio-mode-buffer-p (&optional buffer)
   "Return non-nil if the current buffer is a Folio major mode buffer.
-For definition of a Folio major mode, see `folio-mode-p'."
-  (folio-mode-p major-mode))
+If BUFFER is non-nil query that buffer instead.  For definition
+of a Folio major mode, see `folio-mode-p'."
+  (with-current-buffer (or buffer (current-buffer))
+    (folio-mode-p major-mode)))
 
 ;;;###autoload
 (defun folio-parent-buffer-track-kill ()
