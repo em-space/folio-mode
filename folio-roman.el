@@ -26,27 +26,31 @@
 ;; `folio-arabic-to-roman' and `folio-roman-to-arabic' currently do
 ;; not support the archaic writing system for large numbers (4000 and
 ;; above) that used horizontal bars above a numeral to indicate
-;; multiplication: _M = 1000,000.  The largest number that can be
+;; multiplication: _M = 1,000,000.  The largest number that can be
 ;; written in Roman numerals is 3,999,999.  The Roman numeral system
 ;; did not include zero and Romans had no concept of it in their
 ;; arithmetic.
 
-;; To add some more lore, in the Middle Ages, Latin writers used
-;; additional vertical lines on either side of the numeral to denote
-;; one hundred times the number.  So an M with a horizontal bar above
-;; and two vertical lines on either side was 1,000 x 1,000 x 100 = one
-;; hundred million.  Alternatively "parentheses" were used, C and its
-;; mirror or upside down C, and the letter I to denote multiplication
-;; by 1000: (I) (resembling M) is 1,000, and (X) 10,000.  In medieval
-;; texts and some early printed books, the numerals are written in
-;; lower case letters and u was frequently substituted for v.  In the
-;; final position of the numeral, j could be used instead of i.  So 18
-;; could be written xuiij rather than XVIII.  These substitutions are
-;; particularly found in italic fonts.
+;; To add some more lore, in ancient Rome and the Middle Ages, for
+;; unwieldy large numbers, Latin writers used additional vertical
+;; lines on either side of the numeral to denote one hundred times the
+;; number.  So an M with a horizontal bar above and two vertical lines
+;; on either side was 1,000 x 1,000 x 100 = one hundred million.
+;; Alternatively, Etruscan "parentheses" were used, C and its mirror
+;; and the letter I to denote multiplication by 1,000: (I) (resembling
+;; M) is 1,000, and (X) 10,000.  In medieval texts the numerals often
+;; are written in lower case letters and u was frequently substituted
+;; for v.  In the final position of the numeral, minim j could be used
+;; instead of i.  So 18 could be written xviij or xuiij rather than
+;; XVIII.[1][2]
+;;
+;; [1] Savage, William, 1841, A Dictionary of the Art of Printing.
+;; [2] Donaldson, John Wiliam, 1852, Varronianus: a Critical and
+;;     Historical Introduction to the Ethnography of Italy and to the
+;;     Philological Study of the Latin Language.
+
 
 ;;; Code:
-
-(require 'cl) ;; for coerce
 
 (defconst folio-arabic-numeral "Arabic"
   "Symbol definition for uses of arabic numerals.")
@@ -93,14 +97,14 @@ case; see `downcase'."
   (when (zerop number)
     (signal 'arith-error '(number)))
   (let ((rest number)
-        (result '()))
+        result)
     (while (> rest 0)
       (mapc (lambda (x)
               (while (>= rest (car x))
-                (setq result (append result (cdr x)))
-                (setq rest (- rest (car x)))))
+                (setq result (append result (cdr x))
+                      rest (- rest (car x)))))
             folio-roman-arabic-numerals-alist))
-    (coerce result 'string)))
+    (apply #'string result)))
 
 (defun folio-roman-to-arabic-recur (rest last sum)
   "Recursive helper for `folio-roman-to-arabic'."
@@ -122,20 +126,15 @@ The parameter ARCHAIC is meant for the old Roman system using
 horizontal lines above a numeral to denote multiplication.  It
 currently is ignored.  Return the value of NUMERAL as a decimal
 integer."
+  ;; Coerce the string of roman numerals NUMERAL into a list of
+  ;; characters and recursively sum up their decimal values.
   (folio-roman-to-arabic-recur
-      ;; Coerce the string of roman numerals NUMERAL into a list of
-      ;; characters and recursively sum up their decimal values.
       (mapcar (lambda (x)
                 (or (cdr (assoc x folio-arabic-roman-numerals-alist))
                     (signal 'arith-error '(numeral))))
-              (nreverse (append (upcase numeral) nil)))
-      0 0))
+              (nreverse (append (upcase numeral) nil))) 0 0))
 
 
 (provide 'folio-roman)
-
-;; Local Variables:
-;; byte-compile-warnings: (not cl-functions)
-;; End:
 
 ;;; folio-roman.el ends here
