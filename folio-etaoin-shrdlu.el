@@ -1025,7 +1025,7 @@ restricted to it."
     (setq folio-spellcheck-mode nil)))
 
 ;;;###autoload
-(custom-add-option 'folio-mode-hook 'folio-spellcheck-mode-enable)
+(custom-add-option 'folio-text-mode-hook 'folio-spellcheck-mode-enable)
 
 ;;;###autoload
 (defun turn-on-folio-spellchecking ()
