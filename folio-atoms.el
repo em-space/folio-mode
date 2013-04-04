@@ -454,7 +454,7 @@ Text properties are not retained."
           ;; a history variable
           (other-window 1)
           (insert s))
-      (user-error "No word nearby"))))
+      (folio-user-error "No word nearby"))))
 
 
 ;;;; pilot-machine interface
@@ -488,10 +488,10 @@ With Emacs versions 23.2 or later this is equivalent to calling
   "Signal a pilot error, making error message by passing all args
 to `format'.  This defun is identical to `user-error' that was
 introduced with Emacs 24."
-  (if (> emacs-major-version 23)
+  (if (fboundp 'user-error)
       (user-error format args)
     (while t
-      (signal 'user-error (list (apply #'format format args))))))
+      (signal 'folio-user-error (list (apply #'format format args))))))
 
 
 ;;;; external processes
