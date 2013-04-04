@@ -32,6 +32,9 @@
 (require 'folio-base)
 (require 'folio-core)
 
+;; XXX:TODO add support for ezimage
+;; XXX:TODO maintain text line detector & sync with point
+
 (defgroup folio-image nil
   "Settings for the handling of images."
   :tag "Image handling"
