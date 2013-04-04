@@ -154,10 +154,10 @@ index positions of the old and the new state.
         current next test scope)
     (when keywords
       (while (keywordp (car keywords))
-        (pcase (pop keywords)
-          (`:test (setq test (list :test (pop keywords))))
-          (`:scope (setq scope (pop keywords)))
-          (_ (error "unknown keyword")))))
+        (case (pop keywords)
+          (:test (setq test (list :test (pop keywords))))
+          (:scope (setq scope (pop keywords)))
+          (t (error "Unknown keyword")))))
     (setq current (or (when item
                         (apply 'cl-position
                                item (symbol-value state) test))
