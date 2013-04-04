@@ -78,10 +78,10 @@
   :value-create 'folio-dict-item-value-create
   :value-to-internal 'folio-dict-item-value-to-internal
   :notify 'folio-dict-item-notify
-;;  :keymap folio-dict-keymap ;; XXX
+  ;; :keymap folio-dict-keymap ;; XXX
   :format "%[%v%]\n")
 
-(defun folio-dict-item-notify (widget _child &optional event) ;; XXX
+(defun folio-dict-item-notify (widget _child &optional event) ;; XXX remove
   (message "XXX dict item notify value %s--event %S"
            (list (widget-get widget :dict-value)) event)
   (widget-default-notify widget _child event))
@@ -194,16 +194,13 @@ Reuse :args cache if it exists."
           (push '(const :tag "<no entries>") children))
         (nreverse children))))
 
-(defun folio-dict-node-notify (widget child &optional event)
+(defun folio-dict-node-notify (widget child &optional event) ;; XXX remove?
   "Pass notification to parent."
   (message "dict node notify child %S event %S" (car-safe child) (car-safe event))
   (if nil ;;(eq (car-safe event) 'substitute)
       (widget-apply (widget-get widget :parent) :notify widget event)
-    (message "--- dict node default action")
+    (message "XXX --- dict node default action")
     (widget-default-action widget event)))
-;; Engen
-;(and (setq y (widget-create 'folio-dict-node
-;                      :dict-value (folio-widget-dict-lookup "Ransome"))) t)
 
 (defvar folio-dict-entry-keymap
   (let ((map (copy-keymap widget-keymap)))
@@ -212,12 +209,6 @@ Reuse :args cache if it exists."
     (define-key map (kbd "<M-left>") 'folio-dict-entry-previous)
     map)
   "Keymap for the dictionary widget.")
-
-
-;;(define-widget 'folio-dict-entry-item 'item
-;;  ""
-;;  :value-create 'folio-dict-entry-item-value-create
-;;  :format "%[%v%]")
 
 (define-widget 'folio-dict-entry 'tree-widget
   ""
@@ -246,7 +237,6 @@ The widget maintains a misspelled word and its frequency count."
 (make-variable-buffer-local 'folio-dict-entry-choice)
 
 (defun folio-dict-entry-item-value-create (widget)
-;;ZZZ  (let* ((word (car (widget-get widget :value)))
   (let* ((word (widget-get widget :value))
          (focused (widget-get (widget-get widget :parent) :focus-entry))
          (frequency (or (widget-apply widget :frequency-lookup word) 0))
@@ -417,11 +407,6 @@ children of WIDGET."
     (goto-char (widget-get
                 (car (widget-get widget :children)) :from))))
 
-;(and (setq z (widget-create 'folio-dict-entry
-;                      :value "Ransome")) t)
-
-
-
 (define-widget 'folio-dict 'repeat
   ""
   :value-create 'folio-dict-value-create
@@ -437,22 +422,16 @@ children of WIDGET."
   :num-keys 15
   :context-keys 1)
 
-
-;; XXX folio-dict- folio-form-dict-
-
 (defun folio-dict-value-create (widget)
   "XXX"
   (widget-put widget :value-pos (copy-marker (point)))
   (set-marker-insertion-type (widget-get widget :value-pos) t)
   (let* ((keys (delq nil (widget-get widget :value)))
-         (i 0);;(or (widget-get widget :key-index) 0))
+         (i 0)
          (j (min (length keys)
                  (+ i (or (widget-get widget :num-keys) 10))))
          children)
-;;    (message "dict create keys %s" (length keys))
     (while (< i j)
-  ;;    (message "create i %s j %s key %s" i j (nth i keys))
-
       (push (widget-editable-list-entry-create
              widget
              (nth i keys) t) children)
@@ -466,31 +445,8 @@ children of WIDGET."
          `(const :tag "         <no entries>")))))
 
 
-;  (remove-hook 'folio-word-occurrence-functions 'folio-locate-word t)
+;;  (remove-hook 'folio-word-occurrence-functions 'folio-locate-word t)
 
-(defun folio-dict-fill (widget)
-  (message "fill 00-index %s" (widget-get widget :key-index))
-  (let* ((children (widget-get widget :children))
-;;         (keys (widget-get widget :keys))
-         (keys (delq nil (widget-get widget :value)))
-;;         (index (if (length children)
-;;                    -1
-;;                  (or (widget-get widget :key-index) -1)))
-         (index (min (or (widget-get widget :key-index) -1)
-                     (- (length keys) 2)))
-         (i (length children))
-         (j (min (- (length keys) i)
-                 (or (widget-get widget :num-keys) 10))))
-    (message "fill i %s j %s index %s keys %s children %s"
-             i j index (length keys) (length children))
-    (while (< i j)
-      (setq i (1+ i)
-            index (1+ index))
-      (message "fill i %s j %s index %s key %s" i j index (nth index keys))
-      (widget-apply widget :insert-after (nth index keys))); nil 'nosetup))
-    (unless (equal index (widget-get widget :key-index))
-      (widget-put widget :key-index index)
-      (widget-apply widget :focus))))
 
 (defun folio-dict-notify (widget child &optional event)
   "Pass notification to parent."
@@ -517,8 +473,8 @@ children of WIDGET."
                             (caadr event) (cdadr event))))
 
      ((eq (car-safe event) 'dict-apply)
-;;dict notify XXX child folio-dict-entry event (dict-apply accept-session "Alleyne")
-    ;;  (widget-apply widget :focus 1)
+      ;;dict notify XXX child folio-dict-entry event (dict-apply accept-session "Alleyne")
+      ;;  (widget-apply widget :focus 1)
       ;; XXX 'delete word
       (widget-apply widget :delete-at child)
       (folio-with-parent-buffer
@@ -526,20 +482,11 @@ children of WIDGET."
                             `(,(cadr event) ,(caddr event))))
       (message "XXX dict apply word %s" (caddr event))
       (folio-dict-filter-value-reset)
-;;      (message "dict apply pre %s" (widget-value widget))
-;;      (message "dict apply post %s" (remove (caddr event) (widget-value widget)))
-;;      (widget-value-set widget
-;;                        (remove (caddr event) (widget-value widget)))
-;;      (folio-dict-fill widget)
-;;      (widget-setup)
       t)
      ((eq (car-safe event) 'dict-focus)
-      (message "dict notify focus 2 child %s" (car-safe child))
+      (message "XXX dict notify focus 2 child %s" (car-safe child))
       (widget-apply widget :focus child))
      (t
-;      (message "dict notify focus 2 child %s" (car-safe child))
-;      (widget-default-notify widget child event)
-   ;;   (widget-apply widget :focus child)
       nil)))
    (t
     (message "XXX dict notify default")
@@ -548,7 +495,6 @@ children of WIDGET."
 (defun folio-dict-insert-before (widget value &optional before)
   "This is like `widget-editable-list-insert-before' except that a
 list entry is created by value."
-
   ;; Insert a new child in the list of children.
   (save-excursion
     (let ((children (widget-get widget :children))
@@ -665,7 +611,6 @@ list entry is created by value."
               (children (widget-get widget :children)))
           (when children
             (let ((keys (widget-get widget :value)))
-              ;; XXX (message "children %s keys %s" (length children) (length keys))
               (if arg
                   (let ((new-index (min (1+ index)
                                         (1- (length keys)))))
@@ -705,18 +650,6 @@ list entry is created by value."
 (defun folio-dict-entry-previous ()
   (interactive)
   (folio-dict-scroll-down (point)))
-
-
-;(defun widget-delete-button-action (widget &optional _event)
-;  ;; Ask the parent to insert a new item.
-;  (widget-apply (widget-get widget :parent)
-;               :delete-at (widget-get widget :widget)))
-
-
-;(and (setq d (widget-create 'folio-dict)) t)
-
-
-;;;; XXX button action first insert then delte old word
 
 (defun folio-dialog-spellcheck-page ()
   "Create the spell-checking page for the Folio mode project buffer."
