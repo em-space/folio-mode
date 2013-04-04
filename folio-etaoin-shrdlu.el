@@ -202,17 +202,31 @@ list of suggestions."
   "Return the word count for the vocabulary entry ENTRY."
   (or (car entry) 0))
 
-(defun folio-vocabulary-entry-dict (entry)
-  "Return the dictionary data for the vocabulary entry ENTRY."
-  (cdr entry))
+(defsubst folio-vocabulary-entry-dict (entry)
+  "Return the dictionary data for the vocabulary entry ENTRY.
+This defun is meant for de-structuring the entry only.  Higher
+level functions most certainly want to make use of
+`folio-vocabulary-word-count', `folio-vocabulary-miss-count' and
+`folio-vocabulary-dict-list'."
+  (cadr entry))
 
-(defun folio-vocabulary-word-count ()
-  "Return the number of unique words in the vocabulary."
-  (or (and folio-vocabulary (hash-table-count folio-vocabulary))
-      0))
+(defun folio-vocabulary-word-count (&optional word)
+  "Return the number of unique words in the vocabulary.
+If WORD is non-nil return its frequency count instead.
+Higher level functions most certainly want to make use of
+`folio-vocabulary-word-count', `folio-vocabulary-miss-count' and
+`folio-vocabulary-dict-list'."
+  (if word
+      (folio-vocabulary-entry-count
+       (folio-vocabulary-get-entry word))
+    (or (and folio-vocabulary (hash-table-count folio-vocabulary))
+        0)))
 
 (defun folio-vocabulary-miss-count ()
-  "Return the number of misspelled words in the vocabulary."
+  "Return the number of misspelled words in the vocabulary.
+Higher level functions most certainly want to make use of
+`folio-vocabulary-word-count', `folio-vocabulary-miss-count' and
+`folio-vocabulary-dict-list'."
   (let ((count 0))
     (if folio-vocabulary
         (maphash (lambda (k v)
@@ -220,6 +234,13 @@ list of suggestions."
                        (setq count (1+ count))))
                  folio-vocabulary))
     count))
+
+(defun folio-vocabulary-dict-list (word)
+  "Return the dictionary data for the word WORD.
+This is an alist with the dictionary language in the car and
+spellchecker suggestions in the cdr."
+  (folio-vocabulary-entry-dict
+   (folio-vocabulary-get-entry word)))
 
 (defun folio-vocabulary-list (&optional ordering)
   "Create a word list from `folio-vocabulary'.
@@ -321,7 +342,7 @@ if non-nil overrides the default maximal edit distance."
 If POS is non-nil return WORD with `point' updated to the next
 buffer location of WORD, or nil if WORD is not found.  If
 DICT-ENTRY is non-nil return that instead."
-  (let ((entry (folio-vocabulary-get-entry)))
+  (let ((entry (folio-vocabulary-get-entry word)))
     (when (folio-vocabulary-entry-dict entry)
       (if pos
           (progn
