@@ -32,8 +32,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl))
+(require 'cl)
 
 (defsubst folio--timer-symbol-interned (name)
   (intern (format "folio-%s-timer" (symbol-name name))))
@@ -108,7 +107,7 @@ The returned value is a floating point number."
     ;; The format is (HIGH LOW MICROS).
     (+ (* (car time) (expt 2 16))
        (cadr time)
-       (/ (cl-caddr time) 1000000.0))))
+       (/ (caddr time) 1000000.0))))
 
 (defsubst folio-time-diff (lhs rhs)
   "Return the time difference between LHS and RHS in seconds.
