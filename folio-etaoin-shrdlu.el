@@ -298,6 +298,16 @@ Supported values are
                 (cons ordering (type-of ordering))))))
     words))
 
+(defun folio-vocabulary-list-misses ()
+  "From `folio-vocabulary' return a list of misspelled words."
+  (let (words)
+    (if folio-vocabulary
+        (maphash (lambda (k v)
+                   (when (cdr-safe v)
+                     (setq words (cons k words))))
+                 folio-vocabulary))
+      words))
+
 (defun folio-soundslikes (word &optional distance)
   "Look for soundslikes within two edit distance apart.
 Soundslikes for WORD are searched in the vocabulary as collected
