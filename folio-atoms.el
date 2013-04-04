@@ -31,6 +31,8 @@
 (eval-when-compile
   (require 'cl))
 
+(require 'folio-compat)
+
 ;; Randomize the seed in the random number generator.
 (random t)
 
@@ -479,29 +481,6 @@ return restore the normal behaviour of `message'."
      (unwind-protect
          (progn ,@body)
        (fset 'message save-message))))
-
-;;;###autoload
-(defmacro folio-called-interactively-p (&optional kind)
-  "Return t if the containing function was called by `call-interactively'.
-With Emacs versions 23.2 or later this is equivalent to calling
-`called-interactively-p'."
-  (if (or (> emacs-major-version 23)
-          (and (= emacs-major-version 23)
-               (>= emacs-minor-version 2)))
-      ;; The KIND argument to called-interactively-p was introduced
-      ;; with Emacs 23.2.
-      `(with-no-warnings (called-interactively-p ,kind))
-    `(interactive-p)))
-
-;;;###autoload
-(defun folio-user-error (format &rest args)
-  "Signal a pilot error, making error message by passing all args
-to `format'.  This defun is identical to `user-error' that was
-introduced with Emacs 24."
-  (if (fboundp 'user-error)
-      (user-error format args)
-    (while t
-      (signal 'folio-user-error (list (apply #'format format args))))))
 
 
 ;;;; external processes

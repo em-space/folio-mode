@@ -33,6 +33,7 @@
 
 (require 'folio-atoms)
 (require 'folio-base)
+(require 'folio-compat)
 (require 'folio-roman)
 
 (defvar folio-page-markers nil
