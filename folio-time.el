@@ -142,8 +142,10 @@ or nil otherwise.  This function may also trigger a redisplay."
   (folio-time-diff (current-time) since))
 
 (defmacro folio-timed (&rest body)
-  "Execute BODY, returning a cons of result and the time elapsed.
-The format of the time value is that of `current-time'."
+  "Execute BODY measuring the execution time.
+Return a cons of the result of the last body form and the time
+elapsed.  The format of the time value is that of
+`current-time'."
   (let ((now (gensym))
         (result (gensym)))
     `(let ((,now (current-time))
