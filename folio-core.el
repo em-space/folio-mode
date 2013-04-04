@@ -1,6 +1,6 @@
 ;;; folio-core.el --- Folio mode core
 
-;; Copyright (C) 2013  Christoph W. Kluge
+;; Copyright (C) 2012, 2013  Christoph W. Kluge
 
 ;; Author: Christoph W. Kluge <shift.in.emphasis@gmail.com>
 ;; Keywords: wp
@@ -29,8 +29,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl))
+(require 'cl)
 
 (require 'folio-atoms)
 (require 'folio-base)
@@ -349,7 +348,7 @@ See also `folio-page-location', and `folio-page-scan-separators'."
     (while lower
       (let* ((page (1- (car lower)))
              (label (cadr lower))
-             (label-style (cl-caddr lower))
+             (label-style (caddr lower))
              (upper (car rule))
              (page-upper (if upper
                              (min (1- (car upper)) num-pages)
