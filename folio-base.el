@@ -127,12 +127,12 @@ process driven by an idle timer.  This state is switched by
 (make-variable-buffer-local 'folio-child-buffers)
 
 ;;;###autoload
-(defun folio-mode-p (mode)
+(defun folio-mode-p (&optional mode)
   "Return non-nil if MODE is a Folio major mode.
 Note that by the definition of the function only major modes like
 folio-text-mode or folio-xhtml-mode are considered Folio modes,
 not auxillary modes like folio-image-mode, or folio-form-mode."
-  (let ((major-mode mode))
+  (let ((major-mode (or mode major-mode)))
     (derived-mode-p 'folio-text-mode 'folio-xhtml-mode)))
 
 ;;;###autoload
