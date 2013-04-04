@@ -286,6 +286,44 @@ This currently always is the table of contents."
     (widget-put widget :args choices)
     (widget-choice-value-create widget)))
 
+(define-widget 'folio-widget-integer 'integer
+  "A restricted sexp input field for an integer."
+  :value-face 'folio-widget-field
+  :notify 'folio-widget-integer-notify)
+
+;;;###autoload
+(defun folio-widget-integer-notify (widget child &optional event)
+  "XXX"
+  (let ((invalid (widget-apply widget :validate)))
+    (if invalid
+        (progn
+          (goto-char (widget-field-start invalid))
+          (let* ((err (widget-get invalid :error))
+                 (old-value (or (widget-get invalid :old-value)
+                                (widget-default-get widget)))
+                 (size (widget-get widget :size))
+                 (value (format
+                         (format "%% %ds" size) old-value)))
+            (with-temp-message err
+              (sit-for 0.73)
+              ;; XXX call undo--remove old-value thing
+              (widget-put invalid :error nil)
+              (widget-apply
+               invalid :value-set value))))
+      (let ((value (or (widget-apply widget :value-get)
+                       (widget-default-get widget))))
+        (widget-put widget :old-value value))))
+  (widget-default-notify widget child event))
+
+(define-widget 'folio-widget-const 'const
+  "An immutable character or string valued sexp."
+  :value-create 'folio-widget-const-value-create
+  :format "%[%v%]\n%d")
+
+(defun folio-widget-const-value-create (widget)
+  "Insert the widget value."
+  (insert (widget-get widget :value)))
+
 (defun xxx-widget-documentation-string-indent-to (col)
   (when (and (numberp col)
              (> col 0))
