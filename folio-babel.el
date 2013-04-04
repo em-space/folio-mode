@@ -458,13 +458,14 @@ with KEY.  Meaningful values for KEY include
 (defun folio-left-to-right-mark ()
   "Insert an implicit left-to-right marker."
   (interactive)
-  (insert-char ?\u200E))
+  ;; The character count became optional with Emacs 24.
+  (insert-char ?\u200E 1))
 
 ;;;###autoload
 (defun folio-right-to-left-mark ()
   "Insert an implicit right-to-left marker."
   (interactive)
-  (insert-char ?\u200F))
+  (insert-char ?\u200F 1))
 
 ;;;###autoload
 (defun folio-left-to-right-embedding ()
@@ -472,7 +473,7 @@ with KEY.  Meaningful values for KEY include
 The marker should be paired by U+202C as with
 `folio-pop-directional-formatting'."
   (interactive)
-  (insert-char ?\u202A))
+  (insert-char ?\u202A 1))
 
 ;;;###autoload
 (defun folio-right-to-left-embedding ()
@@ -480,7 +481,7 @@ The marker should be paired by U+202C as with
 marker should be paired by U+202C as with
 `folio-pop-directional-formatting'."
   (interactive)
-  (insert-char ?\u202B))
+  (insert-char ?\u202B 1))
 
 ;;;###autoload
 (defun folio-left-to-right-override ()
@@ -488,7 +489,7 @@ marker should be paired by U+202C as with
 The marker should be paired by U+202C as with
 `folio-pop-directional-formatting'."
   (interactive)
-  (insert-char ?\u202D))
+  (insert-char ?\u202D 1))
 
 ;;;###autoload
 (defun folio-right-to-left-override ()
@@ -496,13 +497,13 @@ The marker should be paired by U+202C as with
 marker should be paired by U+202C as with
 `folio-pop-directional-formatting'."
   (interactive)
-  (insert-char ?\u202E))
+  (insert-char ?\u202E 1))
 
 ;;;###autoload
 (defun folio-pop-directional-formatting ()
   "Pop the directional formatting stack."
   (interactive)
-  (insert-char ?\u202C))
+  (insert-char ?\u202C 1))
 
 ;; XXX TODO
 (defvar folio-directional-formatting-keymap
