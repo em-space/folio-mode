@@ -59,8 +59,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl))
+(require 'cl)
 
 (require 'folio-atoms)
 (require 'folio-base)
