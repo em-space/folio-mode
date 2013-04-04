@@ -347,6 +347,11 @@ if non-nil overrides the default maximal edit distance."
             words)
       folio-vocabulary-good-words)))
 
+(defun folio-vocabulary-good-word-p (word)
+  "Return non-nil if WORD is in the `good word' list."
+  (when folio-vocabulary-good-words
+    (cdr-safe (gethash word folio-vocabulary-good-words))))
+
 (defun folio-known-misspelling (word &optional pos dict-entry)
   "Return non-nil if WORD is a known misspelling.
 If POS is non-nil return WORD with `point' updated to the next

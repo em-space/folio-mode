@@ -58,20 +58,19 @@
       (sort words 'string-lessp))))
 
 (defun folio-widget-dict-lookup (_widget word)
-  "XXX"
+  "Adapt `folio-vocabulary-dict-list' for use with widgets."
   (folio-with-parent-buffer
     (folio-vocabulary-dict-list word)))
 
 (defun folio-widget-frequency-lookup (_widget word)
-  "XXX"
+  "Adapt `folio-vocabulary-word-count' for use with widgets."
   (folio-with-parent-buffer
     (folio-vocabulary-word-count word)))
 
 (defun folio-widget-good-words-lookup (_widget word)
-  "Return non-nil if WORD is in the project local good word list."
+  "Return non-nil if WORD is in the project local `good word' list."
   (folio-with-parent-buffer
-    (when folio-vocabulary-good-words
-      (cdr-safe (gethash word folio-vocabulary-good-words)))))
+    (folio-vocabulary-good-word-p word)))
 
 (define-widget 'folio-widget-dict-item 'push-button
   "An entry within a dictionary section."
