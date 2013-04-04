@@ -333,7 +333,7 @@ This currently always is the table of contents."
                          'display `(space :align-to ,col)))))
 
 (defun folio-dialog-form-rule (len)
-  "At current point draw a rule of length LEN."
+  "At current point draw a horizontal rule of length LEN."
   (let ((pos (1+ (point)))
         overlay)
     (insert "\n\n")
