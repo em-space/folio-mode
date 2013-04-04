@@ -46,7 +46,7 @@
 Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Donec hendrerit tempor tellus. Donec pretium posuere tellus. Proin quam nisl, tincidunt et, mattis eget, convallis nec, purus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nulla posuere. Donec vitae dolor. Nullam tristique diam non turpis. Cras placerat accumsan nulla. Nullam rutrum. Nam vestibulum accumsan nisl.")
 
   (widget-insert "\n\n\n")
-  (folio-form-indent 7)
+  (folio-dialog-form-indent 7)
   (widget-create 'string
                  :tag "Project ID"
                  :format "%t: %v"
@@ -64,7 +64,7 @@ normally is of the form `projectID<hexadecimal number>'."
 
   ;; XXX default input method for this project? `toggle-input-method'
   (widget-insert "\n\n")
-  (folio-form-indent 12)
+  (folio-dialog-form-indent 12)
   (widget-create 'string
                  :tag "Title"
                  :format "%t: %v"
@@ -83,7 +83,7 @@ normally is of the form `projectID<hexadecimal number>'."
                                    (widget-value widget)))))
 
   (widget-insert "\n\n")
-  (folio-form-indent 11)
+  (folio-dialog-form-indent 11)
   (widget-create 'string
                  :tag "Author"
                  :format "%t: %v"
@@ -100,7 +100,7 @@ normally is of the form `projectID<hexadecimal number>'."
                              (setq folio-text-author
                                    (widget-value widget)))))
   (widget-insert "\n\n\n")
-  (folio-form-indent 1)
+  (folio-dialog-form-indent 1)
   (widget-create 'string
                  :tag "Directory for page scans"
                  :format "%t: %v"
