@@ -457,6 +457,14 @@ Text properties are not retained."
       (folio-user-error "No word nearby"))))
 
 
+(defun folio-regexp-valid-p (regexp)
+  "Return non-nil if the regexp REGEXP syntactically is valid."
+  (and (stringp regexp) (condition-case nil
+                            (prog1 t
+                              (string-match regexp ""))
+                          (error nil))))
+
+
 ;;;; pilot-machine interface
 
 ;;;###autoload
