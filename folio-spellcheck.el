@@ -743,17 +743,35 @@ the car.  Otherwise return nil."
     (when string
       (let ((search-spaces-regexp nil)) ;; Treat spaces literally.
         (save-match-data
+          ;; aspell codes for an unsuccessful dictionary lookup
+          ;; & list of suggestions follows
+          ;; # no suggestions available
+          ;; ? the root word is known as in German `Unbefangenheit'
+
+          ;;   aspell in verbose mode lists suggestions with the root
+          ;;   word separated by `+' as in `Unbefangen+heit'.
+          ;;   Here this information is ignored.
+          ;; - the word is a combination of two words in the
+          ;;   dictionary; this code is sent if the option
+          ;;   run-together is used
           (when (string-match
-                 "^\\([&#]\\) \\([^ ]+\\) \\([0-9]+\\)\
+                 "^\\([&#?-]\\) \\([^ ]+\\) \\([0-9]+\\)\
 \\( [0-9]+: \\(.+\\)\\)?$" string)
-            (let* ((code (match-string 1 string))
+            (let* ((code (aref (match-string 1 string) 0))
                    (misspelled (match-string 2 string))
                    (count (string-to-number
                            (match-string 3 string)))
-                   (guess-list (when (string= code "&")
+                   (guess-list (cond
+                                ((or (eq code ?#)
+                                     (eq code ??)
+                                     (eq code ?-)) nil)
+                                ((eq code ?&)
                                  (split-string
                                   (match-string 5 string)
-                                  ", " t)))
+                                  ", " t))
+                                (t
+                                 (error "Unexpected spellchecker \
+response"))))
                    (guess-count (min count
                                      (length guess-list))))
               (setq result
@@ -765,10 +783,11 @@ the car.  Otherwise return nil."
 
 (defun folio-aspell-completed-response-p (response)
   "Return non-nil if RESPONSE is complete.
-The Aspell program must be in terse mode."
+The Aspell program must be in terse mode.  See also
+`folio-aspell-parse-suggestions'."
   (or (string= response "\n")
       (and (folio-string-suffix-p "\n\n" response)
-           (memq (aref response 0) '(?& ?#)))))
+           (memq (aref response 0) '(?& ?# ?? ?-)))))
 
 (defun folio-spellcheck-receive-data ()
   "Retrieve spell-checker results."
