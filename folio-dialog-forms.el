@@ -99,7 +99,6 @@ The form must have been previously registered by calling
 (defun folio-dialog-form-reset ()
   "Reset the buffer by erasing all content."
   (setq widget-field-list nil
-        folio-dialog-form-current-page nil
         folio-dialog-form-alist nil)
   (remove-overlays)
   (erase-buffer))
@@ -220,9 +219,10 @@ This currently always is the table of contents."
 (defun folio-dialog-form-refresh ()
   "Refresh the current page."
   (interactive)
-  (folio-dialog-form-goto
-   (or folio-dialog-form-current-page
-       (folio-dialog-form-top-page))))
+  (if folio-dialog-form-current-page
+      (folio-dialog-form-goto
+       folio-dialog-form-current-page)
+    (folio-dialog-form-top-page)))
 
 (defsubst folio-dialog-form-indent (columns)
   "Indent by COLUMNS columns using spaces."
