@@ -28,6 +28,7 @@
 
 ;;; Code:
 
+(require 'cus-edit)
 (require 'wid-edit)
 
 (require 'folio-core)
