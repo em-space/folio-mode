@@ -237,8 +237,8 @@ Higher level functions most certainly want to make use of
 
 (defun folio-vocabulary-dict-list (word)
   "Return the dictionary data for the word WORD.
-This is an alist with the dictionary language in the car and
-spellchecker suggestions in the cdr."
+This is an alist with the dictionary language as a BCP 47 tag in
+the car and spellchecker suggestions in the cdr."
   (folio-vocabulary-entry-dict
    (folio-vocabulary-get-entry word)))
 
@@ -813,8 +813,11 @@ pending input is observed."
 
 
 ;;;###autoload
-(defun folio-next-misspelling (&optional type)
-  (interactive (list (or current-prefix-arg 'folio-spellcheck)))
+(defun folio-next-misspelling (&optional type skip-doublon)
+  "Move point forward to the next misspelling."
+  (interactive (list 'folio-spellcheckor current-prefix-arg))
+  (setq type (or type 'folio-spellcheck))
+  ;; XXX TODO add support for skipping doublons, primary or secondary
   (let ((pos (point))
         current next)
     ;; Skip current.
