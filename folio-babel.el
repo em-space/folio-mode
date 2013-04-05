@@ -455,6 +455,23 @@ with KEY.  Meaningful values for KEY include
                         lists, optimized for scanning a buffer.")
 
 ;;;###autoload
+(defun folio-language-info (lang key &optional sub-key)
+  "Return the language info entry for the tag LANG.
+KEY identifies the entry, SUB-KEY an optional sub-key.  For
+possible values of KEY and SUB-KEY see
+`folio-language-info-alist'."
+  (let ((entry (cdr (assoc lang folio-language-info-alist))))
+    (when entry
+      (let ((value (cdr (assoc key entry))))
+        (if sub-key
+            (when value
+              (cdr (assoc sub-key value)))
+          value)))))
+
+
+;;;; Bidirectional input
+
+;;;###autoload
 (defun folio-left-to-right-mark ()
   "Insert an implicit left-to-right marker."
   (interactive)
@@ -526,19 +543,8 @@ marker should be paired by U+202C as with
 (define-key menu-bar-edit-menu [folio-directional-formatting-menu]
   `(menu-item "Insert BiDi control characters" ,folio-directional-formatting-menu))
 
-;;;###autoload
-(defun folio-language-info (lang key &optional sub-key)
-  "Return the language info entry for the tag LANG.
-KEY identifies the entry, SUB-KEY an optional sub-key.  For
-possible values of KEY and SUB-KEY see
-`folio-language-info-alist'."
-  (let ((entry (cdr (assoc lang folio-language-info-alist))))
-    (when entry
-      (let ((value (cdr (assoc key entry))))
-        (if sub-key
-            (when value
-              (cdr (assoc sub-key value)))
-          value)))))
+
+;;;; Language guessing
 
 (defun folio-guess-language-1 (regexp words)
   "Precursor for `folio-guess-language'."
