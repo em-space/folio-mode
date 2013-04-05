@@ -26,11 +26,13 @@
 
 ;;; Code:
 
+(require 'cus-edit)
 
 (require 'tree-widget)
 
 (require 'folio-atoms)
 (require 'folio-babel)
+(require 'folio-faces)
 (require 'folio-etaoin-shrdlu)
 (require 'folio-image)
 
