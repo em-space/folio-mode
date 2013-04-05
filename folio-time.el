@@ -146,8 +146,8 @@ or nil otherwise.  This function may also trigger a redisplay."
 Return a cons of the result of the last body form and the time
 elapsed.  The format of the time value is that of
 `current-time'."
-  (let ((now (gensym))
-        (result (gensym)))
+  (let ((now (make-symbol "now"))
+        (result (make-symbol "result")))
     `(let ((,now (current-time))
            (,result (progn
                       ,@body)))
