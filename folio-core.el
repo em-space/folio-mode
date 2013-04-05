@@ -174,12 +174,14 @@ with `folio-save-hook' (which see)."
 (put 'folio-scan-from-page
      'folio-restore-value 'folio-restore-page-scans)
 
+;;;###autoload
 (defgroup folio-hud nil
   "Settings related to graphical elements."
   :tag "Folio HUD"
   :group 'folio
   :version "24.1")
 
+;;;###autoload
 (defcustom folio-show-header-line t
   "Display header line when activating the mode.
 The header line also can be enabled or disabled interactively by
@@ -188,6 +190,7 @@ calling the function `folio-header-enable'."
   :type 'boolean
   :group 'folio-hud)
 
+;;;###autoload
 (defcustom folio-blank-page-tag (string #x25AF)
   "The header line symbol indicating a blank page.
 The default is the Unicode code point WHITE VERTICAL RECTANGLE
@@ -242,6 +245,7 @@ The default is the Unicode code point WHITE VERTICAL RECTANGLE
   "Buffer local variable for storing the previous mode header
 line format, such as '(:eval (tabbar-line).")
 
+;;;###autoload
 (defun folio-header-enable (&optional arg)
   "Enable the Folio mode header line.
 The header line is used to display information about current
@@ -287,6 +291,7 @@ The result is a cons cell of the form (BEG . END)."
                    (min (folio-last-page) (1+ page))))))
     (cons beg end)))
 
+;;;###autoload
 (defun folio-page-at-point (&optional point as-list)
   "Find and return the technical page number for the buffer
 position POINT as an integer beginning with 1.
@@ -381,6 +386,7 @@ numeric nor constant string")))
       (pop rule))
     page-labels))
 
+;;;###autoload
 (defun folio-page-scan-at-point (&optional point)
   "Return the image file name of the page scan at POINT.
 If POINT is omitted use current point.  Return nil if not known."
@@ -396,6 +402,7 @@ If POINT is omitted use current point.  Return nil if not known."
           (message "Scan \"%s\"" scan))
         scan))))
 
+;;;###autoload
 (defun folio-assign-page-to-point (page &optional point)
   "Assign the page number PAGE.
 If POINT is omitted use the current point."
@@ -413,6 +420,7 @@ If POINT is omitted use the current point."
                          (set-marker marker new-pos)))
       (set-buffer-modified-p t))))
 
+;;;###autoload
 (defun folio-assign-page-scan-to-point (file-name &optional point)
   "Set the image file name of the page scan at POINT.
 If POINT is omitted use current point.
@@ -427,6 +435,7 @@ otherwise."
         nil
       (aset folio-scan-from-page (1- page) file-name))))
 
+;;;###autoload
 (defun folio-goto-page (page)
   "Go to the technical page number PAGE.
 Numbering starts at 1. `folio-goto-folio' should be used to jump to
@@ -436,6 +445,7 @@ a particular folio label instead."
                             (length folio-page-markers)) 1))))
     (goto-char (folio-page-location page))))
 
+;;;###autoload
 (defun folio-goto-folio (folio)
   "Go to the folio with label FOLIO.
 FOLIO is a string and case matters, i.e. \"iiv\" and \"IIV\" are
