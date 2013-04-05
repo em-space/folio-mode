@@ -495,7 +495,10 @@ or `escape-glyph' face respectively.
 U+00A0 (no-break space), U+00AD (soft hyphen), U+2010 (hyphen), and
 U+2011 (non-breaking hyphen) are affected."
   (interactive)
-  (setq nobreak-char-display (not (and nobreak-char-display t))))
+  (prog1
+      (setq nobreak-char-display (not (and nobreak-char-display t)))
+    (save-excursion (folio-font-lock-fontify-window))
+    (redisplay 'force)))
 
 ;;;###autoload
 (define-key menu-bar-options-menu [menu-bar-options-menu]
