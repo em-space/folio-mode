@@ -541,10 +541,13 @@ member constitute the ISO-639-1 language code."
                         (intern-soft
                          (format "folio-%s-dictionaries"
                                  (symbol-name engine))))))
-        (setq dicts (append (mapcar (lambda (x)
-                                      (folio-dictionary-language
-                                       x engine)) dict-list) dicts))))
-    (sort (delete-duplicates dicts :test #'string-equal) #'string-lessp)))
+        (mapc (lambda (x)
+                (let ((lang (folio-dictionary-language
+                             x engine)))
+                  (if (and lang (not (member lang dicts)))
+                      (setq dicts (cons lang dicts)))))
+              dict-list)))
+    (sort dicts #'string-lessp)))
 
 (defcustom folio-spellcheck-language-engine-alist nil
   "*List associating a language code to a spell-checker engine.
