@@ -46,7 +46,7 @@
 
 (defun folio-widget-dict-value (&optional regexp gwl)
   (folio-with-parent-buffer
-    (let ((words (folio-vocabulary-list-words)))
+    (let ((words (folio-vocabulary-list-misses)))
       (when gwl
         (setq words (folio-filter-good-words words)))
       (when (and (stringp regexp)
