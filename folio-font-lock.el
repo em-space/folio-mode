@@ -33,9 +33,11 @@
 (declare-function lazy-lock-after-fontify-buffer "lazy-lock")
 (declare-function lazy-lock-mode "lazy-lock")
 
+;;;###autoload
 (defun folio-font-lock-fontify-region (beg end)
   "Fontify the text region between BEG and END.
-Call after-fontify functions of the respective font-lock-mode."
+Call after-fontify functions of the respective font-lock-mode.
+Note that fontify functions might move point."
   (font-lock-fontify-region beg end)
   (cond
    ((bound-and-true-p fast-lock-mode)
@@ -44,6 +46,14 @@ Call after-fontify functions of the respective font-lock-mode."
     (jit-lock-refontify beg end))
    ((bound-and-true-p lazy-lock-mode)
     (lazy-lock-after-fontify-buffer))))
+
+;;;###autoload
+(defun folio-font-lock-fontify-window (&optional window)
+  "Fontify the text region within the current window boundaries.
+If WINDOW is non-nil fontify that instead.  Conditions and
+restrictions are those of `folio-font-lock-fontify-region'."
+  (folio-font-lock-fontify-region
+   (window-start window) (window-end window)))
 
 ;;;###autoload
 (defconst folio-font-lock-keywords-default
