@@ -63,6 +63,7 @@
 
 (require 'folio-atoms)
 (require 'folio-base)
+(require 'folio-babel)
 
 (defvar folio-spellcheck-buffer-data nil
   "*List of property lists maintaining spell-checker data.")
