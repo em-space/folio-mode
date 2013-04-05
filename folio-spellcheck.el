@@ -72,7 +72,7 @@
    '(("ca" . "catalan")
      ("da" . "dansk")
      ("de-CH" . "swiss")
-     ("de-DE" . "deutsch") ;; i.e. de-1996
+     ("de" . "deutsch") ;; i.e. de-1996
      ("de-1901" . "deutsch-alt")
      ("en" . "english")
      ("en-US" . "american")
