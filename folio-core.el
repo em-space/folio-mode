@@ -463,14 +463,37 @@ used to go to blank pages."
 ;;       (insert-file-contents file)
 ;;       (folio-page-scan-separators (current-buffer)))))
 
+;;;###autoload
 (defun folio-core-setup ()
   "Initialize the core of a Folio mode."
   (when folio-show-header-line
     (folio-header-enable)))
 
+;;;###autoload
 (defun folio-core-teardown ()
   "Shutdown the core of a Folio mode."
   (folio-header-enable -1))
+
+
+;;;###autoload
+(defun folio-toggle-nobreak-char-display ()
+  "Toggle highlighting of non-ASCII space and hyphen chars.
+If enabled, Emacs highlights non-ASCII chars which have the same
+appearance as an ASCII space or hyphen, using the `nobreak-space'
+or `escape-glyph' face respectively.
+
+U+00A0 (no-break space), U+00AD (soft hyphen), U+2010 (hyphen), and
+U+2011 (non-breaking hyphen) are affected."
+  (interactive)
+  (setq nobreak-char-display (not (and nobreak-char-display t))))
+
+;;;###autoload
+(define-key menu-bar-options-menu [menu-bar-options-menu]
+  `,(menu-bar-make-toggle
+     folio-toggle-nobreak-char-display nobreak-char-display
+     "Highlight non-ASCII space & hyphens"
+     "Highlight non-ASCII space & hyphens %s"
+     "Highlight non-ASCII space & hyphens"))
 
 
 (provide 'folio-core)
