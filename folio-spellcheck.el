@@ -683,7 +683,7 @@ The return value is the value of the last form in BODY."
                ;; Register actual engine, process and process language.
                (folio-spellcheck-put ,buffer :engine ,engine)
                (folio-spellcheck-put ,buffer :language ,language))
-           (error "Unsupported spell-checker engine")))
+           (error "Unsupported spell-checker engine: %S" ,engine)))
          ;; Splice in the BODY forms.
        (with-current-buffer ,buffer
          (let ((folio-spellcheck-current-language ,language)
@@ -692,7 +692,7 @@ The return value is the value of the last form in BODY."
       ((null ,engine)
        (error "Undefined spell-checker engine"))
       (t
-       (error "Unsupported spell-checker engine"))))))
+       (error "Unsupported spell-checker engine: %S" ,engine))))))
 
 (defun folio-spellcheck-process-filter (process output)
   "Process filter function for asynchronously receiving responses."
