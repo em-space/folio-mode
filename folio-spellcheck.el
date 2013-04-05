@@ -684,7 +684,7 @@ The return value is the value of the last form in BODY."
                ;; Register actual engine, process and process language.
                (folio-spellcheck-put ,buffer :engine ,engine)
                (folio-spellcheck-put ,buffer :language ,language))
-           (error "Unsupported spell-checker engine: %S" ,engine)))
+           (error "Unsupported spell-checker engine `%S'" ,engine)))
          ;; Splice in the BODY forms.
        (with-current-buffer ,buffer
          (let ((folio-spellcheck-current-language ,language)
@@ -693,7 +693,7 @@ The return value is the value of the last form in BODY."
       ((null ,engine)
        (error "Undefined spell-checker engine"))
       (t
-       (error "Unsupported spell-checker engine: %S" ,engine))))))
+       (error "Unsupported spell-checker engine `%S'" ,engine))))))
 
 (defun folio-spellcheck-process-filter (process output)
   "Process filter function for asynchronously receiving responses."
@@ -736,7 +736,7 @@ the car.  Otherwise return nil."
            buffer :received (append (folio-spellcheck-get
                                      buffer :received) received)))))
      (t
-      (error "Unsupported spell-checker engine")))))
+      (error "Unsupported spell-checker engine `%S'" engine)))))
 
 (defun folio-aspell-parse-suggestions (string)
   "Parse spelling suggestions for Aspell-compatible programs."
@@ -828,11 +828,13 @@ The Aspell program must be in terse mode.  See also
            ((eq engine 'ns-spellchecker)
             (setq result (folio-spellcheck-get buffer :received)))
            (t
-            (error "Unsupported spell-checker engine")))
+            (error "Unsupported spell-checker engine `%S'" engine)))
           (folio-spellcheck-put buffer :received nil))
       (error
        (folio-spellcheck-delete buffer)
-       (message "Failure parsing spell-checker data: %S" err)))
+       (message "Failure parsing spell-checker data: %s"
+                (error-message-string err))
+       (signal (car err) (cdr err))))
     result))
 
 
