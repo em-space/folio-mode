@@ -617,6 +617,53 @@ calling it from a mode hook.  It is equivalent to calling
 non-nil."
   (folio-spellcheck-set-buffer buffer 'release))
 
+(defun folio-aspell-startup (engine dict)
+  "Startup an Aspell compliant spell-checker.
+ENGINE is the particular engine to use such as `aspell' or
+`hunspell', DICT the dictionary name.  The process encoding
+system is UTF-8 (Unix) both for input and output.  Return the
+subprocess."
+  (let (program args process)
+    (cond
+     ((and (eq engine 'aspell)
+           (stringp folio-aspell-program))
+      (setq program folio-aspell-program
+            args (list "-a"
+                    "-d"
+                    dict
+                    "--encoding=utf-8")))
+     ((and (eq engine 'hunspell)
+           (stringp folio-hunspell-program))
+      (setq program folio-hunspell-program
+            args (list "-a"
+                    "-d"
+                    dict
+                    "-i"
+                    "UTF-8"))))
+    (when (null program)
+      (error "No Aspell compliant spell-checker available"))
+    ;; Spawn process with pipe connection and mark it
+    ;; internal to prevent Emacs from querying the user
+    ;; when process or process buffer is about to get
+    ;; killed.
+    (setq process
+          (apply #'start-process
+                 "folio-spellcheck" nil program args))
+    (set-process-query-on-exit-flag process nil)
+    (set-process-coding-system
+     process 'utf-8-unix 'utf-8-unix)
+    ;; Put Aspell in terse mode.
+    (process-send-string process "!\n")
+    ;; Read off any stale data, including the banner message,
+    ;; if any.  This maybe should be made more robust by
+    ;; explicitly checking for warning and error messages.
+    (with-local-quit
+      (accept-process-output process))
+    ;; Set the output handler and associated buffer.
+    (set-process-filter
+     process #'folio-spellcheck-process-filter)
+    process))
+
 (defmacro folio-with-spellcheck-language (language &rest body)
   "Switch the spell-checker to LANGUAGE and eval BODY.
 The return value is the value of the last form in BODY."
@@ -628,42 +675,17 @@ The return value is the value of the last form in BODY."
          (cons (current-buffer) (or (folio-spellchecker ,language)
                                     (cons nil nil)))
        (cond
-        ((eq ,engine 'aspell)
+        ((or (eq ,engine 'aspell)
+             (eq ,engine 'hunspell))
          (let ((process (folio-spellcheck-get
                          ,buffer :process))
                (process-language (folio-spellcheck-get
                                   ,buffer :language)))
-         (when (or (null process)
-                   (not (folio-process-running-p process))
-                   (not (string= ,language process-language)))
-           (let ((program folio-aspell-program)
-                 (args (list "-a"
-                             "-d"
-                             ,dict
-                             "--encoding=utf-8")))
-             (when (null program)
-               (error "Aspell spell-checker not available"))
-             ;; Spawn process with pipe connection and mark it
-             ;; internal to prevent Emacs from querying the user
-             ;; when process or process buffer is about to get
-             ;; killed.
-             (setq process
-                   (apply #'start-process
-                          "folio-spellcheck" nil program args))
-             (set-process-query-on-exit-flag process nil)
-             (set-process-coding-system
-              process 'utf-8-unix 'utf-8-unix)
-             ;; Put Aspell in terse mode.
-             (process-send-string process "!\n")
-             ;; Read off any stale data, including the banner message,
-             ;; if any.  This maybe should be made more robust by
-             ;; explicitly checking for warning and error messages.
-             (with-local-quit
-               (accept-process-output process))
-             ;; Set the output handler and associated buffer.
-             (set-process-filter
-              process #'folio-spellcheck-process-filter)
-
+           (when (or (null process)
+                     (not (folio-process-running-p process))
+                     (not (string= ,language process-language)))
+             (setq process (folio-spellcheck-aspell-startup
+                            ,engine ,dict))
              ;; Register actual engine, process and process language.
              (folio-spellcheck-put ,buffer :engine ,engine)
              (folio-spellcheck-put ,buffer :process process)
@@ -673,8 +695,7 @@ The return value is the value of the last form in BODY."
          (with-current-buffer ,buffer
            (let ((folio-spellcheck-current-language ,language)
                  (folio-spellcheck-current-syntax-table (syntax-table)))
-             ,@body))))
-        ;; XXX hunspell
+             ,@body)))
       ((eq ,engine 'ns-spellchecker)
        (let ((process-language (folio-spellcheck-get
                                 ,buffer :language)))
@@ -687,7 +708,7 @@ The return value is the value of the last form in BODY."
                (folio-spellcheck-put ,buffer :engine ,engine)
                (folio-spellcheck-put ,buffer :language ,language))
            (error "Unsupported spell-checker engine `%S'" ,engine)))
-         ;; Splice in the BODY forms.
+       ;; Splice in the BODY forms.
        (with-current-buffer ,buffer
          (let ((folio-spellcheck-current-language ,language)
                (folio-spellcheck-current-syntax-table (syntax-table)))
@@ -750,13 +771,15 @@ the car.  Otherwise return nil."
           ;; & list of suggestions follows
           ;; # no suggestions available
           ;; ? the root word is known as in German `Unbefangenheit'
-
           ;;   aspell in verbose mode lists suggestions with the root
           ;;   word separated by `+' as in `Unbefangen+heit'.
           ;;   Here this information is ignored.
-          ;; - the word is a combination of two words in the
-          ;;   dictionary; this code is sent if the option
-          ;;   run-together is used
+          ;; + the word was found in the dictionary through affix
+          ;;   removal; this code apparently is only used by hunspell
+          ;; - the word was found in the dictionary through compound
+          ;;   formation; this code is sent by aspell if the option
+          ;;   run-together is used; with hunspell only in verbose
+          ;;   mode
           (when (string-match
                  "^\\([&#?-]\\) \\([^ ]+\\) \\([0-9]+\\)\
 \\( [0-9]+: \\(.+\\)\\)?$" string)
@@ -767,6 +790,7 @@ the car.  Otherwise return nil."
                    (guess-list (cond
                                 ((or (eq code ?#)
                                      (eq code ??)
+                                     (eq code ?+)
                                      (eq code ?-)) nil)
                                 ((eq code ?&)
                                  (split-string
@@ -800,7 +824,8 @@ The Aspell program must be in terse mode.  See also
     (condition-case err
         (progn
           (cond
-           ((eq engine 'aspell)
+           ((or (eq engine 'aspell)
+                (eq engine 'hunspell))
             (let ((process (folio-spellcheck-get buffer :process))
                   received)
               (when (folio-process-running-p process)
