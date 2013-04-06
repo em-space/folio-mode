@@ -651,6 +651,8 @@ The return value is the value of the last form in BODY."
                    (apply #'start-process
                           "folio-spellcheck" nil program args))
              (set-process-query-on-exit-flag process nil)
+             (set-process-coding-system
+              process 'utf-8-unix 'utf-8-unix)
              ;; Put Aspell in terse mode.
              (process-send-string process "!\n")
              ;; Read off any stale data, including the banner message,
