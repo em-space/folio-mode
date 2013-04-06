@@ -55,7 +55,7 @@ Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Donec hendrerit tempor
                  :value (or (folio-with-parent-buffer
                               (or folio-project-id
                                   (folio-assign-project-id))) "")
-                 :help-echo "The PGDP Project Identifer.\nThis \
+                 :help-echo "The PGDP Project Identifer.  This \
 normally is of the form `projectID<hexadecimal number>'."
                  :notify (lambda (widget &rest ignore)
                            (folio-with-parent-buffer
