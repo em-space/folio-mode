@@ -101,7 +101,7 @@ This alist is used for Aspell.")
 (defconst folio-dictionary-alist-hunspell
   (purecopy
    '(("ca" . "ca_ES")
-     ("cy-GB" . "cy_GB")
+     ("cy" . "cy_GB")
      ("da" . "da")
      ("de" . "de_DE")
      ("de-1901" . "de_DE-old")
