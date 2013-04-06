@@ -962,7 +962,8 @@ otherwise remove the keywords."
 (defun folio-spellcheck-init-dictionaries ()
   "Determine current buffer language and setup dictionaries."
   ;; XXX TODO dictionaries from project save file
-  (let ((lang (folio-guess-language)))
+  (let ((lang (or (folio-primary-dictionary)
+                  (folio-guess-language))))
     (when (and lang (member lang (folio-dictionary-list)))
       (folio-change-dictionary lang)
       lang)))
