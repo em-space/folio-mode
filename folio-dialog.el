@@ -32,6 +32,7 @@
 
 ;;; Code:
 
+(require 'folio-atoms)
 (require 'folio-base)
 (require 'folio-dialog-forms)
 (require 'folio-dialog-setup)
@@ -54,7 +55,9 @@ buffer, normally the project text buffer."
               ("Spellcheck" folio-dialog-spellcheck-page
                :header "Spellcheck")))
       (folio-dialog-form-mode)
-      (overwrite-mode)
+      (folio-with-muted-message
+          (overwrite-mode)
+          (toggle-truncate-lines nil))
       (set (make-local-variable 'widget-documentation-face) 'default)
       (folio-set-parent-buffer parent))))
 
