@@ -55,8 +55,8 @@
                  (not (string-equal regexp "")))
         (setq words
               (folio-filter-list
-               (lambda (x)
-                 (string-match-p regexp x)) words)))
+               words (lambda (x)
+                       (string-match-p regexp x)))))
       (sort words 'string-lessp))))
 
 (defun folio-widget-dict-lookup (_widget word)
