@@ -684,7 +684,7 @@ The return value is the value of the last form in BODY."
            (when (or (null process)
                      (not (folio-process-running-p process))
                      (not (string= ,language process-language)))
-             (setq process (folio-spellcheck-aspell-startup
+             (setq process (folio-aspell-startup
                             ,engine ,dict))
              ;; Register actual engine, process and process language.
              (folio-spellcheck-put ,buffer :engine ,engine)
