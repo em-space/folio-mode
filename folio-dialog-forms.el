@@ -225,6 +225,12 @@ This currently always is the table of contents."
        folio-dialog-form-current-page)
     (folio-dialog-form-top-page)))
 
+(defalias 'folio-widget-insert 'widget-insert)
+
+(defsubst folio-widget-indent (columns)
+  "Indent by COLUMNS columns using spaces."
+  (widget-insert (make-string columns ?\ )))
+
 (defsubst folio-dialog-form-indent (columns)
   "Indent by COLUMNS columns using spaces."
   (widget-insert (make-string columns ?\ )))
