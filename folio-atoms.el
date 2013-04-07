@@ -476,6 +476,7 @@ Text properties are not retained."
   "Redefine `message' to be silent.
 Eval BODY forms sequentially and return value of last one.  Upon
 return restore the normal behaviour of `message'."
+  (declare (indent 1))
   `(let ((save-message (symbol-function 'message)))
      (fset 'message (lambda (format-string &rest args) nil))
      (unwind-protect
