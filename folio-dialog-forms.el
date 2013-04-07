@@ -362,6 +362,204 @@ an invalid value."
   "Insert the widget value."
   (insert (widget-get widget :value)))
 
+(define-widget 'folio-widget-repeat 'repeat
+  ""
+  :value-create 'folio-widget-repeat-value-create
+  :insert-before 'folio-widget-repeat-insert-before
+  :insert-after 'folio-widget-repeat-insert-after
+  :notify 'folio-widget-repeat-notify
+  :focus 'folio-widget-repeat-focus
+;; XXX  :keymap folio-widget-repeat-keymap
+  :format "\n%v\n"
+  :entry-format "%v"
+  :value-no-entry "         <no entries>"
+  :offset 0
+  :indent 6
+  :num-keys 15  ;; XXX keys--naming
+  :context-keys 1)
+
+(defun folio-widget-repeat-value-create (widget)
+  "Value create the widget WIDGET."
+  (widget-put widget :value-pos (copy-marker (point)))
+  (set-marker-insertion-type (widget-get widget :value-pos) t)
+  (let* ((keys (delq nil (widget-get widget :value)))
+         (i 0)
+         (j (min (length keys)
+                 (+ i (or (widget-get widget :num-keys) 10))))
+         children)
+    (while (< i j)
+      (push (widget-editable-list-entry-create
+             widget
+             (nth i keys) t) children)
+      (setq i (1+ i)))
+      (if children
+          (progn
+            (widget-put widget :key-index (max (1- i) 0))
+            (widget-put widget :children (nreverse children))
+            (widget-apply widget :focus))
+        (widget-create-child-and-convert widget
+         `(const :tag (widget-get widget :value-no-entry))))))
+
+(defun folio-widget-repeat-insert-before (widget value &optional before)
+  "This is like `widget-editable-list-insert-before' except that a
+list entry is created by value."
+  ;; Insert a new child in the list of children.
+  (save-excursion
+    (let ((children (widget-get widget :children))
+          (inhibit-read-only t)
+          before-change-functions
+          after-change-functions)
+      (cond (before
+             (goto-char (widget-get before :entry-from)))
+            (t
+             (goto-char (widget-get widget :value-pos))))
+      (let ((child (widget-editable-list-entry-create
+                    widget value (not (null value)))))
+        (when (< (widget-get child :entry-from)
+                 (widget-get widget :from))
+          (set-marker (widget-get widget :from)
+                      (widget-get child :entry-from)))
+        (if (eq (car children) before)
+            (widget-put widget :children (cons child children))
+          (while (not (eq (cadr children) before))
+            (setq children (cdr children)))
+          (setcdr children (cons child (cdr children)))))))
+  (widget-setup)
+  (widget-apply widget :notify widget))
+
+(defun folio-widget-repeat-insert-after (widget value &optional after)
+  ;; Insert a new child in the list of children.
+  (save-excursion
+    (let ((children (widget-get widget :children))
+          (inhibit-read-only t)
+          before-change-functions
+          after-change-functions)
+      ;; Position point.
+      (cond (after
+             (goto-char (widget-get after :entry-to)))
+            (t
+             (if children
+                 (goto-char (widget-get
+                             (car (last children)) :entry-to))
+               (goto-char (widget-get widget :value-pos)))))
+      ;; Insert child widget.
+      (let ((new-child (widget-editable-list-entry-create
+                        widget value (not (null value)))))
+        ;; Fixup end marker of parent WIDGET.
+        (if (null (widget-get widget :to))
+            (widget-put widget
+                        :to (copy-marker (widget-get
+                                          new-child :entry-to)))
+          (if (> (widget-get new-child :entry-to)
+                 (widget-get widget :to))
+              (set-marker (widget-get widget :to)
+                          (widget-get new-child :entry-to))))
+        ;; Register new child widget with parent WIDGET.
+        (if (eq (car (last children)) after)
+            (widget-put
+             widget :children (nconc children (list new-child)))
+          (while (not (eq (cadr children) after))
+            (setq children (cdr children)))
+          (setcdr children (cons new-child (cdr children)))))))
+  ;; Ensure edit fields in buffer keep on working, for obscure
+  ;; reasons.  Also notify WIDGET self with a generic nil-event of
+  ;; something having changed.
+  (widget-setup)
+  (widget-apply widget :notify widget))
+
+(defun folio-widget-repeat-focus (widget &optional arg)
+  "Re-focus the widget WIDGET after a scrolling event.
+Re-focusing means to call the :focus function of the respective
+child widget.  If ARG is nil assume no particular scrolling
+direction and determine the child widget from :context-keys.
+Otherwise re-focus for scrolling down if ARG < 0 or for scrolling
+up if ARG > 0."
+  (let ((children (widget-get widget :children)))
+    (when children
+      (let ((child-type (widget-type (car children)))
+            focus unfocus)
+        (mapc (lambda (x)
+                (unless unfocus
+                  (when (widget-get x :focus-entry)
+                    (setq unfocus x)))
+                (if (numberp arg)
+                  (if (< arg 0)
+                      (unless unfocus
+                        (setq focus x))
+                    (when (and unfocus
+                               (null focus)
+                               (not (eq unfocus x)))
+                      (setq focus x)))
+                  (unless focus
+                    (setq focus arg)))) children)
+        (when unfocus
+          (widget-apply unfocus :focus nil))
+        (cond
+         ((and focus unfocus)
+          (widget-apply focus :focus t))
+         (t
+          (setq focus (or (let ((entry (widget-get
+                                        (widget-at (point)) :parent)))
+                            (when (eq (widget-type entry)
+                                      child-type) entry))
+                          (elt children (min (or (widget-get
+                                                  widget :context-keys) 0)
+                                             (1- (length children))))))
+          (widget-apply focus :focus t)))))))
+
+(defun folio-widget-repeat-scroll-down (widget-type &optional pos arg)
+  "Scroll down the widget of type WIDGET-TYPE at buffer position POS.
+WIDGET-TYPE should be a scrollable widget like 'folio-repeat.  If
+ARG is non-nil scroll up instead."
+  (let ((widget (let ((widget (widget-at (or pos (point))))
+                      found)
+                  (while (and (setq widget
+                                    (widget-get widget :parent))
+                              (not (setq found
+                                         (eq (widget-type widget)
+                                             widget-type)))))
+                  (and found widget))))
+    (if widget
+        (let ((index (widget-get widget :key-index))
+              (children (widget-get widget :children)))
+          (when children
+            (let ((keys (widget-get widget :value)))
+              (if arg
+                  (let ((new-index (min (1+ index)
+                                        (1- (length keys)))))
+                    (unless (= index new-index)
+                      ;; Scroll up.
+                      (widget-apply
+                       widget :delete-at (car children))
+                      (widget-apply
+                       widget :insert-after (nth new-index keys))
+                      (widget-apply widget :focus 1)
+                      (widget-put widget :key-index new-index)))
+                (let ((new-index (max (1- index) 0))
+                      (num-keys (max (or (widget-get
+                                          widget :num-keys) 0) 1)))
+                  (unless (or (= index new-index)
+                              (< (1+ (- new-index num-keys)) 0))
+                    ;; Scroll down.
+                    (widget-apply widget :delete-at
+                                  (car (last children)))
+                    (setq children (widget-get widget :children))
+                    (widget-apply widget :insert-before
+                                  (elt keys (1+ (- new-index
+                                                   num-keys)))
+                                  (car children))
+                    (widget-apply widget :focus -1)
+                    (widget-put
+                     widget :key-index new-index)))))))
+      (message "No scrollable widget in focus"))))
+
+(defun folio-widget-repeat-scroll-up (widget-type &optional pos arg)
+  "Scroll up the widget of type WIDGET-TYPE.
+The arguments have the same meaning like for
+`folio-widget-repeat-scroll-down'."
+  (folio-widget-repeat-scroll-down widget-type pos (not arg)))
+
+
 (defun xxx-widget-documentation-string-indent-to (col)
   (when (and (numberp col)
              (> col 0))
