@@ -150,7 +150,7 @@ spellchecker suggestions in the cdr."
              (error "Invalid tree-widget :node %S" node))
       (let* ((value (widget-get widget :dict-value))
              (tag (concat (propertize "Dictionary "
-                                      'face 'folio-widget-dict)
+                                      'face 'folio-dict)
                           (propertize (concat
                                        ":" (car value))
                                       'face 'folio-dict-tag))))
@@ -238,7 +238,7 @@ The widget maintains a misspelled word and its frequency count."
          (frequency (or (widget-apply widget :frequency-lookup word) 0))
          (gwl (when (widget-get widget :good-word-lookup)
                 (widget-apply widget :good-word-lookup word)))
-         (tag (concat (propertize word 'face 'folio-widget-dict-entry)
+         (tag (concat (propertize word 'face 'folio-dict-entry)
                       " "
                       (if (zerop frequency)
                           (propertize " -" 'help-echo
@@ -330,7 +330,7 @@ widget :value should be a word from the text vocabulary."
              (frequency (or (widget-apply
                              widget :frequency-lookup value) 0))
              (tag (concat (propertize
-                           value 'face 'folio-widget-dict-entry)
+                           value 'face 'folio-dict-entry)
                           " "
                           (if (zerop frequency)
                               (propertize " -"
