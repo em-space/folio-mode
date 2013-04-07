@@ -37,15 +37,6 @@
 (require 'folio-image)
 
 
-(defun folio-filter-good-words (words)
-  (if folio-vocabulary-good-words
-      (folio-filter-list
-       words (lambda (x)
-               (not (cdr-safe
-                     (gethash x folio-vocabulary-good-words)))))
-    words))
-
-
 (defun folio-widget-dict-value (&optional regexp gwl)
   (folio-with-parent-buffer
     (let ((words (folio-vocabulary-list-misses)))
