@@ -293,33 +293,64 @@ This currently always is the table of contents."
     (widget-put widget :args choices)
     (widget-choice-value-create widget)))
 
+(defun folio-widget-field-value-set (widget value)
+  "Set an editable text field WIDGET to VALUE.
+This defun is like `widget-field-value-set' except that it
+ensures that markers do not collapse."
+  (let ((from (widget-field-start widget))
+        (to (widget-field-text-end widget))
+        (buffer (widget-field-buffer widget)))
+    (when (and from to (buffer-live-p buffer))
+      (with-current-buffer buffer
+        (goto-char from)
+        (atomic-change-group
+          (insert value)
+          (let ((old-len (- to from))
+                (new-len (- (point) from)))
+            (delete-char (max old-len 1))
+            ;; retain layout even with `undo'; `undo' itself still
+            ;; doesn't always work properly with `wid-edit', though
+            (widget-clear-undo)
+            (when (> old-len new-len)
+              (insert-char ? (- old-len new-len)))))))))
+
 (define-widget 'folio-widget-integer 'integer
   "A restricted sexp input field for an integer."
   :value-face 'folio-widget-field
-  :notify 'folio-widget-integer-notify)
+  :validate 'folio-widget-integer-validate
+  :notify 'folio-widget-integer-notify
+  :value-set 'folio-widget-field-value-set)
 
-;;;###autoload
+(defun folio-widget-integer-validate (widget)
+  "Validate the field value of WIDGET."
+  (let ((value (folio-chomp (widget-apply widget :value-get))))
+    ;; Reimplemented to _not_ use sexp read value parsing as with the
+    ;; standard implementation.  Do not use the bogus error messages
+    ;; of the latter either; this is what the widget's :type-error is
+    ;; for.
+    (unless (string-match-p "\\`[0-9]+\\'" value)
+      widget)))
+
 (defun folio-widget-integer-notify (widget child &optional event)
-  "XXX"
+  "Handle changes to the widget WIDGET.
+Validate the field value and make sure the widget never contains
+an invalid value."
   (let ((invalid (widget-apply widget :validate)))
     (if invalid
         (progn
-          (goto-char (widget-field-start invalid))
-          (let* ((err (widget-get invalid :error))
+          (let* ((err (widget-get invalid :type-error))
                  (old-value (or (widget-get invalid :old-value)
-                                (widget-default-get widget)))
-                 (size (widget-get widget :size))
-                 (value (format
-                         (format "%% %ds" size) old-value)))
-            (with-temp-message err
-              (sit-for 0.73)
-              ;; XXX call undo--remove old-value thing
+                                (widget-default-get widget))))
+            (message err)
+            (progn
               (widget-put invalid :error nil)
-              (widget-apply
-               invalid :value-set value))))
+                (widget-apply
+                 invalid :value-set (format "%s" old-value))))
+          (goto-char (widget-field-text-end invalid)))
       (let ((value (or (widget-apply widget :value-get)
                        (widget-default-get widget))))
         (widget-put widget :old-value value))))
+  (set-buffer-modified-p nil)
   (widget-default-notify widget child event))
 
 (define-widget 'folio-widget-const 'const
