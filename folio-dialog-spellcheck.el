@@ -413,13 +413,14 @@ children of WIDGET."
 ;; XXX  :keymap folio-widget-dict-keymap
   :format "\n%v\n"
   :entry-format "%v"
+  :value-no-entry "         <no entries>"
   :offset 0
   :indent 6
   :num-keys 15
   :context-keys 1)
 
 (defun folio-widget-dict-value-create (widget)
-  "XXX"
+  "Value create the widget WIDGET."
   (widget-put widget :value-pos (copy-marker (point)))
   (set-marker-insertion-type (widget-get widget :value-pos) t)
   (let* ((keys (delq nil (widget-get widget :value)))
@@ -438,7 +439,7 @@ children of WIDGET."
             (widget-put widget :children (nreverse children))
             (widget-apply widget :focus))
         (widget-create-child-and-convert widget
-         `(const :tag "         <no entries>")))))
+         `(const :tag (widget-get widget :value-no-entry))))))
 
 
 ;;  (remove-hook 'folio-word-occurrence-functions 'folio-locate-word t)
@@ -549,21 +550,23 @@ list entry is created by value."
           (while (not (eq (cadr children) after))
             (setq children (cdr children)))
           (setcdr children (cons new-child (cdr children)))))))
-  ;; Ensure edit fields in buffer keep on working, for obscure reasons
-  ;; and notify WIDGET self with a generic nil-event of something
-  ;; having changed.
+  ;; Ensure edit fields in buffer keep on working, for obscure
+  ;; reasons.  Also notify WIDGET self with a generic nil-event of
+  ;; something having changed.
   (widget-setup)
   (widget-apply widget :notify widget))
 
 (defun folio-widget-dict-focus (widget &optional arg)
-  ;; < arg 0 scroll down
-  ;; > arg 0 scroll up
-  (message "XXX dict focus--arg %s" (car-safe arg))
+  "Re-focus the widget WIDGET after a scrolling event.
+Re-focusing means to call the :focus function of the respective
+child widget.  If ARG is nil assume no particular scrolling
+direction and determine the child widget from :context-keys.
+Otherwise re-focus for scrolling down if ARG < 0 or for scrolling
+up if ARG > 0."
   (let ((children (widget-get widget :children)))
     (when children
-      ;; The child of an `folio-widget-dict-entry' is the `item' displaying
-      ;; the word unknown or misspelled.
-      (let (focus unfocus)
+      (let ((child-type (widget-type (car children)))
+            focus unfocus)
         (mapc (lambda (x)
                 (unless unfocus
                   (when (widget-get x :focus-entry)
@@ -587,20 +590,23 @@ list entry is created by value."
           (setq focus (or (let ((entry (widget-get
                                         (widget-at (point)) :parent)))
                             (when (eq (widget-type entry)
-                                      'folio-widget-dict-entry) entry))
+                                      child-type) entry))
                           (elt children (min (or (widget-get
                                                   widget :context-keys) 0)
                                              (1- (length children))))))
           (widget-apply focus :focus t)))))))
 
-(defun folio-widget-dict-scroll-down (&optional pos arg)
-  (let ((widget (let ((widget (widget-at pos))
+(defun folio-widget-dict-scroll-down (widget-type &optional pos arg)
+  "Scroll down the widget of type WIDGET-TYPE at buffer position POS.
+WIDGET-TYPE should be a scrollable widget like 'folio-repeat.  If
+ARG is non-nil scroll up instead."
+  (let ((widget (let ((widget (widget-at (or pos (point))))
                       found)
                   (while (and (setq widget
                                     (widget-get widget :parent))
                               (not (setq found
                                          (eq (widget-type widget)
-                                             'folio-widget-dict)))))
+                                             widget-type)))))
                   (and found widget))))
     (if widget
         (let ((index (widget-get widget :key-index))
@@ -636,16 +642,21 @@ list entry is created by value."
                      widget :key-index new-index)))))))
       (message "No scrollable widget in focus"))))
 
-(defun folio-widget-dict-scroll-up (&optional pos arg)
-  (folio-widget-dict-scroll-down pos (not arg)))
+(defun folio-widget-dict-scroll-up (widget-type &optional pos arg)
+  "Scroll up the widget of type WIDGET-TYPE.
+The arguments have the same meaning like for
+`folio-widget-dict-scroll-down'."
+  (folio-widget-dict-scroll-down widget-type pos (not arg)))
 
 (defun folio-widget-dict-entry-next ()
+  "Scroll the dictionary widget focusing on the next entry."
   (interactive)
-  (folio-widget-dict-scroll-up (point)))
+  (folio-widget-dict-scroll-up 'folio-widget-dict (point)))
 
 (defun folio-widget-dict-entry-previous ()
+  "Scroll the dictionary widget focusing on the previous entry."
   (interactive)
-  (folio-widget-dict-scroll-down (point)))
+  (folio-widget-dict-scroll-down 'folio-widget-dict (point)))
 
 (defun folio-dialog-spellcheck-page ()
   "Create the spell-checking page for the Folio mode project buffer."
