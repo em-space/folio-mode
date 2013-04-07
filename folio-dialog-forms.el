@@ -28,6 +28,7 @@
 ;;; Code:
 
 (require 'easymenu)
+(require 'info) ;; defface required at run-time
 (require 'wid-edit)
 
 (defvar folio-dialog-form-page-list nil
