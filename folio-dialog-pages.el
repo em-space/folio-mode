@@ -70,14 +70,14 @@
       :size 4) children)
     (push
      (widget-create-child-and-convert
-      widget 'const :tag "  " :format "%t") buttons)
+      widget 'const :tag " " :format "%t") buttons)
     (push
      (widget-create-child-and-convert
       widget 'folio-widget-const
       :tag ""
       :help-echo "Folio (page) label."
       :format "%[%v%]"
-      :size 4
+      :size 6
       :button-prefix ""
       :button-suffix ""
       :button-face 'widget-inactive
@@ -100,7 +100,7 @@
       widget 'choice
       :tag "Type"
       :help-echo "Choose label type."
-      :format "    %[ %t %]: %v"
+      :format "  %[ %t %]: %v"
       :button-face 'custom-button
       :button-prefix ""
       :button-suffix ""
@@ -130,19 +130,21 @@
         :format "%t: %v"
         :value ,(or (nth 2 value) 1)
         :old-value ,(or (nth 2 value) 1)
-        :size 4)) children)
+        :size 6)) children)
     ;; Hack! The const separator prevents the editable-field's end
     ;; marker to jump into the choice item, for whatever reasons.
     (push
      (widget-create-child-and-convert
       widget 'const :tag " " :format "%t") buttons)
+    (folio-widget-insert "\n")
+    (folio-widget-indent 47)
     (unless (null (nth 2 value))
       (push
        (widget-create-child-and-convert
         widget 'choice
         :tag "Style"
         :help-echo "Choose numbering style."
-        :format "  %t: %v"
+        :format "%t: %v\n"
         :button-face 'custom-button
         :notify (lambda (widget &rest ignore)
                   (let ((parent (widget-get widget :parent)))
