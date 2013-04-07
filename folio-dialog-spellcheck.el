@@ -38,6 +38,10 @@
 
 
 (defun folio-widget-dict-value (&optional regexp gwl)
+  "Return the value of the dictionary widget.
+If the regexp REGEXP is non-nil filter out any words in the
+vocabulary not matching.  If GWL is non-nil filter out any word
+that is in the `good word' list."
   (folio-with-parent-buffer
     (let ((words (folio-vocabulary-list-misses)))
       (when gwl
