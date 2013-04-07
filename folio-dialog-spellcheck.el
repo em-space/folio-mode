@@ -199,26 +199,6 @@ Reuse :args cache if it exists."
     (message "XXX --- dict node default action")
     (widget-default-action widget event)))
 
-(defvar folio-widget-dict-entry-keymap
-  (let ((map (copy-keymap widget-keymap)))
-    (define-key map (kbd "C-e") 'widget-end-of-line)
-    (define-key map (kbd "<M-right>") 'folio-widget-dict-entry-next)
-    (define-key map (kbd "<M-left>") 'folio-widget-dict-entry-previous)
-    map)
-  "Keymap for the dictionary widget.")
-
-(define-widget 'folio-widget-dict-entry 'tree-widget
-  ""
-  :value-create 'folio-widget-dict-entry-value-create
-  :keep '(:dict-value :focus-entry)
-  :expander 'folio-widget-dict-entry-expand
-  :notify 'folio-widget-dict-entry-notify
-  :keymap folio-widget-dict-entry-keymap
-  :dict-lookup 'folio-widget-dict-lookup
-  :focus 'folio-widget-dict-entry-focus
-  :focus-entry nil
-  :frequency-lookup 'folio-widget-frequency-lookup)
-
 (define-widget 'folio-widget-dict-entry-item 'item
   "Widget for an item in a dictionary entry.
 The widget maintains a misspelled word and its frequency count."
@@ -318,6 +298,29 @@ The widget maintains a misspelled word and its frequency count."
      (t
       (widget-apply parent :notify widget 'dict-focus)))))
 
+(defvar folio-widget-dict-entry-keymap
+  (let ((map (copy-keymap widget-keymap)))
+    (define-key map (kbd "C-e") 'widget-end-of-line)
+    (define-key map (kbd "<M-right>") 'folio-widget-dict-entry-next)
+    (define-key map (kbd "<M-left>") 'folio-widget-dict-entry-previous)
+    map)
+  "Keymap for the dictionary widget.")
+
+(define-widget 'folio-widget-dict-entry 'tree-widget
+  "A dictionary entry for `folio-widget-dict'.
+The widget maintains a instance of `folio-widget-dict-entry-item'
+for displaying a misspelled word and one or more child nodes each
+again tree-widgets for suggestions of a spellchecker run."
+  :value-create 'folio-widget-dict-entry-value-create
+  :keep '(:dict-value :focus-entry)
+  :expander 'folio-widget-dict-entry-expand
+  :notify 'folio-widget-dict-entry-notify
+  :keymap folio-widget-dict-entry-keymap
+  :dict-lookup 'folio-widget-dict-lookup
+  :focus 'folio-widget-dict-entry-focus
+  :focus-entry nil
+  :frequency-lookup 'folio-widget-frequency-lookup)
+
 (defun folio-widget-dict-entry-value-create (widget)
   "Value create the widget WIDGET.
 Set up a node item which tag is the dictionary entry.  The
@@ -403,7 +406,6 @@ children of WIDGET."
   (when arg
     (goto-char (widget-get
                 (car (widget-get widget :children)) :from))))
-
 
 (define-widget 'folio-widget-dict 'folio-widget-repeat
   "A scrollable dictionary widget."
