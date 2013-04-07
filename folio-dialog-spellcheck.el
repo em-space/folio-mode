@@ -410,9 +410,7 @@ children of WIDGET."
   :notify 'folio-widget-dict-notify
 ;; XXX  :keymap folio-widget-dict-keymap
   :offset 0
-  :indent 6
-  :num-keys 15
-  :context-keys 1)
+  :indent 6)
 
 ;;  (remove-hook 'folio-word-occurrence-functions 'folio-locate-word t)
 
