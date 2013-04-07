@@ -54,6 +54,7 @@ buffer, normally the project text buffer."
               ("Spellcheck" folio-dialog-spellcheck-page
                :header "Spellcheck")))
       (folio-dialog-form-mode)
+      (overwrite-mode)
       (set (make-local-variable 'widget-documentation-face) 'default)
       (folio-set-parent-buffer parent))))
 
