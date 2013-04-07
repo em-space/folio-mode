@@ -158,7 +158,7 @@ spellchecker suggestions in the cdr."
                                       'face 'folio-widget-dict)
                           (propertize (concat
                                        ":" (car value))
-                                      'face 'folio-widget-dict-tag))))
+                                      'face 'folio-dict-tag))))
         (setq node `(const
            :tag ,tag
            :format "%[%t%]\n")))
