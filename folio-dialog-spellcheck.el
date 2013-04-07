@@ -32,8 +32,9 @@
 
 (require 'folio-atoms)
 (require 'folio-babel)
-(require 'folio-faces)
+(require 'folio-dialog-forms)
 (require 'folio-etaoin-shrdlu)
+(require 'folio-faces)
 (require 'folio-image)
 
 
