@@ -363,7 +363,7 @@ an invalid value."
   (insert (widget-get widget :value)))
 
 (define-widget 'folio-widget-repeat 'repeat
-  ""
+  "A scrollable widget list widget."
   :value-create 'folio-widget-repeat-value-create
   :insert-before 'folio-widget-repeat-insert-before
   :insert-after 'folio-widget-repeat-insert-after
@@ -375,8 +375,8 @@ an invalid value."
   :value-no-entry "         <no entries>"
   :offset 0
   :indent 6
-  :num-keys 15  ;; XXX keys--naming
-  :context-keys 1)
+  :num-entries 15
+  :context-entries 1)
 
 (defun folio-widget-repeat-value-create (widget)
   "Value create the widget WIDGET."
@@ -385,7 +385,7 @@ an invalid value."
   (let* ((keys (delq nil (widget-get widget :value)))
          (i 0)
          (j (min (length keys)
-                 (+ i (or (widget-get widget :num-keys) 10))))
+                 (+ i (or (widget-get widget :num-entries) 10))))
          children)
     (while (< i j)
       (push (widget-editable-list-entry-create
@@ -394,7 +394,7 @@ an invalid value."
       (setq i (1+ i)))
       (if children
           (progn
-            (widget-put widget :key-index (max (1- i) 0))
+            (widget-put widget :entry-index (max (1- i) 0))
             (widget-put widget :children (nreverse children))
             (widget-apply widget :focus))
         (widget-create-child-and-convert widget
@@ -471,7 +471,7 @@ list entry is created by value."
   "Re-focus the widget WIDGET after a scrolling event.
 Re-focusing means to call the :focus function of the respective
 child widget.  If ARG is nil assume no particular scrolling
-direction and determine the child widget from :context-keys.
+direction and determine the child widget from :context-entries.
 Otherwise re-focus for scrolling down if ARG < 0 or for scrolling
 up if ARG > 0."
   (let ((children (widget-get widget :children)))
@@ -503,7 +503,7 @@ up if ARG > 0."
                             (when (eq (widget-type entry)
                                       child-type) entry))
                           (elt children (min (or (widget-get
-                                                  widget :context-keys) 0)
+                                                  widget :context-entries) 0)
                                              (1- (length children))))))
           (widget-apply focus :focus t)))))))
 
@@ -520,7 +520,7 @@ ARG is non-nil scroll up instead."
                                              widget-type)))))
                   (and found widget))))
     (if widget
-        (let ((index (widget-get widget :key-index))
+        (let ((index (widget-get widget :entry-index))
               (children (widget-get widget :children)))
           (when children
             (let ((keys (widget-get widget :value)))
@@ -534,23 +534,23 @@ ARG is non-nil scroll up instead."
                       (widget-apply
                        widget :insert-after (nth new-index keys))
                       (widget-apply widget :focus 1)
-                      (widget-put widget :key-index new-index)))
+                      (widget-put widget :entry-index new-index)))
                 (let ((new-index (max (1- index) 0))
-                      (num-keys (max (or (widget-get
-                                          widget :num-keys) 0) 1)))
+                      (num-entries (max (or (widget-get
+                                             widget :num-entries) 0) 1)))
                   (unless (or (= index new-index)
-                              (< (1+ (- new-index num-keys)) 0))
+                              (< (1+ (- new-index num-entries)) 0))
                     ;; Scroll down.
                     (widget-apply widget :delete-at
                                   (car (last children)))
                     (setq children (widget-get widget :children))
                     (widget-apply widget :insert-before
                                   (elt keys (1+ (- new-index
-                                                   num-keys)))
+                                                   num-entries)))
                                   (car children))
                     (widget-apply widget :focus -1)
                     (widget-put
-                     widget :key-index new-index)))))))
+                     widget :entry-index new-index)))))))
       (message "No scrollable widget in focus"))))
 
 (defun folio-widget-repeat-scroll-up (widget-type &optional pos arg)
