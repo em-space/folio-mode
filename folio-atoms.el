@@ -441,6 +441,35 @@ If POS is nil check the character at point instead."
 If POS is nil check the character at point instead."
   (not (folio-lower-case-char-at-p (or pos (point)))))
 
+(defmacro folio-replace-regexp-in-string (str &rest clauses)
+  "Replace all matches according to CLAUSES in string STR.
+
+Each clause is of the form \(REGEXP REPLACEMENT):
+
+   \(folio-replace-regexp-in-string s
+      \(\"ß\" \"ss\")
+      \(\"æ\" \"ae\")).
+
+Clauses are applied in order with side-effects, i.e. the
+replacements of a clause might get modified by a later clause.
+
+Case in replacements is preserved if the variable `case-replace'
+is non-nil.
+
+Return a new string containing the replacements."
+  (declare (indent 1))
+  (let ((repl (make-symbol "repl")))
+    `(let ((,repl ,str))
+       ,@(let (forms)
+           (mapc (lambda (x)
+                   (push `(setq ,repl
+                                (replace-regexp-in-string
+                                 ,(car x) ,(cadr x) ,repl
+                                 (not case-replace)))
+                         forms))
+                 (nreverse clauses))
+           forms))))
+
 
 ;;;; windows
 
