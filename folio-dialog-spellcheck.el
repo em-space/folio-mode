@@ -114,13 +114,14 @@ converted."
       (concat (or word "<unknown>")
               " "
               (if count
-                (propertize (concat ":" count)
-                            'face 'folio-frequency-tag
-                            'help-echo (concat count " "
-                                        (folio-pluralize
-                                         "occurrence"
-                                         (cadr value))
-                                        " in text"))
+                  (propertize
+                   (concat ":" count)
+                   'face 'folio-frequency-tag
+                   'help-echo (concat
+                               count " "
+                               (folio-pluralize
+                                "occurrence" (cadr value))
+                               " in text"))
                 (propertize " -"
                             'help-echo
                             "No occurrences in text")))))
@@ -135,7 +136,7 @@ converted."
   :value-create 'folio-widget-dict-node-value-create
   :keep '(:dict-value)
   :expander 'folio-widget-dict-node-expand
-;;  :keymap folio-widget-dict-keymap
+  ;;  :keymap folio-widget-dict-keymap
   :notify 'folio-widget-dict-node-notify
   :frequency-lookup 'folio-widget-frequency-lookup)
 
@@ -156,8 +157,8 @@ spellchecker suggestions in the cdr."
                                        ":" (car value))
                                       'face 'folio-dict-tag))))
         (setq node `(const
-           :tag ,tag
-           :format "%[%t%]\n")))
+                     :tag ,tag
+                     :format "%[%t%]\n")))
       (widget-put widget :node node)
       (widget-put widget :open
                   (widget-get (widget-get
@@ -279,7 +280,7 @@ The widget maintains a misspelled word and its frequency count."
 (defun folio-widget-dict-entry-item-action (widget &optional event)
   "Handle user initiated events."
   (message "--- XXX widget item action EVENT %S" event)
-;  (message "--- XXX widget item action BUTTONS %S" (widget-get widget :buttons))
+  ;; (message "--- XXX widget item action BUTTONS %S" (widget-get widget :buttons))
   (let ((parent (widget-get widget :parent)))
     (cond
      ((eq (car-safe event) 'dict-apply)
@@ -410,7 +411,7 @@ children of WIDGET."
 (define-widget 'folio-widget-dict 'folio-widget-repeat
   "A scrollable dictionary widget."
   :notify 'folio-widget-dict-notify
-;; XXX  :keymap folio-widget-dict-keymap
+  ;; XXX  :keymap folio-widget-dict-keymap
   :offset 0
   :indent 6)
 
@@ -474,125 +475,125 @@ children of WIDGET."
   "Create the spell-checking page for the Folio mode project buffer."
   (widget-create 'const
                  :value ""
-                     :format "%h"
-                     :create (lambda (widget)
-                               (let ((widget-documentation-face 'default))
-                                 (widget-default-create widget)))
-                     :doc "Find and correct misspellings.\n\
+                 :format "%h"
+                 :create (lambda (widget)
+                           (let ((widget-documentation-face 'default))
+                             (widget-default-create widget)))
+                 :doc "Find and correct misspellings.\n\
 Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Donec hendrerit tempor tellus. Donec pretium posuere tellus. Proin quam nisl, tincidunt et, mattis eget, convallis nec, purus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nulla posuere. Donec vitae dolor. Nullam tristique diam non turpis. Cras placerat accumsan nulla. Nullam rutrum. Nam vestibulum accumsan nisl.")
 
-    (widget-insert "\n\n\n")
-    (let* ((dicts (sort (folio-dictionary-list) 'string-lessp))
-           (default-dict (car dicts)))
-      (insert-char ?\s 13)
+  (widget-insert "\n\n\n")
+  (let* ((dicts (sort (folio-dictionary-list) 'string-lessp))
+         (default-dict (car dicts)))
+    (insert-char ?\s 13)
 
-      (folio-dialog-form
-       'primary-dictionary
-       (widget-create 'folio-menu-choice
-                      :tag "Primary dictionary"
-                      :format "%[ %t   %] %v"
-                      :button-face 'custom-button
-                      :notify (lambda (widget &rest ignore)
-                                (let ((value (widget-value widget)))
-                                  (folio-with-parent-buffer
-                                    (folio-change-dictionary value)))
-                                (let ((secondary (folio-dialog-form-get
-                                                  'secondary-dictionary)))
-                                  (widget-value-set secondary
-                                                    (or (remove (widget-value widget)
-                                                                (widget-value secondary))
-                                                        (list "<none>")))
-                                  (widget-setup)))
-                      :offset 14
-                      :value-face 'folio-widget-field
-                      :value (or (folio-with-parent-buffer
-                                   (folio-primary-dictionary))
-                                 (car (folio-dictionary-list)))
-                      :values dicts
-                      :choices (lambda (widget)
-                                 (mapcar (lambda (x)
-                                           (widget-convert 'const
-                                                           :value-face 'folio-widget-field
-                                                           :format "%v"
-                                                           :value x))
-                                         (widget-get widget :values)))))
+    (folio-dialog-form
+     'primary-dictionary
+     (widget-create 'folio-menu-choice
+                    :tag "Primary dictionary"
+                    :format "%[ %t   %] %v"
+                    :button-face 'custom-button
+                    :notify (lambda (widget &rest ignore)
+                              (let ((value (widget-value widget)))
+                                (folio-with-parent-buffer
+                                  (folio-change-dictionary value)))
+                              (let ((secondary (folio-dialog-form-get
+                                                'secondary-dictionary)))
+                                (widget-value-set secondary
+                                                  (or (remove (widget-value widget)
+                                                              (widget-value secondary))
+                                                      (list "<none>")))
+                                (widget-setup)))
+                    :offset 14
+                    :value-face 'folio-widget-field
+                    :value (or (folio-with-parent-buffer
+                                 (folio-primary-dictionary))
+                               (car (folio-dictionary-list)))
+                    :values dicts
+                    :choices (lambda (widget)
+                               (mapcar (lambda (x)
+                                         (widget-convert 'const
+                                                         :value-face 'folio-widget-field
+                                                         :format "%v"
+                                                         :value x))
+                                       (widget-get widget :values)))))
 
-      (insert-char ?\s 6)
-      (widget-create 'push-button
-                     :format "%[%t%]"
-                     :tag-glyph (folio-create-image
-                                 'xpm "refresh.xpm" '(:ascent center))
-                     :tag "Refresh"
-                     :notify (lambda (widget _child &optional event)
-                               (let ((buffer folio-parent-buffer))
-                                 (if (folio-vocabulary-build-active-p buffer)
-                                     (folio-spellcheck buffer 'cancel)
-                                   (folio-spellcheck buffer)
-                                   (folio-widget-dict-filter-value-reset))))
-                     :help-echo (lambda (_widget)
-                                  (let ((buffer folio-parent-buffer))
-                                    (if (folio-vocabulary-build-active-p buffer)
-                                        "Push to stop spell-checking."
-                                      "Push to start spell-checking."))))
-      (widget-insert "\n\n")
-      (folio-dialog-form 'secondary-dictionary
-                         (widget-create 'repeat
-                                        :insert-button-args '(:button-face custom-button)
-                                        :delete-button-args '(:button-face custom-button)
-                                        :append-button-args '(:button-face custom-button)
-                                        :format "%v"
-                                        :value '("<none>")
-                                        :notify (lambda (widget &rest ignore)
-                                                  (folio-with-parent-buffer
-                                                    (folio-change-dictionary
-                                                     (folio-primary-dictionary)
-                                                     (remove "<none>" (widget-value widget)))))
-                                        `(folio-menu-choice
-                                          :tag "Secondary dictionary"
-                                          :format "%[ %t %] %v"
-                                          :value "<none>"
-                                          :values ,(cons "<none>" dicts)
-                                          :button-face custom-button
-                                          :choices (lambda (widget)
-                                                     (let ((values
-                                                            (cons "<none>"
-                                                                  (folio-dictionary-choices-list))))
-                                                       (mapcar (lambda (x)
-                                                                 (widget-convert 'const :value x))
-                                                               values))))))
+    (insert-char ?\s 6)
+    (widget-create 'push-button
+                   :format "%[%t%]"
+                   :tag-glyph (folio-create-image
+                               'xpm "refresh.xpm" '(:ascent center))
+                   :tag "Refresh"
+                   :notify (lambda (widget _child &optional event)
+                             (let ((buffer folio-parent-buffer))
+                               (if (folio-vocabulary-build-active-p buffer)
+                                   (folio-spellcheck buffer 'cancel)
+                                 (folio-spellcheck buffer)
+                                 (folio-widget-dict-filter-value-reset))))
+                   :help-echo (lambda (_widget)
+                                (let ((buffer folio-parent-buffer))
+                                  (if (folio-vocabulary-build-active-p buffer)
+                                      "Push to stop spell-checking."
+                                    "Push to start spell-checking."))))
+    (widget-insert "\n\n")
+    (folio-dialog-form 'secondary-dictionary
+                       (widget-create 'repeat
+                                      :insert-button-args '(:button-face custom-button)
+                                      :delete-button-args '(:button-face custom-button)
+                                      :append-button-args '(:button-face custom-button)
+                                      :format "%v"
+                                      :value '("<none>")
+                                      :notify (lambda (widget &rest ignore)
+                                                (folio-with-parent-buffer
+                                                  (folio-change-dictionary
+                                                   (folio-primary-dictionary)
+                                                   (remove "<none>" (widget-value widget)))))
+                                      `(folio-menu-choice
+                                        :tag "Secondary dictionary"
+                                        :format "%[ %t %] %v"
+                                        :value "<none>"
+                                        :values ,(cons "<none>" dicts)
+                                        :button-face custom-button
+                                        :choices (lambda (widget)
+                                                   (let ((values
+                                                          (cons "<none>"
+                                                                (folio-dictionary-choices-list))))
+                                                     (mapcar (lambda (x)
+                                                               (widget-convert 'const :value x))
+                                                             values))))))
 
-      (widget-insert "\n\n              Accept `good words' ")
-      (folio-dialog-form 'dict-gwl
-                         (widget-create 'checkbox
-                                        :value nil
-                                        :notify (lambda (&rest ignore)
-                                                  (folio-widget-dict-filter-value-reset))))
+    (widget-insert "\n\n              Accept `good words' ")
+    (folio-dialog-form 'dict-gwl
+                       (widget-create 'checkbox
+                                      :value nil
+                                      :notify (lambda (&rest ignore)
+                                                (folio-widget-dict-filter-value-reset))))
 
-      (widget-insert "\n\n\n\n")
-      ;; Pretty much like 'regexp but validated a little differently.
-      (folio-dialog-form 'dict-filter
-                         (widget-create 'string
-                                        :tag "Filter"
-                                        :format "%t: %v"
-                                        :size 14
-                                        :value-face 'folio-widget-field
-                                        :notify 'folio-widget-dict-filter-apply))
-      (widget-insert " ")
-      (widget-create 'push-button
-                     :format "%[%t%]"
-                     ;; :tag-glyph (find-image
-                     ;;    `((:type jpg :file "delete-small.jpg" :ascend 5)))
-                     :tag "Reset"
-                     :button-face 'custom-button
-                     :notify 'folio-widget-dict-filter-reset)
+    (widget-insert "\n\n\n\n")
+    ;; Pretty much like 'regexp but validated a little differently.
+    (folio-dialog-form 'dict-filter
+                       (widget-create 'string
+                                      :tag "Filter"
+                                      :format "%t: %v"
+                                      :size 14
+                                      :value-face 'folio-widget-field
+                                      :notify 'folio-widget-dict-filter-apply))
+    (widget-insert " ")
+    (widget-create 'push-button
+                   :format "%[%t%]"
+                   ;; :tag-glyph (find-image
+                   ;;    `((:type jpg :file "delete-small.jpg" :ascend 5)))
+                   :tag "Reset"
+                   :button-face 'custom-button
+                   :notify 'folio-widget-dict-filter-reset)
 
-      (folio-dialog-form-rule 32)
+    (folio-dialog-form-rule 32)
 
-      (folio-dialog-form 'dictionary
-                         (widget-create 'folio-widget-dict
-                                        :value (folio-widget-dict-value)
-                                        `(folio-widget-dict-entry)))
-      (widget-setup)))
+    (folio-dialog-form 'dictionary
+                       (widget-create 'folio-widget-dict
+                                      :value (folio-widget-dict-value)
+                                      `(folio-widget-dict-entry)))
+    (widget-setup)))
 
 
 (defun folio-widget-dict-filter-apply (widget child &optional event)
