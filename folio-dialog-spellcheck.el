@@ -463,12 +463,12 @@ children of WIDGET."
 (defun folio-widget-dict-entry-next ()
   "Scroll the dictionary widget focusing on the next entry."
   (interactive)
-  (folio-widget-dict-scroll-up 'folio-widget-dict (point)))
+  (folio-widget-repeat-scroll-up 'folio-widget-dict (point)))
 
 (defun folio-widget-dict-entry-previous ()
   "Scroll the dictionary widget focusing on the previous entry."
   (interactive)
-  (folio-widget-dict-scroll-down 'folio-widget-dict (point)))
+  (folio-widget-repeat-scroll-down 'folio-widget-dict (point)))
 
 (defun folio-dialog-spellcheck-page ()
   "Create the spell-checking page for the Folio mode project buffer."
