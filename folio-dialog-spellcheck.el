@@ -60,12 +60,12 @@ that is in the `good word' list."
   (folio-with-parent-buffer
     (folio-vocabulary-dict-list word)))
 
-(defun folio-widget-frequency-lookup (_widget word)
+(defun folio-widget-dict-frequency-lookup (_widget word)
   "Adapt `folio-vocabulary-word-count' for use with widgets."
   (folio-with-parent-buffer
     (folio-vocabulary-word-count word)))
 
-(defun folio-widget-good-words-lookup (_widget word)
+(defun folio-widget-dict-good-words-lookup (_widget word)
   "Return non-nil if WORD is in the project local `good word' list."
   (folio-with-parent-buffer
     (folio-vocabulary-good-word-p word)))
@@ -138,7 +138,7 @@ converted."
   :expander 'folio-widget-dict-node-expand
   ;;  :keymap folio-widget-dict-keymap
   :notify 'folio-widget-dict-node-notify
-  :frequency-lookup 'folio-widget-frequency-lookup)
+  :frequency-lookup 'folio-widget-dict-frequency-lookup)
 
 (defun folio-widget-dict-node-value-create (widget)
   "Create the widget WIDGET for a dictionary node.
@@ -207,8 +207,8 @@ The widget maintains a misspelled word and its frequency count."
   :tag ""
   :format "%[%v%]\n"
   :action 'folio-widget-dict-entry-item-action
-  :frequency-lookup 'folio-widget-frequency-lookup
-  :good-word-lookup 'folio-widget-good-words-lookup)
+  :frequency-lookup 'folio-widget-dict-frequency-lookup
+  :good-word-lookup 'folio-widget-dict-good-words-lookup)
 
 (defvar folio-widget-dict-entry-choice 'accept-session
   "Save action chosen for the last dictionary entry.")
@@ -320,7 +320,7 @@ again tree-widgets for suggestions of a spellchecker run."
   :dict-lookup 'folio-widget-dict-lookup
   :focus 'folio-widget-dict-entry-focus
   :focus-entry nil
-  :frequency-lookup 'folio-widget-frequency-lookup)
+  :frequency-lookup 'folio-widget-dict-frequency-lookup)
 
 (defun folio-widget-dict-entry-value-create (widget)
   "Value create the widget WIDGET.
