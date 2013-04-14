@@ -53,6 +53,11 @@ The return value in this case is nil."
      ((and max-distance (> (abs (- n m)) max-distance))
       nil)
      (t
+      ;; str1 should be the shorter string
+      (when (> n m)
+        (let ((str1-temp str1)
+              (n-temp n))
+          (setq str1 str2 n m str2 str1-temp m n-temp)))
       ;; only two columns are maintained, the current one that
       ;; is being built and the previous one
       (let ((col (make-vector (1+ m) 0))
@@ -84,6 +89,19 @@ The return value in this case is nil."
                 (and (null break)
                      (<= (aref prev-col m) max-distance)))
             (aref prev-col m)))))))
+
+;; (eq (folio-levenshtein-distance
+;;      "Marry Poppins"
+;;      "Supercalifrajilisticexpialidotious") 29)
+
+;; (folio-levenshtein-distance
+;;  "Supercalifragilisticexpialidocious"
+;;  "Supercalifrajilisticexpialidotious" 2)
+
+;; (folio-levenshtein-distance
+;;  "Supercalifrajilisticexpialidotious"
+;;  "Supercalifragilisticexpialidocious" 2)
+
 
 
 (provide 'folio-levenshtein)
