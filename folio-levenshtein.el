@@ -42,7 +42,7 @@ non-nil in the current buffer (see which).  If the optional
 parameter MAX-DISTANCE is non-nil, the calculation is aborted
 prematurely as soon as the minimum Levenshtein distance between
 prefixes of the strings exceeds the maximum allowed distance.
-The return value in this case is \(- MAX-DISTANCE)."
+The return value in this case is nil."
   (let ((n (length str1))
         (m (length str2)))
     (cond
@@ -51,12 +51,13 @@ The return value in this case is \(- MAX-DISTANCE)."
      ((= 0 m)
       n)
      ((and max-distance (> (abs (- n m)) max-distance))
-      (- max-distance))
+      nil)
      (t
       ;; only two columns are maintained, the current one that
       ;; is being built and the previous one
       (let ((col (make-vector (1+ m) 0))
-            (prev-col (make-vector (1+ m) 0)))
+            (prev-col (make-vector (1+ m) 0))
+            break)
         (dotimes (i (1+ m))
           (setf (aref prev-col i) i))
         (let ((i 0))
@@ -75,13 +76,14 @@ The return value in this case is \(- MAX-DISTANCE)."
               (if (and max-distance
                        (> i prefix-distance)
                        (> prefix-distance max-distance))
-                  (progn
-                    (setq i n)
-                    (setf (aref prev-col m) (- max-distance)))
+                    (setq i n break t)
                 ;; Swap columns.
                 (cl-rotatef col prev-col)
                 (setq i (1+ i))))))
-        (aref prev-col m))))))
+        (if (or (null max-distance)
+                (and (null break)
+                     (<= (aref prev-col m) max-distance)))
+            (aref prev-col m)))))))
 
 
 (provide 'folio-levenshtein)
