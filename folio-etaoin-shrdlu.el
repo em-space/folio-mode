@@ -48,10 +48,10 @@
 (require 'folio-faces)
 (require 'folio-font-lock)
 (require 'folio-frame)
+(require 'folio-levenshtein)
 (require 'folio-log)
-(require 'folio-time)
 (require 'folio-spellcheck)
-
+(require 'folio-time)
 
 (defconst folio-vocabulary-default-regexp
   "\\<\\(\\sw+\\)\\>\\([ \n\t\f]+\\(\\1\\>\\)\\)?"
@@ -312,10 +312,17 @@ Supported values are
   "Look for soundslikes within two edit distance apart.
 Soundslikes for WORD are searched in the vocabulary as collected
 by the most recent spell-check or word-frequency run.  DISTANCE
-if non-nil overrides the default maximal edit distance."
+if non-nil overrides the default maximal edit distance of two."
   (interactive "M")
-  ;; XXX
-  )
+  (let ((distance (or distance 2))
+         soundslikes)
+    (if folio-vocabulary
+        (maphash (lambda (k v)
+                   (when (folio-levenshtein-distance
+                          k word distance)
+                     (setq soundslikes (cons k soundslikes))))
+                 folio-vocabulary))
+    soundslikes))
 
 ;;;###autoload
 (defun folio-load-good-words (&optional no-error)
