@@ -151,7 +151,7 @@ elapsed.  The format of the time value is that of
     `(let ((,now (current-time))
            (,result (progn
                       ,@body)))
-       (cons ,result (folio-time-elasped (current-time) ,now)))))
+       (cons ,result (folio-time-elapsed ,now)))))
 
 (defsubst folio-timer-eval (timer keyword)
   (let ((value (folio-timer-get timer keyword)))
