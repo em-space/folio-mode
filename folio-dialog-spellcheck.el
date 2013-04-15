@@ -331,28 +331,8 @@ widget :value should be a word from the text vocabulary."
         ;; Check that the :node widget is not a tree-widget.
         (and (tree-widget-p node)
              (error "Invalid tree-widget :node %S" node))
-      (let* ((value (widget-get widget :value))
-             (frequency (or (widget-apply
-                             widget :frequency-lookup value) 0))
-             (tag (concat (propertize
-                           value 'face 'folio-dict-entry)
-                          " "
-                          (if (zerop frequency)
-                              (propertize " -"
-                                          'help-echo
-                                          "No occurrences in text")
-                            (let ((count (number-to-string
-                                          frequency)))
-                              (propertize
-                               (concat ":" count)
-                               'face 'folio-frequency-tag
-                               'help-echo (concat count " "
-                                                  (folio-pluralize
-                                                   "occurrence"
-                                                   frequency)
-                                                  " in text")))))))
+      (let* ((value (widget-get widget :value)))
         (setq node `(folio-widget-dict-entry-item
-                     :tag ""
                      :value ,value
                      :keymap ,(widget-get widget :keymap)))
         (widget-put widget :node node)
