@@ -121,25 +121,14 @@ WIDGET should be of the type `folio-widget-vocabulary-item'."
 
 (defun folio-widget-vocabulary-item-action (widget &optional event)
   "Handle user initiated events."
-  (message "--- XXX widget item action EVENT %S" event)
-;  (message "--- XXX widget item action BUTTONS %S" (widget-get widget :buttons))
-  (let ((parent (widget-get widget :parent)))
-    (cond
-     ((eq (car-safe event) 'dict-apply)
-      (let ((buttons (widget-get widget :buttons))
-            (entry (widget-get widget :vocabulary-value))
-            action)
-        (mapc (lambda (x)
-                (when (eq (widget-type x) 'choice)
-                  (setq action (widget-get x :value)))) buttons)
-        (when action
-          (widget-apply
-           parent :notify widget `(dict-apply ,action ,entry)))))
-     ((widget-get parent :open)
-      (let ((entry (widget-get widget :vocabulary-value)))
-        (widget-apply parent :notify widget `(vocabulary-choice ,entry))))
-     (t
-      (widget-apply parent :notify widget '(vocabulary-focus))))))
+  (let ((value (widget-get widget :value))
+        (pos (marker-position (widget-get widget :from))))
+    (widget-apply (widget-get widget :parent)
+                  :notify widget `(vocabulary-choice ,value))
+    (when pos
+      ;; XXX mouse click should move point too for this widget, see
+      ;; `widget-button-click-moves-point',
+      (goto-char pos))))
 
 (define-widget 'folio-widget-soundslike-node 'tree-widget
   "A sounds-like section in the vocabulary widget."
@@ -193,17 +182,8 @@ WIDGET."
           (let* ((word (car items))
                  (count (widget-apply
                          widget :frequency-lookup word)))
-            (push
-             `(folio-widget-vocabulary-item
-               :value ,word
-               :action (lambda (widget &optional event)
-                         (message "%S ---------" event)
-                         (let ((value (widget-get widget :value)))
-                           (widget-apply
-                            (widget-get widget :parent)
-                            :notify widget
-                            `(vocabulary-choice ,value)))))
-             children))
+            (push `(folio-widget-vocabulary-item
+                    :value ,word) children))
           (pop items))
         (unless children
           (push '(const :tag "<no entries>") children))
@@ -241,7 +221,8 @@ widget :value should be a word from the text vocabulary."
 (defun folio-widget-vocabulary-entry-notify (widget child &optional event)
   "Handle a state change of WIDGET's CHILD widget."
 
-  (message "XXX dict entry notify child %S event %S" (car-safe child) (car-safe event))
+  (message "XXX dict entry notify child %S event %S"
+           (car-safe child) (car-safe event))
   (message "XXX dict entry from node %s is child %s"
            (eq (car-safe child) 'folio-widget-vocabulary-item)
            (car-safe (widget-get widget :node)))
@@ -276,12 +257,10 @@ Return the children of WIDGET."
 (defun folio-widget-vocabulary-entry-focus (widget &optional arg)
   "Set focus for WIDGET according to ARG."
   (widget-put widget :focus-entry (and arg t))
-
   ;; Expand when in focus or otherwise collapse the node by calling
   ;; the tree-widget's action function.
   (unless (eq (and (widget-get widget :open) t) (and arg t))
     (widget-apply widget :action))
-
   ;; Position cursor at the beginning of the node item.
   (when arg
     (goto-char (widget-get
@@ -296,8 +275,6 @@ Return the children of WIDGET."
 
 (defun folio-widget-vocabulary-notify (widget child &optional event)
   "Pass notification to parent."
-  (message "AAA vocabulary notify XXX child %S event %S" (car-safe child) event)
-
   (cond
    ((eq (widget-type child) 'folio-widget-vocabulary-entry)
     (cond
@@ -308,10 +285,12 @@ Return the children of WIDGET."
       (save-selected-window
         (switch-to-buffer-other-window folio-parent-buffer)
         (run-hook-with-args
-         'folio-word-occurrence-functions (cadr event))))
+         'folio-word-occurrence-functions (cadr event)))
+      ;; XXX this should focus the child up-stack that originally
+      ;; produced the event
+      (widget-apply widget :focus child))
      (t nil)))
    (t
-    (message "XXX vocabulary notify default")
     (widget-default-notify widget child event))))
 
 (defun folio-widget-vocabulary-entry-next ()
