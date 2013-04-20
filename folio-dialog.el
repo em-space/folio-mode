@@ -38,6 +38,7 @@
 (require 'folio-dialog-setup)
 (require 'folio-dialog-pages)
 (require 'folio-dialog-spellcheck)
+(require 'folio-dialog-vocabulary)
 
 (defun folio-project-buffer-setup (name parent)
   "Setup the Folio mode project buffer.
@@ -53,7 +54,8 @@ buffer, normally the project text buffer."
               ("Text Structure & Pagination" folio-dialog-pages-page
                :header "Text Structure & Pagination")
               ("Spellcheck" folio-dialog-spellcheck-page
-               :header "Spellcheck")))
+               :header "Spellcheck")
+              ("Vocabulary" folio-dialog-vocabulary-page)))
       (folio-dialog-form-mode)
       (folio-with-muted-message
           (overwrite-mode)
