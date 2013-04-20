@@ -160,7 +160,7 @@ property."
         (and (tree-widget-p node)
              (error "Invalid tree-widget :node %S" node))
       (let* ((value (widget-get widget :vocabulary-value))
-             (tag (propertize "Similar "
+             (tag (propertize "Similar spellings"
                               'face 'folio-soundslike)))
         (setq node `(const :tag ,tag
                            :format "%[%t%]\n")))
@@ -173,7 +173,7 @@ property."
 (defun folio-widget-soundslike-node-expand (widget)
   "Expand the tree-node widget WIDGET.
 For words with spellings similar to the
-widget's :vocabulary-value assig child nodes of type
+widget's :vocabulary-value assign child nodes of type
 `folio-widget-vocabulary-item'.  Return the child nodes of
 WIDGET."
   (or (widget-get widget :args) ;; re-use cache if exists
