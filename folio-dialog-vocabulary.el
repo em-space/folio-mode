@@ -178,8 +178,11 @@ widget's :vocabulary-value assign child nodes of type
 WIDGET."
   (or (widget-get widget :args) ;; re-use cache if exists
       (let* ((value (widget-get widget :vocabulary-value))
-             (items (folio-widget-soundslike-lookup
-                     widget value))
+             ;; sort-order possibly should have a control widget or
+             ;; defcustom setting
+             (items (sort (folio-widget-vocabulary-soundslike-lookup
+                           widget value)
+                          'string-lessp))
              children)
         (while items
           (let* ((word (car items))
