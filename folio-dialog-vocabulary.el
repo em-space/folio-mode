@@ -171,9 +171,12 @@ property."
   (tree-widget-value-create widget))
 
 (defun folio-widget-soundslike-node-expand (widget)
-  "Return the child nodes of WIDGET.
-Reuse :args cache if it exists."
-  (or (widget-get widget :args)
+  "Expand the tree-node widget WIDGET.
+For words with spellings similar to the
+widget's :vocabulary-value assig child nodes of type
+`folio-widget-vocabulary-item'.  Return the child nodes of
+WIDGET."
+  (or (widget-get widget :args) ;; re-use cache if exists
       (let* ((value (widget-get widget :vocabulary-value))
              (items (folio-widget-soundslike-lookup
                      widget value))
@@ -251,8 +254,8 @@ widget :value should be a word from the text vocabulary."
   "Expand the vocabulary entry node widget WIDGET.
 The :vocabulary-value property should be a word from the text's
 vocabulary.  The expansion creates child widgets of type
-`folio-widget-vocabulary-node' for every dictionary language.  Return the
-children of WIDGET."
+`folio-widget-soundslike-node' for every dictionary language.
+Return the children of WIDGET."
   ;; Reuse :args cache if it exists.
   (or (widget-get widget :args)
       (let* ((node (widget-get widget :node))
