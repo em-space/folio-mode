@@ -137,18 +137,23 @@ WIDGET should be of the type `folio-widget-vocabulary-item'."
            parent :notify widget `(dict-apply ,action ,entry)))))
      ((widget-get parent :open)
       (let ((entry (widget-get widget :vocabulary-value)))
-        (widget-apply parent :notify widget `(dict-choice ,entry))))
+        (widget-apply parent :notify widget `(vocabulary-choice ,entry))))
      (t
-      (widget-apply parent :notify widget 'dict-focus)))))
+      (widget-apply parent :notify widget '(vocabulary-focus))))))
 
 (define-widget 'folio-widget-soundslike-node 'tree-widget
   "A sounds-like section in the vocabulary widget."
   :value-create 'folio-widget-soundslike-node-value-create
   :keep '(:soundslike-value)
   :expander 'folio-widget-soundslike-node-expand
-  ;;  :keymap folio-widget-dict-keymap
-  :notify 'folio-widget-soundslike-node-notify
+  :keymap folio-widget-vocabulary-keymap
+;;  :notify 'folio-widget-soundslike-node-notify
   :frequency-lookup 'folio-widget-vocabulary-frequency-lookup)
+
+(defun folio-widget-soundslike-node-notify (widget _child &optional event) ;; XXX remove
+  (message "XXX vocabulary item notify value %s--event %S"
+           (list (widget-get widget :vocabulary-value)) event)
+  (widget-default-notify widget _child event))
 
 (defun folio-widget-soundslike-node-value-create (widget)
   "Value create the widget WIDGET for a vocabulary sounds-like node.
@@ -192,12 +197,12 @@ WIDGET."
              `(folio-widget-vocabulary-item
                :value ,word
                :action (lambda (widget &optional event)
-                         (let ((value (car (widget-get
-                                            widget :dict-value))))
+                         (message "%S ---------" event)
+                         (let ((value (widget-get widget :value)))
                            (widget-apply
                             (widget-get widget :parent)
                             :notify widget
-                            `(dict-substitute ,value)))))
+                            `(vocabulary-choice ,value)))))
              children))
           (pop items))
         (unless children
@@ -241,7 +246,7 @@ widget :value should be a word from the text vocabulary."
            (eq (car-safe child) 'folio-widget-vocabulary-item)
            (car-safe (widget-get widget :node)))
 
-  (if (eq (widget-type child) 'folio-widget-dict-node)
+  (if (eq (widget-type child) 'folio-widget-soundslike-node)
       (cond
        ((eq (car-safe event) 'dict-substitute) ;; XXX replace/all
         (let* ((choice (widget-get
@@ -291,19 +296,20 @@ Return the children of WIDGET."
 
 (defun folio-widget-vocabulary-notify (widget child &optional event)
   "Pass notification to parent."
-  (message "vocabulary notify XXX child %S event %S" (car-safe child) event)
+  (message "AAA vocabulary notify XXX child %S event %S" (car-safe child) event)
 
   (cond
    ((eq (widget-type child) 'folio-widget-vocabulary-entry)
     (cond
-     ((eq event 'vocabulary-focus)
+     ((eq (car-safe event) 'vocabulary-focus)
       (widget-default-notify widget child event)
       (widget-apply widget :focus child))
-     ((eq (car-safe event) 'vocabulary-focus)
-      (message "XXX vocabulary notify focus 2 child %s" (car-safe child))
-      (widget-apply widget :focus child))
-     (t
-      nil)))
+     ((eq (car-safe event) 'vocabulary-choice)
+      (save-selected-window
+        (switch-to-buffer-other-window folio-parent-buffer)
+        (run-hook-with-args
+         'folio-word-occurrence-functions (cadr event))))
+     (t nil)))
    (t
     (message "XXX vocabulary notify default")
     (widget-default-notify widget child event))))
