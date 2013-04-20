@@ -75,6 +75,25 @@ clean up."
             (if (>= column (- width 2))
                 (scroll-left (max (- column width -3) 10))))))))
 
+(defun folio-window-resize (&optional arg)
+  "Interactively resize the current window vertically.
+If used with prefix argument resize the window horizontally."
+  (interactive "@P")
+  (let ((prompt (format "%s window (+/-)? "
+                        (if arg "Widen/Narrow" "Enlarge/Shrink")))
+        event)
+    (while (progn
+             (setq event (read-event prompt t 3.0))
+             (cond
+              ((eq event ?+)
+               (enlarge-window 1 arg) t)
+              ((eq event ?-)
+               (enlarge-window -1 arg) t)
+              (t nil))))
+    (if event
+        (push event unread-command-events)
+      (message nil))))
+
 
 (provide 'folio-frame)
 
