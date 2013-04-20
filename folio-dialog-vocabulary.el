@@ -184,7 +184,7 @@ Reuse :args cache if it exists."
                          widget :frequency-lookup word)))
             (push
              `(folio-widget-vocabulary-item
-               :value ,(list word count)
+               :value ,word
                :action (lambda (widget &optional event)
                          (let ((value (car (widget-get
                                             widget :dict-value))))
@@ -257,13 +257,10 @@ children of WIDGET."
   (or (widget-get widget :args)
       (let* ((node (widget-get widget :node))
              (value (widget-get node :vocabulary-value))
-             (vocabulary (widget-apply widget :vocabulary-lookup value))
              children)
-        (while vocabulary
-          (push `(folio-widget-vocabulary-node
-                  :vocabulary-value ,(car vocabulary)) children)
-          (pop vocabulary))
-        (nreverse children))))
+        (push `(folio-widget-soundslike-node
+                :vocabulary-value ,value) children)
+        children)))
 
 (defun folio-widget-vocabulary-entry-focus (widget &optional arg)
   "Set focus for WIDGET according to ARG."
