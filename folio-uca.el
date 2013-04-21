@@ -31,24 +31,22 @@
   (let ((weights (make-vector
                   (* (length levels) (+ 2 2 1)) 0))
         (index -1))
-    (while levels
-      (mapc (lambda (x)
+    (mapc (lambda (x)
               ;; 16 bit level 1
-              (aset weights (setq index (1+ index))
-                    (lsh (elt x 0) -8))
-              (aset weights (setq index (1+ index))
-                    (logand (elt x 0) #x00ff))
-              ;; 16 bit level 2
-              (aset weights (setq index (1+ index))
-                    (lsh (elt x 1) -8))
-              (aset weights
-                    (setq index (1+ index))
-                    (logand (elt x 1) #x00ff))
-              ;; 8 bit level 3
-              (aset weights
-                    (setq index (1+ index))
-                    (logand (elt x 2) #x00ff))) (car levels))
-      (pop levels))
+            (aset weights (setq index (1+ index))
+                  (lsh (elt x 0) -8))
+            (aset weights (setq index (1+ index))
+                  (logand (elt x 0) #x00ff))
+            ;; 16 bit level 2
+            (aset weights (setq index (1+ index))
+                  (lsh (elt x 1) -8))
+            (aset weights
+                  (setq index (1+ index))
+                  (logand (elt x 1) #x00ff))
+            ;; 8 bit level 3
+            (aset weights
+                  (setq index (1+ index))
+                  (logand (elt x 2) #x00ff))) levels)
     weights))
 
 (defun folio-uca-parse-levels ()
@@ -61,13 +59,14 @@
                                (string-to-number x 16))
                              weights)))
         (push levels collation-levels)
-        (goto-char pos)))
+        (goto-char (1+ pos))))
     (nreverse collation-levels)))
 
 (defvar folio-uca-table (make-char-table 'uca-table)
   "")
 
 (defun folio-uca-load-table ()
+  (goto-char (point-min))
   (while (re-search-forward
           "^\\([0-9a-f]+\\)\s+;\s+" nil t)
     (let ((char (string-to-number (match-string 1) 16))
@@ -78,8 +77,7 @@
                (not (null (car collation-elements)))))
       (aset folio-uca-table
             char (folio-uca-make-table-value
-                  (nreverse collation-elements))))))
-
+                  (car (nreverse (cdr collation-elements))))))))
 
 
 (provide 'folio-uca)
