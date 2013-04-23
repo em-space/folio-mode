@@ -111,7 +111,17 @@ contractions.")
 ;; XXX eval-when-compile parse/dump table
 ;; XXX eval-after-load load table
 
-;; XXX (defun folio-uca-find-prefix (prefix))
+(defun folio-uca-find-prefix (prefix)
+  (let ((remainder prefix)
+        (node (aref folio-uca-table (car prefix))))
+    (while (when (and node (progn
+                             (pop remainder)
+                             (cdr node)) remainder)
+             (let ((child (aref (cdr node) (car remainder))))
+               (when child
+                 (setq node child)))))
+    (when node
+      (cons (car node) remainder))))
 
 
 (provide 'folio-uca)
