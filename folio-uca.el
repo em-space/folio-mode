@@ -65,10 +65,6 @@ UTS #10, Appendix A.)"
                   (logand (elt x 2) #x00ff))) levels)
     weights))
 
-(defsubst folio-uca-char-list-re (char-count)
-  (concat "^\\([0-9a-f]+\\(?:\s+[0-9a-f]+\\)\\{"
-          (format "%d" char-count) "\\}\\)\s+;\s+"))
-
 (defun folio-uca-parse-levels ()
   (let (levels)
     (while (looking-at "\\[[.*]\\([0-9a-f.]+\\)\\]")
