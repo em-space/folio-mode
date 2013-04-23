@@ -27,12 +27,23 @@
 ;;; Code:
 
 (defvar folio-uca-table (make-char-table 'uca-table)
-  "DUCAT table associating code points to collation vectors.
+  "DUCET table associating code points to collation vectors.
 As of Unicode 6.2.0 this table maintains 24405 single-character
 entries, 723 two-character contractions and 4 tree-character
 contractions.")
 
 (defun folio-uca-make-table-value (levels)
+  "Return a byte vector of collation element weights.
+The first level DUCET weight is stored in the first 16 bit of the
+vector, followed by 16 bit for the level two weight, followed by
+8 bit for the level three weight.
+
+The DUCET fourth level is not stored as it is computable: In most
+cases the fourth level is equal to the code point itself; the
+fourth level can be used for a deterministic comparison of
+Unicode strings for the purpose of deterministic sort keys to
+little effect to the practical application of the algorithm (see
+UTS #10, Appendix A.)"
   (let ((weights (make-vector
                   (* (length levels) (+ 2 2 1)) 0))
         (index -1))
