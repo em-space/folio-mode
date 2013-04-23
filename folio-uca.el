@@ -71,7 +71,8 @@ contractions.")
         (goto-char (1+ pos))))
     (nreverse levels)))
 
-(defun folio-uca-table-put (table char-list collation-elements)
+(defun folio-uca-table-put-internal (table char-list
+                                           collation-elements)
   (let* ((char (pop char-list))
          (node (aref table char)))
     (if (null char-list)
@@ -82,10 +83,14 @@ contractions.")
                            (make-char-table 'uca-aux-table)))))
     (aset table char node)
     (when char-list
-      (folio-uca-table-put
+      (folio-uca-table-put-internal
        (cdr (aref table char)) char-list collation-elements))))
 
-(defun folio-uca-load-table ()
+(defun folio-uca-table-put (char-list collation-elements)
+  (folio-uca-table-put-internal
+   folio-uca-table char-list collation-elements))
+
+(defun folio-uca-parse-table ()
   (let ((char-list-regexp
          "^\\([0-9a-f]+\\(?:\s+[0-9a-f]+\\)*\\)\s+;\s+"))
     (goto-char (point-min))
@@ -101,8 +106,12 @@ contractions.")
                (not (null (car collation-elements)))))
       (setq collation-elements
             (car (nreverse (cdr collation-elements))))
-      (folio-uca-table-put
-       folio-uca-table chars collation-elements)))))
+      (folio-uca-table-put chars collation-elements)))))
+
+;; XXX eval-when-compile parse/dump table
+;; XXX eval-after-load load table
+
+;; XXX (defun folio-uca-find-prefix (prefix))
 
 
 (provide 'folio-uca)
