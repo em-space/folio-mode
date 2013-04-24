@@ -66,6 +66,12 @@ UTS #10, Appendix A.)"
     weights))
 
 (defun folio-uca-parse-levels ()
+  "Parse a sequence of collation element weights at point.
+Return a list of weights for all levels but excluding the
+parameter marking the element variable.  Point ought to be
+positioned at the opening bracket.  The call to this defun must
+be repeated for entries having multiple character such as
+contractions."
   (let (levels)
     (while (looking-at "\\[[.*]\\([0-9a-f.]+\\)\\]")
       (let* ((pos (match-end 1))
@@ -80,6 +86,8 @@ UTS #10, Appendix A.)"
 
 (defun folio-uca-table-put-internal (table char-list
                                            collation-elements)
+  "Recursive helper function for `folio-uca-table-put'.
+This function should not be called directly."
   (let* ((char (pop char-list))
          (node (aref table char)))
     (if (null char-list)
@@ -94,10 +102,18 @@ UTS #10, Appendix A.)"
        (cdr (aref table char)) char-list collation-elements))))
 
 (defun folio-uca-table-put (char-list collation-elements)
+  "Store an entry in the DUCET table.
+CHAR-LIST and COLLATION-ELEMENTS list the character or character
+contractions and their weights as parsed from the `allkeys' DUCET
+file."
   (folio-uca-table-put-internal
    folio-uca-table char-list collation-elements))
 
 (defun folio-uca-parse-table ()
+  "Parse the DUCET `allkeys' file in the format as specified by
+sec. 3.6.1 of the UCA.  Store the result in the global variable
+`folio-uca-table'.  For querying the table the defun
+`folio-uca-find-prefix' should be used, see which."
   (let ((char-list-regexp
          "^\\([0-9a-f]+\\(?:\s+[0-9a-f]+\\)*\\)\s+;\s+"))
     (goto-char (point-min))
@@ -119,6 +135,11 @@ UTS #10, Appendix A.)"
 ;; XXX eval-after-load load table
 
 (defun folio-uca-find-prefix (prefix)
+  "Return the DUCET collation elements for the string prefix PREFIX.
+PREFIX is a list of character codes.  Return value a cons of a
+vector of collation elements and a list of remainder characters
+from PREFIX with the longest matching prefix contraction removed.
+If there is no match return nil."
   (let ((remainder prefix)
         (node (aref folio-uca-table (car prefix))))
     (while (when (and node (progn
