@@ -167,6 +167,18 @@ Ideographs in the ranges 4E00-62FF, 6300-77FF, 7800-8CFF,
                       #x0000
                       #x0000))) prefix))))
 
+(defun folio-uca-unassigned-codepoint-weight (prefix)
+  "Return the implicit weight for an unassigned code point."
+  (let ((cp (car prefix)))
+    (pop prefix)
+    (cons (folio-uca-make-table-value
+           `(,(list (+ #xfbc0 (lsh cp -15))
+                    #x0020
+                    #x0002)
+             ,(list (logior (logand cp #x7fff) #x8000)
+                    #x0000
+                    #x0000))) prefix))))
+
 
 (provide 'folio-uca)
 
