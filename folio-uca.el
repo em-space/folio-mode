@@ -149,7 +149,7 @@ The collation element is valid for the core Han Unified
 Ideographs in the ranges 4E00-62FF, 6300-77FF, 7800-8CFF,
 8D00-9FFF."
   (let ((cp (car prefix)))
-    (when (and cp (> cp #x4dff) (< cp #xa000))
+    (when (and (> cp #x4dff) (< cp #xa000))
       (pop prefix)
       (cons (folio-uca-make-table-value
              `(,(list (+ #xfb40 (lsh cp -15))
@@ -159,7 +159,7 @@ Ideographs in the ranges 4E00-62FF, 6300-77FF, 7800-8CFF,
                       #x0000
                       #x0000))) prefix))))
 
-(defun folio-uca-unassigned-codepoint-weight (prefix)
+(defun folio-uca-unassigned-codepoint-find-prefix (prefix)
   "Return the implicit weight for an unassigned code point."
   (let ((cp (car prefix)))
     (pop prefix)
@@ -169,7 +169,7 @@ Ideographs in the ranges 4E00-62FF, 6300-77FF, 7800-8CFF,
                     #x0002)
              ,(list (logior (logand cp #x7fff) #x8000)
                     #x0000
-                    #x0000))) prefix))))
+                    #x0000))) prefix)))
 
 
 (provide 'folio-uca)
