@@ -34,9 +34,9 @@ contractions.")
 
 (defun folio-uca-make-table-value (levels)
   "Return a byte vector of collation element weights.
-The first level DUCET weight is stored in the first 16 bit of the
-vector, followed by 16 bit for the level two weight, followed by
-8 bit for the level three weight.
+The first level DUCET weight is stored in 16 bit of the first
+vector element, followed by 16 bit value for the level two
+weight, followed by an 8 bit value for the level three weight.
 
 The DUCET fourth level is not stored as it is computable: In most
 cases the fourth level is equal to the code point itself; the
@@ -45,24 +45,16 @@ Unicode strings for the purpose of deterministic sort keys to
 little effect to the practical application of the algorithm (see
 UTS #10, Appendix A.)"
   (let ((weights (make-vector
-                  (* (length levels) (+ 2 2 1)) 0))
+                  (* (length levels) 3) 0))
         (index -1))
     (mapc (lambda (x)
             ;; 16 bit level 1
-            (aset weights (setq index (1+ index))
-                  (lsh (elt x 0) -8))
-            (aset weights (setq index (1+ index))
-                  (logand (elt x 0) #x00ff))
+            (aset weights (setq index (1+ index)) (elt x 0))
             ;; 16 bit level 2
-            (aset weights (setq index (1+ index))
-                  (lsh (elt x 1) -8))
-            (aset weights
-                  (setq index (1+ index))
-                  (logand (elt x 1) #x00ff))
+            (aset weights (setq index (1+ index)) (elt x 1))
             ;; 8 bit level 3
-            (aset weights
-                  (setq index (1+ index))
-                  (logand (elt x 2) #x00ff))) levels)
+            (aset weights (setq index (1+ index)) (elt x 2)))
+          levels)
     weights))
 
 (defun folio-uca-parse-levels ()
