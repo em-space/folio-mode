@@ -26,6 +26,19 @@
 
 ;;; Code:
 
+(defvar folio-uca-levels 3
+  "The number of collation element levels to maintain.
+This variable is meant for let binding when tailoring.  Changing
+its value requires modifying the value of `folio-uca-order', too.
+See which.")
+
+(defvar folio-uca-order "fff"
+  "The UCA order for each level of a collation element.
+The character `f' means the collation element table is forward at
+that level or; `b' means to regard the table backward at that
+level.  The order string must be of length `folio-uca-levels',
+see which.")
+
 (defvar folio-uca-table (make-char-table 'uca-table)
   "DUCET table associating code points to collation vectors.
 As of Unicode 6.2.0 this table maintains 24405 single-character
@@ -45,16 +58,15 @@ Unicode strings for the purpose of deterministic sort keys to
 little effect to the practical application of the algorithm (see
 UTS #10, Appendix A.)"
   (let ((weights (make-vector
-                  (* (length levels) 3) 0))
+                  (* (length levels) folio-uca-levels) 0))
         (index -1))
     (mapc (lambda (x)
-            ;; 16 bit level 1
-            (aset weights (setq index (1+ index)) (elt x 0))
-            ;; 16 bit level 2
-            (aset weights (setq index (1+ index)) (elt x 1))
-            ;; 8 bit level 3
-            (aset weights (setq index (1+ index)) (elt x 2)))
-          levels)
+            (let ((level 0))
+              (while (< level folio-uca-levels)
+                ;; 16 bit level 1 and 2, 8 bit level 3
+                (aset weights
+                      (setq index (1+ index)) (elt x level))
+                (setq level (1+ level))))) levels)
     weights))
 
 (defun folio-uca-parse-levels ()
@@ -174,8 +186,9 @@ Ideographs in the ranges 4E00-62FF, 6300-77FF, 7800-8CFF,
 (defun folio-uca-sort-key (string &optional order)
   "Create an UCA sort key."
   (let ((prefix (append string nil))
-        (order (or order "fff"))
-        match collation-elements level1 level2 level3)
+        (order (or order folio-uca-order))
+        (collation-elements (make-list folio-uca-levels nil))
+        match levels key)
     (while prefix
       (setq match (folio-uca-find-prefix prefix))
       (unless match
@@ -184,23 +197,27 @@ Ideographs in the ranges 4E00-62FF, 6300-77FF, 7800-8CFF,
         (unless match
           (setq match (folio-uca-unassigned-codepoint-find-prefix
                        prefix))))
-      (setq collation-elements
-            (append collation-elements (append (car match) nil)))
+      (mapc (lambda (x)
+              (push x levels)) (append (car match) nil))
       (setq prefix (cdr match)))
-    ;; unzip
-    (while collation-elements
-      (push (pop collation-elements) level1)
-      (push (pop collation-elements) level2)
-      (push (pop collation-elements) level3))
-    (when (eq (elt order 0) ?b)
-      (nreverse level1))
-    (when (eq (elt order 1) ?b)
-      (nreverse level2))
-    (when (eq (elt order 2) ?b)
-      (nreverse level3))
-    (nconc (delq 0 level1) '(0)
-           (delq 0 level2) '(0)
-           (delq 0 level3))))
+
+    ;; unzip into collation elements
+    (while levels
+      (let ((level 0))
+        (while (< level folio-uca-levels)
+          (push (pop levels) (nth level collation-elements))
+          (setq level (1+ level)))))
+
+    (let ((level 0))
+      (while (< level folio-uca-levels)
+        (setq levels (delq 0 (nth level collation-elements)))
+        (when (eq (elt order level) ?f)
+          (setq levels (nreverse levels)))
+        (mapc (lambda (x)
+                (push x key)) levels)
+        (push 0 key)
+        (setq level (1+ level))))
+    (cdr key)))
 
 
 (provide 'folio-uca)
