@@ -30,14 +30,15 @@
   "The number of collation element levels to maintain.
 This variable is meant for let binding when tailoring.  Changing
 its value requires modifying the value of `folio-uca-order', too.
-See which.")
+`folio-uca-table' uses the first three levels of the untailored
+DUCET table, see which.")
 
 (defvar folio-uca-order "fff"
   "The UCA order for each level of a collation element.
 The character `f' means the collation element table is forward at
-that level or; `b' means to regard the table backward at that
-level.  The order string must be of length `folio-uca-levels',
-see which.")
+that level; `b' means to regard the table backward at that level.
+The order string must be of length `folio-uca-levels', see
+which.")
 
 (defvar folio-uca-table (make-char-table 'uca-table)
   "DUCET table associating code points to collation vectors.
@@ -46,17 +47,22 @@ entries, 723 two-character contractions and 4 tree-character
 contractions.")
 
 (defun folio-uca-make-table-value (levels)
-  "Return a byte vector of collation element weights.
-The first level DUCET weight is stored in 16 bit of the first
-vector element, followed by 16 bit value for the level two
+  "Return a vector of collation element weights.
+The first level DUCET weight is stored in a 16 bit integer of the
+first vector element, followed by 16 bit value for the level two
 weight, followed by an 8 bit value for the level three weight.
+
+For the Latin script, these levels correspond roughly to the
+alphabetic ordering of the base characters, diacritic ordering,
+and case/variant ordering.
 
 The DUCET fourth level is not stored as it is computable: In most
 cases the fourth level is equal to the code point itself; the
-fourth level can be used for a deterministic comparison of
-Unicode strings for the purpose of deterministic sort keys to
-little effect to the practical application of the algorithm (see
-UTS #10, Appendix A.)"
+fourth level can be used for tie-breaking of Unicode strings not
+otherwise recognized in a deterministic comparison for the
+purpose of deterministic sort keys, but to little effect to the
+practical application of the algorithm (see UTS #10, Appendix
+A.)"
   (let ((weights (make-vector
                   (* (length levels) folio-uca-levels) 0))
         (index -1))
