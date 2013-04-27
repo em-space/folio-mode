@@ -191,7 +191,7 @@ Ideographs in the ranges 4E00-62FF, 6300-77FF, 7800-8CFF,
 
 (defun folio-uca-sort-key (string &optional order)
   "Create an UCA sort key."
-  (let ((prefix (append string nil))
+  (let ((prefix (string-to-list string))
         (order (or order folio-uca-order))
         (collation-elements (make-list folio-uca-levels nil))
         match levels key)
@@ -205,7 +205,7 @@ Ideographs in the ranges 4E00-62FF, 6300-77FF, 7800-8CFF,
           (setq match (folio-uca-unassigned-codepoint-find-prefix
                        prefix))))
       (mapc (lambda (x)
-              (push x levels)) (append (car match) nil))
+              (push x levels)) (string-to-list (car match)))
       (setq prefix (cdr match)))
 
     ;; unzip into collation elements
