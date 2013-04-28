@@ -264,53 +264,60 @@ the car and spellchecker suggestions in the cdr."
   (folio-vocabulary-entry-dict
    (folio-vocabulary-get-entry word)))
 
-(defun folio-vocabulary-list-lexicographic (&optional frequency)
+(defun folio-vocabulary-list-lexicographic (&optional frequency
+                                                      misses)
   "*List vocabulary entries for lexicographic comparisons.
 Members are conses of word and UCA sort-key."
   (let (words)
     (maphash (lambda (k v)
-               (let ((key (folio-vocabulary-entry-sort-key v))
-                     (count (when frequency
-                              (folio-vocabulary-entry-count v))))
-                 (setq words
-                       (cons (list k key count) words))))
+               (when (or (not misses)
+                         (and misses (folio-vocabulary-entry-dict v)))
+                 (let ((key (folio-vocabulary-entry-sort-key v))
+                       (count (when frequency
+                                (folio-vocabulary-entry-count v))))
+                   (setq words
+                         (cons (list k key count) words)))))
              folio-vocabulary)
     words))
 
-(defun folio-vocabulary-sort-lexicographic ()
+(defun folio-vocabulary-sort-lexicographic (&optional misses)
   "Sort vocabulary entries lexicographic."
-  (let ((words (folio-vocabulary-list-lexicographic)))
+  (let ((words (folio-vocabulary-list-lexicographic nil misses)))
     (mapcar (lambda (x)
-              (car x)) (sort words
-                             (lambda (x y)
-                               (folio-uca-lessp
-                                (cadr x) (cadr y)))))))
+              (car x))
+            (sort words
+                  (lambda (x y)
+                    (folio-uca-lessp
+                     (cadr x) (cadr y)))))))
 
-(defun folio-vocabulary-sort-frequency ()
+(defun folio-vocabulary-sort-frequency (&optional misses)
   "Sort vocabulary entries by frequency."
-  (let ((words (folio-vocabulary-list-lexicographic 'frequency)))
+  (let ((words (folio-vocabulary-list-lexicographic
+                'frequency misses)))
     (mapcar (lambda (x)
-              (car x)) (sort words
-                             (lambda (x y)
-                               (or (< (caddr x) (caddr y))
-                                   (and (= (caddr x) (caddr y))
-                                        (folio-uca-lessp
-                                         (cadr x) (cadr y)))))))))
+              (car x))
+            (sort words
+                  (lambda (x y)
+                    (or (< (caddr x) (caddr y))
+                        (and (= (caddr x) (caddr y))
+                             (folio-uca-lessp
+                              (cadr x) (cadr y)))))))))
 
-(defun folio-vocabulary-sort-length ()
+(defun folio-vocabulary-sort-length (&optional misses)
   "Sort vocabulary entries by word length."
-  (let ((words (folio-vocabulary-list-lexicographic)))
+  (let ((words (folio-vocabulary-list-lexicographic nil misses)))
     (mapcar (lambda (x)
-              (car x)) (sort words
-                             (lambda (x y)
-                               (or (< (length (car x))
-                                      (length (car y)))
-                                   (and (= (length (car x))
-                                           (length (car y)))
-                                        (folio-uca-lessp
-                                         (cadr x) (cadr y)))))))))
+              (car x))
+            (sort words
+                  (lambda (x y)
+                    (or (< (length (car x))
+                           (length (car y)))
+                        (and (= (length (car x))
+                                (length (car y)))
+                             (folio-uca-lessp
+                              (cadr x) (cadr y)))))))))
 
-(defun folio-vocabulary-list (&optional ordering)
+(defun folio-vocabulary-list (&optional ordering misses)
   "Create a word list from `folio-vocabulary'.
 If ORDERING is nil or omitted, the sort-order is undefined.
 Otherwise it specifies the sort-order to use.
@@ -327,29 +334,25 @@ Supported values are
   (when folio-vocabulary
     (cond
      ((eq ordering 'lexicographic)
-      (folio-vocabulary-sort-lexicographic))
+      (folio-vocabulary-sort-lexicographic misses))
      ((eq ordering 'frequency)
-      (folio-vocabulary-sort-frequency))
+      (folio-vocabulary-sort-frequency misses))
      ((eq ordering 'length)
-      (folio-vocabulary-sort-length))
+      (folio-vocabulary-sort-length misses))
      ((null ordering)
       (let (words)
         (maphash (lambda (k v)
-                   (setq words (cons k words))) folio-vocabulary)
+                   (when (or (not misses)
+                             (and misses (folio-vocabulary-entry-dict v)))
+                     (setq words (cons k words)))) folio-vocabulary)
         words))
      (t
       (signal 'wrong-type-argument
               (cons ordering (type-of ordering)))))))
 
-(defun folio-vocabulary-list-misses ()
+(defun folio-vocabulary-list-misses (&optional ordering)
   "From `folio-vocabulary' return a list of misspelled words."
-  (let (words)
-    (if folio-vocabulary
-        (maphash (lambda (k v)
-                   (when (cdr-safe v)
-                     (setq words (cons k words))))
-                 folio-vocabulary))
-      words))
+  (folio-vocabulary-list ordering 'misses))
 
 (defun folio-soundslikes (word &optional distance)
   "Look for soundslikes within two edit distance apart.
