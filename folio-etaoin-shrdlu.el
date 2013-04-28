@@ -634,6 +634,10 @@ respective buffer beginning or end position is used."
              (mapcar (lambda (x) (concat "[" x)) notes))))
   "Keywords, tags, and note-like markup to skip when spell-checking.")
 
+(defconst folio-spellcheck-skip-regexp-default
+  (let ((page-separator "\\(?:^-----File: .+$\\)"))
+    page-separator))
+
 (defsubst folio-vocabulary-build-interrupted-p ()
   "Return t when input has arrived while building the vocabulary.
 Update `folio-vocabulary-build-interrupted' if input has arrived.  This
@@ -1245,7 +1249,8 @@ can be used for querying, see which."
     (with-current-buffer buffer
       (save-excursion
         (folio-spellcheck-skip
-         folio-spellcheck-skip-keywords-default))
+         (concat folio-spellcheck-skip-keywords-default "\\|"
+                 folio-spellcheck-skip-regexp-default)))
       (unless (and folio-vocabulary folio-vocabulary-marker)
         (setq folio-vocabulary
               (make-hash-table
