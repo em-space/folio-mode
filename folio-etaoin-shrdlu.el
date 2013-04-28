@@ -635,8 +635,11 @@ respective buffer beginning or end position is used."
   "Keywords, tags, and note-like markup to skip when spell-checking.")
 
 (defconst folio-spellcheck-skip-regexp-default
-  (let ((page-separator "\\(?:^-----File: .+$\\)"))
-    page-separator))
+  (let ((page-separator "\\(?:^-----File: .+$\\)")
+        (proofer-note "\\[\\(?:\\*\\*[^]]+\\)"))
+    (concat page-separator "\\|" proofer-note))
+  "General regexp extending `folio-spellcheck-skip-keywords-default'
+for identifying stretches of text to skip when spell-checking.")
 
 (defsubst folio-vocabulary-build-interrupted-p ()
   "Return t when input has arrived while building the vocabulary.
