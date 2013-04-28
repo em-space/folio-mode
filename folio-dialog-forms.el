@@ -389,16 +389,16 @@ an invalid value."
          children)
     (while (< i j)
       (push (widget-editable-list-entry-create
-             widget
-             (nth i keys) t) children)
+             widget (nth i keys) t) children)
       (setq i (1+ i)))
-      (if children
-          (progn
-            (widget-put widget :entry-index (max (1- i) 0))
-            (widget-put widget :children (nreverse children))
-            (widget-apply widget :focus))
-        (widget-create-child-and-convert widget
-         `(const :tag (widget-get widget :value-no-entry))))))
+    (if children
+        (progn
+          (widget-put widget :entry-index (max (1- i) 0))
+          (widget-put widget :children (nreverse children))
+          (widget-apply widget :focus))
+      (widget-create-child-and-convert
+       widget `(const :tag ,(widget-get
+                             widget :value-no-entry))))))
 
 (defun folio-widget-repeat-insert-before (widget value &optional before)
   "This is like `widget-editable-list-insert-before' except that a
