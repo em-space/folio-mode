@@ -233,11 +233,14 @@ Ideographs in the ranges 4E00-62FF, 6300-77FF, 7800-8CFF,
         (resume t)
         (lessp nil))
     (while (and resume lhs-key rhs-key)
-      (if (< (car lhs-key) (car rhs-key))
-          (setq resume nil
-                lessp (<= (length lhs-key) (length rhs-key)))
+      (cond
+       ((< (car lhs-key) (car rhs-key))
+        (setq resume nil lessp t))
+       ((> (car lhs-key) (car rhs-key))
+        (setq resume nil))
+       (t
         (pop lhs-key)
-        (pop rhs-key)))
+        (pop rhs-key))))
     lessp))
 
 
