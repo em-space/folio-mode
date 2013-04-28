@@ -607,17 +607,19 @@ BEG and END restrict the operation to a region.  If omitted, the
 respective buffer beginning or end position is used."
   (folio-unpropertize-region
    (or beg (point-min)) (or end (point-max))
-   (append folio-spellcheck-props '(folio-spellcheck-skip)) 'refontify))
+   (append folio-spellcheck-props
+           '(folio-spellcheck-skip)) 'refontify))
 
 (defun folio-spellcheck-skip (objects)
   "Prepare buffer for regions not to spell-check.
  check De Mark semantic objects OBJECTS to "
   (cond
    ((stringp objects)
-    (folio-propertize-region (point-min) (point-max)
-                             '(rear-nonsticky (folio-spellcheck-skip)
-                                              folio-spellcheck-skip t)
-                             objects))
+    (folio-propertize-region
+     (point-min) (point-max)
+     '(rear-nonsticky (folio-spellcheck-skip)
+                      folio-spellcheck-skip t)
+     objects))
     (t
      (signal 'wrong-type-argument (list 'stringp objects)))))
 
@@ -1242,23 +1244,26 @@ can be used for querying, see which."
     (folio-spellcheck-put buffer :start (current-time))
     (with-current-buffer buffer
       (save-excursion
-        (folio-spellcheck-skip folio-spellcheck-skip-keywords-default))
+        (folio-spellcheck-skip
+         folio-spellcheck-skip-keywords-default))
       (unless (and folio-vocabulary folio-vocabulary-marker)
         (setq folio-vocabulary
-              (make-hash-table :test (if folio-case-folded-dictionary
-                                         'folio-case-fold-hash-table-test
-                                       'equal)
-                               :size folio-dictionary-size))
+              (make-hash-table
+               :test (if folio-case-folded-dictionary
+                         'folio-case-fold-hash-table-test
+                       'equal)
+               :size folio-dictionary-size))
         (setq folio-vocabulary-marker nil))
-      ;; `vocabulary' is an idle timer called each time Emacs has
-      ;; been idle for `folio-vocabulary-build-delay' seconds with
-      ;; `folio-vocabulary-process-buffers' for the worker
-      ;; function.  While idle processing continues but is interrupted
-      ;; every `folio-vocabulary-build-pause' seconds.
+      ;; `vocabulary' is an idle timer called each time Emacs has been
+      ;; idle for `folio-vocabulary-build-delay' seconds with
+      ;; `folio-vocabulary-process-buffers' for the worker function.
+      ;; While idle processing continues but is interrupted every
+      ;; `folio-vocabulary-build-pause' seconds.
       (unless (folio-timer-running-p 'vocabulary)
         (if sync
             (folio-vocabulary-process-buffer)
-          (folio-schedule-timer 'vocabulary folio-vocabulary-build-delay))))))
+          (folio-schedule-timer
+           'vocabulary folio-vocabulary-build-delay))))))
 
 (defun folio-build-vocabulary-synchroneous (buffer-or-name force)
   "Asynchroneously start assembling a vocabulary for BUFFER-OR-NAME.
@@ -1275,7 +1280,8 @@ can be used for querying, see which."
 BUFFER-OR-NAME is a buffer object or name.  If nil apply this command
 to the current buffer."
   (interactive (list (folio-completing-read-buffer)))
-  (let ((buffer (get-buffer (or buffer-or-name (current-buffer)))))
+  (let ((buffer (get-buffer (or buffer-or-name
+                                (current-buffer)))))
     (folio-vocabulary-build-interrupt buffer)
     (with-current-buffer buffer
       (when folio-vocabulary
