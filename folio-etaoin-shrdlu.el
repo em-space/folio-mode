@@ -343,7 +343,8 @@ Supported values are
       (let (words)
         (maphash (lambda (k v)
                    (when (or (not misses)
-                             (and misses (folio-vocabulary-entry-dict v)))
+                             (and misses
+                                  (folio-vocabulary-entry-dict v)))
                      (setq words (cons k words)))) folio-vocabulary)
         words))
      (t
@@ -358,10 +359,10 @@ Supported values are
   "Look for soundslikes within two edit distance apart.
 Soundslikes for WORD are searched in the vocabulary as collected
 by the most recent spell-check or word-frequency run.  DISTANCE
-if non-nil overrides the default maximal edit distance of two."
+if non-nil overrides the default maximal edit distance of one."
   (interactive "M")
   (when folio-vocabulary
-    (let ((distance (or distance 2))
+    (let ((distance (or distance 1))
           soundslikes)
       (maphash
        (lambda (k v)
