@@ -174,9 +174,8 @@ WIDGET."
       (let* ((value (widget-get widget :vocabulary-value))
              ;; sort-order possibly should have a control widget or
              ;; defcustom setting
-             (items (sort (folio-widget-vocabulary-soundslike-lookup
-                           widget value)
-                          'string-lessp))
+             (items (folio-widget-vocabulary-soundslike-lookup
+                     widget value))
              children)
         (while items
           (let* ((word (car items))
