@@ -197,21 +197,6 @@ list of suggestions."
       (aset entry 2 sort-key))
     entry))
 
-(defun x--folio-vocabluary-update-entry (entry count &optional dict sort-key)
-  "Update the vocabulary entry ENTRY with the word count COUNT.
-If DICT is non-nil update the dictionary data with DICT, too.
-DICT should be a cons of current spell-checker language and the
-list of suggestions."
-  (if entry
-      (progn
-        (setcar entry count)
-        (if dict
-            (setcdr entry (append (cdr entry) (list dict)))))
-    (if dict
-        (setq entry (list count (list dict)))
-      (setq entry (list count))))
-  entry)
-
 (defsubst folio-vocabulary-entry-count (entry)
   "Return the word count for the vocabulary entry ENTRY."
   (if entry (aref entry 0) 0))
