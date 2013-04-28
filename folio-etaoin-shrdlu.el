@@ -360,15 +360,22 @@ Soundslikes for WORD are searched in the vocabulary as collected
 by the most recent spell-check or word-frequency run.  DISTANCE
 if non-nil overrides the default maximal edit distance of two."
   (interactive "M")
-  (let ((distance (or distance 2))
-         soundslikes)
-    (if folio-vocabulary
-        (maphash (lambda (k v)
-                   (when (folio-levenshtein-distance
-                          k word distance)
-                     (setq soundslikes (cons k soundslikes))))
-                 folio-vocabulary))
-    soundslikes))
+  (when folio-vocabulary
+    (let ((distance (or distance 2))
+          soundslikes)
+      (maphash
+       (lambda (k v)
+         (when (folio-levenshtein-distance
+                k word distance)
+           (let ((key (folio-vocabulary-entry-sort-key v)))
+             (setq soundslikes
+                   (cons (cons k key) soundslikes)))))
+       folio-vocabulary)
+      (mapcar (lambda (x)
+                (car x))
+              (sort soundslikes (lambda (x y)
+                                  (folio-uca-lessp
+                                   (cdr x) (cdr y))))))))
 
 ;;;###autoload
 (defun folio-load-good-words (&optional no-error)
