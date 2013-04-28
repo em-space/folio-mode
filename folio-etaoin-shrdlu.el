@@ -52,6 +52,7 @@
 (require 'folio-log)
 (require 'folio-spellcheck)
 (require 'folio-time)
+(require 'folio-uca)
 
 (defconst folio-vocabulary-default-regexp
   "\\<\\(\\sw+\\)\\>\\([ \n\t\f]+\\(\\1\\>\\)\\)?"
@@ -183,7 +184,20 @@ Return values are ignored.")
   (and folio-vocabulary
        (gethash word folio-vocabulary)))
 
-(defun folio-vocabluary-update-entry (entry count &optional dict)
+(defun folio-vocabluary-update-entry (entry count &optional dict sort-key)
+  "Update the vocabulary entry ENTRY with the word count COUNT.
+If DICT is non-nil update the dictionary data with DICT, too.
+DICT should be a cons of current spell-checker language and the
+list of suggestions."
+  (let ((entry (or entry (make-vector 3 nil))))
+    (aset entry 0 count)
+    (when dict
+      (aset entry 1 (append (aref entry 1) (list dict))))
+    (when sort-key
+      (aset entry 2 sort-key))
+    entry))
+
+(defun x--folio-vocabluary-update-entry (entry count &optional dict sort-key)
   "Update the vocabulary entry ENTRY with the word count COUNT.
 If DICT is non-nil update the dictionary data with DICT, too.
 DICT should be a cons of current spell-checker language and the
@@ -200,7 +214,7 @@ list of suggestions."
 
 (defsubst folio-vocabulary-entry-count (entry)
   "Return the word count for the vocabulary entry ENTRY."
-  (or (car entry) 0))
+  (if entry (aref entry 0) 0))
 
 (defsubst folio-vocabulary-entry-dict (entry)
   "Return the dictionary data for the vocabulary entry ENTRY.
@@ -208,7 +222,15 @@ This defun is meant for de-structuring the entry only.  Higher
 level functions most certainly want to make use of
 `folio-vocabulary-word-count', `folio-vocabulary-miss-count' and
 `folio-vocabulary-dict-list'."
-  (cadr entry))
+  (when entry (aref entry 1)))
+
+(defsubst folio-vocabulary-entry-sort-key (entry)
+  "Return the sort-key for the vocabulary entry ENTRY."
+  (when entry (aref entry 2)))
+
+(defsubst folio-vocabulary-sort-key (word)
+  (folio-vocabulary-entry-sort-key
+   (folio-vocabulary-get-entry word)))
 
 (defun folio-vocabulary-word-count (&optional word)
   "Return the number of unique words in the vocabulary.
@@ -228,11 +250,11 @@ Higher level functions most certainly want to make use of
 `folio-vocabulary-word-count', `folio-vocabulary-miss-count' and
 `folio-vocabulary-dict-list'."
   (let ((count 0))
-    (if folio-vocabulary
-        (maphash (lambda (k v)
-                   (if (cdr v)
-                       (setq count (1+ count))))
-                 folio-vocabulary))
+    (when folio-vocabulary
+      (maphash (lambda (k v)
+                 (when (folio-vocabulary-entry-dict v)
+                   (setq count (1+ count))))
+               folio-vocabulary))
     count))
 
 (defun folio-vocabulary-dict-list (word)
@@ -671,7 +693,9 @@ DOUBLON if non-nil marks WORD as a doublon."
                    (when poss
                      (cons folio-spellcheck-current-language
                            (cdr poss))))))  ; miss-list
-        props)
+         (sort-key (when (zerop count)
+                     (folio-uca-sort-key word)))
+         props)
     (when dict
       (setq props (plist-put props 'folio-misspelled t)))
     (when (or doublon (and entry
@@ -690,8 +714,8 @@ DOUBLON if non-nil marks WORD as a doublon."
       (folio-spellcheck-propertize
        pos (+ pos (length word)) props))
     ;; Update table data.
-    (puthash word (folio-vocabluary-update-entry
-                   entry (1+ count) dict) folio-vocabulary)))
+    (puthash word (folio-vocabluary-update-entry entry (1+ count)
+                   dict sort-key) folio-vocabulary)))
 
 (defun folio-vocabulary-process-chunk (buffer beg end)
   "Collect and process words in the region defined by BEG and END.
