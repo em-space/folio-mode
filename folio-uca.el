@@ -226,6 +226,20 @@ Ideographs in the ranges 4E00-62FF, 6300-77FF, 7800-8CFF,
         (setq level (1+ level))))
     (cdr key)))
 
+(defun folio-uca-lessp (lhs rhs)
+  "Less-than operator for sorting by UCA sort key."
+  (let ((lhs-key (if (listp lhs) lhs (folio-uca-sort-key lhs)))
+        (rhs-key (if (listp rhs) rhs (folio-uca-sort-key rhs)))
+        (resume t)
+        (lessp nil))
+    (while (and resume lhs-key rhs-key)
+      (if (< (car lhs-key) (car rhs-key))
+          (setq resume nil
+                lessp (<= (length lhs-key) (length rhs-key)))
+        (pop lhs-key)
+        (pop rhs-key)))
+    lessp))
+
 
 (provide 'folio-uca)
 
