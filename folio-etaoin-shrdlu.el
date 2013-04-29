@@ -328,6 +328,17 @@ FILTERS is a list of function symbols for use with
                                (folio-uca-lessp
                                 (caddr x) (caddr y))))))))))
 
+(defconst folio-vocabulary-filter-alist
+  '((misspellings . folio-vocabulary-filter-misspellings)
+    (good-words . folio-vocabulary-filter-good-words))
+  "Alist mapping filter name to filter function.")
+
+(defconst folio-vocabulary-ordering-alist
+  '((lexicographic . folio-vocabulary-sort-lexicographic)
+    (frequency . folio-vocabulary-sort-frequency)
+    (length . folio-vocabulary-sort-length))
+  "Alist mapping sort order to sort function.")
+
 (defun folio-vocabulary-list (&optional ordering filters)
   "Create a word list from `folio-vocabulary'.
 If ORDERING is nil or omitted, the sort-order is undefined.
@@ -343,22 +354,25 @@ Supported values are
   'length        sort by word length ascending; secondary ordering is
                  lexicographic ascending."
   (when folio-vocabulary
-    (cond
-     ((eq ordering 'lexicographic)
-      (folio-vocabulary-sort-lexicographic filters))
-     ((eq ordering 'frequency)
-      (folio-vocabulary-sort-frequency filters))
-     ((eq ordering 'length)
-      (folio-vocabulary-sort-length filters))
-     ((null ordering)
-      (let (words)
-        (maphash (lambda (k v)
-                   (when (folio-vocabulary-apply-filters filters k v)
-                     (setq words (cons k words)))) folio-vocabulary)
-        words))
-     (t
-      (signal 'wrong-type-argument
-              (cons ordering (type-of ordering)))))))
+    (let ((lister (cdr (assq ordering
+                             folio-vocabulary-ordering-alist)))
+          (filters (mapcar
+                    (lambda (x)
+                      (cdr (assq x
+                                 folio-vocabulary-filter-alist)))
+                    (if (listp filters) filters (list filters)))))
+      (if lister
+          (funcall (symbol-function lister) filters)
+        (if (null ordering)
+            (let (words)
+              (maphash (lambda (k v)
+                         (when (folio-vocabulary-apply-filters
+                                filters k v)
+                           (setq words
+                                 (cons k words)))) folio-vocabulary)
+              words)
+          (signal 'wrong-type-argument
+                  (cons ordering (type-of ordering))))))))
 
 (defun folio-soundslikes (word &optional distance)
   "Look for soundslikes within two edit distance apart.
