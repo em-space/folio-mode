@@ -38,22 +38,24 @@
 (require 'folio-image)
 
 
-(defun folio-widget-dict-value (&optional regexp gwl)
+(defun folio-widget-dict-value (&optional regexp)
   "Return the value of the dictionary widget.
 If the regexp REGEXP is non-nil filter out any words in the
-vocabulary not matching.  If GWL is non-nil filter out any word
-that is in the `good word' list."
-  (folio-with-parent-buffer
-    (let ((words (folio-vocabulary-list-misses)))
-      (when gwl
-        (setq words (folio-filter-good-words words)))
-      (when (and (stringp regexp)
-                 (not (string-equal regexp "")))
-        (setq words
-              (folio-filter-list
-               words (lambda (x)
-                       (string-match-p regexp x)))))
-      (sort words 'string-lessp))))
+vocabulary not matching.  If the GWL widget is toggled filter out
+any word that is in the `good word' list."
+  (let* ((filters (append '(misspellings)
+                          (when (widget-value-value-get
+                                 (folio-dialog-form-get 'dict-gwl))
+                            '(good-words))))
+         (words (folio-with-parent-buffer
+                  (folio-vocabulary-list 'lexicographic filters))))
+    (when (and (stringp regexp)
+               (not (string-equal regexp "")))
+      (setq words
+            (folio-filter-list
+             words (lambda (x)
+                     (string-match-p regexp x)))))
+    words))
 
 (defun folio-widget-dict-lookup (_widget word)
   "Adapt `folio-vocabulary-dict-list' for use with widgets."
@@ -578,10 +580,9 @@ Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Donec hendrerit tempor
 
 (defun folio-widget-dict-filter-apply (widget child &optional event)
   (let* ((value (widget-value child))
-         (regexp (when (stringp value) (folio-chomp value)))
-         (gwl (widget-value-value-get (folio-dialog-form-get 'dict-gwl))))
+         (regexp (when (stringp value) (folio-chomp value))))
     (if (folio-regexp-valid-p regexp)
-        (let ((filtered (folio-widget-dict-value regexp gwl)))
+        (let ((filtered (folio-widget-dict-value regexp)))
           (when (not (string-equal value regexp))
             (widget-value-set child regexp))
           (widget-value-set
