@@ -250,18 +250,23 @@ the car and spellchecker suggestions in the cdr."
    (folio-vocabulary-get-entry word)))
 
 (defun folio-vocabulary-filter-misspellings (k v)
-  "Return t if the vocabulary entry K, V is marked misspelled."
+  "Return t if the vocabulary entry K, V is marked misspelled.
+Also see `folio-vocabulary-apply-filters'."
   (when (folio-vocabulary-entry-dict v) t))
 
 (defun folio-vocabulary-filter-good-words (k v)
   "Return t if the word for vocabulary entry K, V is not also in
-the list of `good words'."
+the list of `good words'.  Also see `folio-vocabulary-apply-filters'."
   (if folio-vocabulary-good-words
       (not (cdr-safe
             (gethash k folio-vocabulary-good-words)))
     t))
 
 (defun folio-vocabulary-apply-filters (filters k v)
+  "Apply the filter list FILTERS to the vocabulary entry K, V.
+K is the entry's key, V its value.  FILTERS is a list of symbols
+for binary functions \(K V).  Return t if all filters let pass,
+or nil otherwise."
   (let ((pass t))
     (while (and pass filters)
       (setq pass (funcall (symbol-function (car filters)) k v))
@@ -270,7 +275,9 @@ the list of `good words'."
 
 (defun folio-vocabulary-list-lexicographic (&optional filters)
   "*List vocabulary entries for lexicographic comparisons.
-Members are lists of the form \(WORD COUNT UCA-SORT-KEY)."
+Members are lists of the form \(WORD COUNT UCA-SORT-KEY).
+FILTERS is a list of function symbols for use with
+`folio-vocabulary-apply-filters'."
   (let (words)
     (maphash (lambda (k v)
                (when (folio-vocabulary-apply-filters filters k v)
@@ -292,7 +299,9 @@ Members are lists of the form \(WORD COUNT UCA-SORT-KEY)."
                      (caddr x) (caddr y)))))))
 
 (defun folio-vocabulary-sort-frequency (&optional filters)
-  "Sort vocabulary entries by frequency."
+  "Sort vocabulary entries by frequency.
+FILTERS is a list of function symbols for use with
+`folio-vocabulary-apply-filters'."
   (let ((words (folio-vocabulary-list-lexicographic filters)))
     (mapcar (lambda (x)
               (car x))
@@ -304,7 +313,9 @@ Members are lists of the form \(WORD COUNT UCA-SORT-KEY)."
                               (caddr x) (caddr y)))))))))
 
 (defun folio-vocabulary-sort-length (&optional filters)
-  "Sort vocabulary entries by word length."
+  "Sort vocabulary entries by word length.
+FILTERS is a list of function symbols for use with
+`folio-vocabulary-apply-filters'."
   (let ((words (folio-vocabulary-list-lexicographic filters)))
     (mapcar (lambda (x)
               (car x))
