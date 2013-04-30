@@ -39,10 +39,10 @@
 
 
 (defun folio-widget-dict-value (&optional regexp)
-  "Return the value of the dictionary widget.
+  "Return the value for the dictionary widget.
 If the regexp REGEXP is non-nil filter out any words in the
-vocabulary not matching.  If the GWL widget is toggled filter out
-any word that is in the `good word' list."
+vocabulary not matching.  If the GWL widget is toggled on filter
+out any word that is in the `good word' list."
   (let* ((filters (append '(misspellings)
                           (when (widget-value-value-get
                                  (folio-dialog-form-get 'dict-gwl))
