@@ -152,6 +152,12 @@
   "Face for `good word' tags in dictionary views."
   :group 'folio-faces)
 
+(defface folio-soundslike
+  '((((min-colors 88) (class color) (background dark)) :foreground "#dfaf8f")
+    (((min-colors 88) (class color) (background light)) :foreground "red1"))
+  "Face for a dictionary heading in corresponding views."
+  :group 'folio-faces)
+
 (defface folio-widget-field
   '((((class color)
       (background dark))
