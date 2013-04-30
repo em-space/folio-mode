@@ -45,13 +45,6 @@ out any word that is in the `good word' list."
                      (string-match-p regexp x)))))
     words))
 
-(defun folio-widget-vocabulary-lookup (_widget word)
-  "Lookup WORD in the vocabulary.
-This is an adaption of `folio-vocabulary-dict-list' for use with
-the `folio-widget-vocabulary' widget."
-  (folio-with-parent-buffer
-    (folio-vocabulary-dict-list word)))
-
 (defun folio-widget-vocabulary-frequency-lookup (_widget word)
   "Adapt `folio-vocabulary-word-count' for use with widgets."
   (folio-with-parent-buffer
@@ -194,10 +187,8 @@ WIDGET."
   :expander 'folio-widget-vocabulary-entry-expand
   :notify 'folio-widget-vocabulary-entry-notify
   :keymap folio-widget-vocabulary-keymap
-  :vocabulary-lookup 'folio-widget-vocabulary-lookup
   :focus 'folio-widget-vocabulary-entry-focus
-  :focus-entry nil
-  :frequency-lookup 'folio-widget-vocabulary-frequency-lookup)
+  :focus-entry nil)
 
 (defun folio-widget-vocabulary-entry-value-create (widget)
   "Value create the widget WIDGET.
