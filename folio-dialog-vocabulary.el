@@ -27,24 +27,23 @@
 ;;; Code:
 
 
-(defun folio-widget-vocabulary-value (&optional ordering regexp gwl)
-  "Return the value of the vocabulary widget.
-ORDERING defines the sort-order.  This should be 'lexicographic,
-'frequency, or 'length.  If the regexp REGEXP is non-nil filter
-out any words in the vocabulary not matching.  If GWL is non-nil
-filter out any word that is in the `good word' list."
-  (folio-with-parent-buffer
-    (let ((words (folio-vocabulary-list
-                  (or ordering 'lexicographic))))
-      (when gwl
-        (setq words (folio-filter-good-words words)))
-      (when (and (stringp regexp)
-                 (not (string-equal regexp "")))
-        (setq words
-              (folio-filter-list
-               words (lambda (x)
-                       (string-match-p regexp x)))))
-      words)))
+(defun folio-widget-vocabulary-value (&optional regexp)
+  "Return the value for the vocabulary widget.
+If the regexp REGEXP is non-nil filter out any words in the
+vocabulary not matching.  If the GWL widget is toggled on filter
+out any word that is in the `good word' list."
+  (let* ((filters (when (widget-value-value-get
+                         (folio-dialog-form-get 'dict-gwl))
+                    '(good-words)))
+         (words (folio-with-parent-buffer
+                  (folio-vocabulary-list 'lexicographic filters))))
+    (when (and (stringp regexp)
+               (not (string-equal regexp "")))
+      (setq words
+            (folio-filter-list
+             words (lambda (x)
+                     (string-match-p regexp x)))))
+    words))
 
 (defun folio-widget-vocabulary-lookup (_widget word)
   "Lookup WORD in the vocabulary.
@@ -316,12 +315,63 @@ Return the children of WIDGET."
                  :doc "Find and correct misspellings.\n\
 Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Donec hendrerit tempor tellus. Donec pretium posuere tellus. Proin quam nisl, tincidunt et, mattis eget, convallis nec, purus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nulla posuere. Donec vitae dolor. Nullam tristique diam non turpis. Cras placerat accumsan nulla. Nullam rutrum. Nam vestibulum accumsan nisl.")
 
-    (widget-insert "\n\n\n")
-    (folio-dialog-form 'vocabulary
-                       (widget-create 'folio-widget-vocabulary
-                                      :value (folio-widget-vocabulary-value)
-                                      `(folio-widget-vocabulary-entry)))
-    (widget-setup))
+  (widget-insert "\n\n\n")
+
+  ;; Pretty much like 'regexp but validated a little differently.
+  (folio-dialog-form 'vocabulary-filter
+                     (widget-create 'string
+                                    :tag "Filter"
+                                    :format "%t: %v"
+                                    :size 14
+                                    :value-face 'folio-widget-field
+                                    :notify 'folio-widget-vocabulary-filter-apply))
+  (widget-insert " ")
+  (widget-create 'push-button
+                 :format "%[%t%]"
+                 ;; :tag-glyph (find-image
+                 ;;    `((:type jpg :file "delete-small.jpg" :ascend 5)))
+                 :tag "Reset"
+                 :button-face 'custom-button
+                 :notify 'folio-widget-vocabulary-filter-reset)
+
+  (folio-dialog-form-rule 32)
+
+  (folio-dialog-form 'vocabulary
+                     (widget-create 'folio-widget-vocabulary
+                                    :value (folio-widget-vocabulary-value)
+                                    `(folio-widget-vocabulary-entry)))
+  (widget-setup))
+
+(defun folio-widget-vocabulary-filter-apply (widget child
+                                                    &optional _event)
+  (let* ((value (widget-value child))
+         (regexp (when (stringp value) (folio-chomp value))))
+    (if (folio-regexp-valid-p regexp)
+        (let ((filtered (folio-widget-vocabulary-value regexp)))
+          (when (not (string-equal value regexp))
+            (widget-value-set child regexp))
+          (widget-value-set
+           (folio-dialog-form-get 'vocabulary) filtered)
+          (widget-setup))
+      ;; Apparently neither `error' nor `user-error' do play well with
+      ;; widgets, leaving things in a half-operational state; the use
+      ;; of the widget's `:error' property is unclear.
+      (message "Invalid filter expression"))))
+
+(defun folio-widget-vocabulary-filter-value-reset ()
+  (let ((filter (folio-dialog-form-get 'vocabulary-filter)))
+    (widget-apply filter :notify filter)))
+
+(defun folio-widget-vocabulary-filter-reset (widget child
+                                                    &optional _event)
+  (let* ((filter (folio-dialog-form-get 'vocabulary-filter))
+         (value (widget-value filter)))
+    (when (or (null value)
+              (not (stringp value))
+              (not (string-equal value "")))
+      (widget-value-set filter "")
+      (widget-apply filter :notify filter))))
+
 
 
 (provide 'folio-dialog-vocabulary)
