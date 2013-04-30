@@ -36,7 +36,7 @@
 (require 'folio-etaoin-shrdlu)
 (require 'folio-faces)
 (require 'folio-image)
-
+(require 'folio-uca)
 
 (defun folio-widget-dict-value (&optional regexp)
   "Return the value for the dictionary widget.
@@ -172,7 +172,7 @@ spellchecker suggestions in the cdr."
 Reuse :args cache if it exists."
   (or (widget-get widget :args)
       (let* ((value (widget-get widget :dict-value))
-             (items (cdr value))
+             (items (sort (cdr value) 'folio-uca-lessp))
              children)
         (while items
           (let* ((word (car items))
