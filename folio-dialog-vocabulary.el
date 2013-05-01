@@ -303,7 +303,9 @@ Return the children of WIDGET."
                  :create (lambda (widget)
                            (let ((widget-documentation-face 'default))
                              (widget-default-create widget)))
-                 :doc "Find and correct misspellings.\n\
+                 :doc "Quickly identify and locate spelling inconsistencies,\n\
+typographic errors, exotic or erroneous characters.
+
 Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Donec hendrerit tempor tellus. Donec pretium posuere tellus. Proin quam nisl, tincidunt et, mattis eget, convallis nec, purus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nulla posuere. Donec vitae dolor. Nullam tristique diam non turpis. Cras placerat accumsan nulla. Nullam rutrum. Nam vestibulum accumsan nisl.")
 
   (widget-insert "\n\n\n")
