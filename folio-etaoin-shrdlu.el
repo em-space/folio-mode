@@ -295,12 +295,35 @@ compatibility mappings of Roman numerals."
             (string-match-p "\\`[IVXCDM]+\\'" k))
       numericp)))
 
+(defun folio-vocabulary-filter-alpha-numeric (k v)
+  "Return non-nil if the vocabulary entry K, V is alpha-numeric.
+By this definition it must include at least one letter and one
+character with a numeric value."
+  (let* ((alpha '(Lu Ll Lt Lm Lo))
+         (i 1)
+         (j (length k))
+         (c (aref k 0))
+         (alphap (memq (get-char-code-property
+                        c 'general-category) alpha))
+         (numericp (unless alphap
+                     (get-char-code-property c 'numeric-value))))
+    (while (and (or alphap numericp) (< i j))
+      (setq c (aref k i) i (1+ i))
+      (if (memq (get-char-code-property
+                 c 'general-category) alpha)
+          (setq alphap t)
+        (if (get-char-code-property c 'numeric-value)
+            (setq numericp t)
+          (setq alphap nil numericp nil))))
+    (and alphap numericp)))
+
 (defconst folio-vocabulary-filter-alist
   '((misspellings . folio-vocabulary-filter-misspellings)
     (good-words . folio-vocabulary-filter-good-words)
     (upper-case . folio-vocabulary-filter-upper-case)
     (lower-case . folio-vocabulary-filter-lower-case)
-    (numeric . folio-vocabulary-filter-numeric))
+    (numeric . folio-vocabulary-filter-numeric)
+    (alpha-numeric . folio-vocabulary-filter-alpha-numeric))
   "Alist mapping filter name to filter function.")
 
 (defun folio-vocabulary-apply-filters (filters k v)
