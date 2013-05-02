@@ -262,6 +262,9 @@ This currently always is the table of contents."
 (define-widget 'folio-menu-choice 'menu-choice
   "A dynamic dropdown list widget."
   :value-create 'folio-menu-choice-value-create
+  :default-get 'folio-menu-choice-default-get
+  :mouse-down-action 'folio-menu-choice-mouse-down-action
+  :action 'folio-menu-choice-action
   :match 'folio-menu-choice-match
   :match-inline 'folio-menu-choice-match-inline)
 
@@ -286,12 +289,111 @@ This currently always is the table of contents."
     match))
 
 (defun folio-menu-choice-value-create (widget)
-  (let ((choices (widget-apply widget :choices))
-        (value (widget-get widget :value)))
-    (unless value
-      (widget-put widget :value (widget-value (car choices))))
-    (widget-put widget :args choices)
-    (widget-choice-value-create widget)))
+  "Insert the first choice that matches the value."
+  (let ((value (widget-get widget :value))
+        (args (widget-apply widget :choices))
+        (explicit (widget-get widget :explicit-choice))
+        current)
+    (if explicit
+        (progn
+          ;; If the user specified the choice for this value,
+          ;; respect that choice.
+          (widget-put widget :children
+                      (list (widget-create-child-value
+                             widget explicit value)))
+          (widget-put widget :choice explicit)
+          (widget-put widget :explicit-choice nil))
+      (while args
+        (setq current (car args)
+              args (cdr args))
+        (when (widget-apply current :match value)
+          (widget-put widget :children
+                      (list (widget-create-child-value
+                             widget current value)))
+          (widget-put widget :choice current)
+          (setq args nil
+                current nil)))
+      (when current
+        (let ((void (widget-get widget :void)))
+          (widget-put widget :children
+                      (list (widget-create-child-and-convert
+                             widget void :value value)))
+          (widget-put widget :choice void))))))
+
+(defun folio-menu-choice-default-get (widget)
+  ;; Get default for the first choice.
+  (widget-default-get
+   (car (widget-apply widget :values))))
+
+(defun folio-menu-choice-mouse-down-action (widget &optional _event)
+  ;; Return non-nil if we need a menu.
+  (let ((args (widget-apply widget :values))
+        (old (widget-get widget :choice)))
+    (cond ((not (display-popup-menus-p))
+           ;; No place to pop up a menu.
+           nil)
+          ((< (length args) 2)
+           ;; Empty or singleton list, just return the value.
+           nil)
+          ((> (length args) widget-menu-max-size)
+           ;; Too long, prompt.
+           nil)
+          ((> (length args) 2)
+           ;; Reasonable sized list, use menu.
+           t)
+          ((and widget-choice-toggle (memq old args))
+           ;; We toggle.
+           nil)
+          (t
+           ;; Ask which of the two.
+           t))))
+
+(defun folio-menu-choice-action (widget &optional event)
+  ;; Make a choice.
+  (let ((args (widget-apply widget :choices))
+        (old (widget-get widget :choice))
+        (tag (widget-apply widget :menu-tag-get))
+        (completion-ignore-case (widget-get widget :case-fold))
+        this-explicit
+        current choices)
+    ;; Remember old value.
+    (if (and old (not (widget-apply widget :validate)))
+        (let* ((external (widget-value widget))
+               (internal (widget-apply
+                          old :value-to-internal external)))
+          (widget-put old :value internal)))
+    ;; Find new choice.
+    (setq current
+          (cond ((= (length args) 0)
+                 nil)
+                ((= (length args) 1)
+                 (nth 0 args))
+                ((and widget-choice-toggle
+                      (= (length args) 2)
+                      (memq old args))
+                 (if (eq old (nth 0 args))
+                     (nth 1 args)
+                   (nth 0 args)))
+                (t
+                 (while args
+                   (setq current (car args)
+                         args (cdr args))
+                   (setq choices
+                         (cons (cons (widget-apply
+                                      current :menu-tag-get)
+                                     current)
+                               choices)))
+                 (setq this-explicit t)
+                 (widget-choose tag (reverse choices) event))))
+    (when current
+      ;; If this was an explicit user choice, record the choice,
+      ;; so that widget-choice-value-create will respect it.
+      (when this-explicit
+        (widget-put widget :explicit-choice current))
+      (widget-value-set widget (widget-default-get current))
+      (widget-setup)
+      (widget-apply widget :notify widget event)))
+  (run-hook-with-args 'widget-edit-functions widget))
 
 (defun folio-widget-field-value-set (widget value)
   "Set an editable text field WIDGET to VALUE.
