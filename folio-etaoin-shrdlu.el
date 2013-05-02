@@ -274,11 +274,26 @@ lower-case."
   (eq (get-char-code-property
        (aref k 0) 'general-category) 'Ll))
 
+(defun folio-vocabulary-filter-numeric (k v)
+  "Return t if the word for the vocabulary entry K, V has
+a numeric value."
+  (let ((roman-numerals '(?i ?I ?v ?V ?x ?X ?c ?C ?d ?D ?m ?M))
+        (i 0)
+        (j (length k))
+        (pass t))
+    (while (and pass (< i j))
+      (setq pass (or (get-char-code-property
+                      (aref k i) 'numeric-value)
+                     (memq (aref k i) roman-numerals))
+            i (1+ i)))
+    pass))
+
 (defconst folio-vocabulary-filter-alist
   '((misspellings . folio-vocabulary-filter-misspellings)
     (good-words . folio-vocabulary-filter-good-words)
     (upper-case . folio-vocabulary-filter-upper-case)
-    (lower-case . folio-vocabulary-filter-lower-case))
+    (lower-case . folio-vocabulary-filter-lower-case)
+    (numeric . folio-vocabulary-filter-numeric))
   "Alist mapping filter name to filter function.")
 
 (defun folio-vocabulary-apply-filters (filters k v)
