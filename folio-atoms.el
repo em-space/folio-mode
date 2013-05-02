@@ -470,6 +470,14 @@ Return a new string containing the replacements."
                  (nreverse clauses))
            forms))))
 
+(defun folio-lrpad-string (str width)
+  "Return the string STR left and right padded to the width WIDTH
+using spaces."
+  (let* ((len (length str))
+         (lpad (+ len (/ (- width len) 2))))
+    (format (format "%%-%ds" width)
+            (format (format "%%%ds" lpad) str))))
+
 
 ;;;; windows
 
