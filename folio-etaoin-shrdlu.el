@@ -262,11 +262,30 @@ the list of `good words'.  Also see `folio-vocabulary-apply-filters'."
             (gethash k folio-vocabulary-good-words)))
     t))
 
+(defun folio-vocabulary-filter-upper-case (k v)
+  "Return t if the word for the vocabulary entry K, V starts
+with an upper-case or title-case letter."
+  (memq (get-char-code-property
+         (aref k 0) 'general-category) '(Lu Lt)))
+
+(defun folio-vocabulary-filter-lower-case (k v)
+  "Return t if the word for the vocabulary entry K, V starts
+lower-case."
+  (eq (get-char-code-property
+       (aref k 0) 'general-category) 'Ll))
+
+(defconst folio-vocabulary-filter-alist
+  '((misspellings . folio-vocabulary-filter-misspellings)
+    (good-words . folio-vocabulary-filter-good-words)
+    (upper-case . folio-vocabulary-filter-upper-case)
+    (lower-case . folio-vocabulary-filter-lower-case))
+  "Alist mapping filter name to filter function.")
+
 (defun folio-vocabulary-apply-filters (filters k v)
   "Apply the filter list FILTERS to the vocabulary entry K, V.
 K is the entry's key, V its value.  FILTERS is a list of symbols
-for binary functions \(K V).  Return t if all filters let pass,
-or nil otherwise."
+of binary filter functions \(K V).  Return t if all filters let
+pass, or nil otherwise."
   (let ((pass t))
     (while (and pass filters)
       (setq pass (funcall (symbol-function (car filters)) k v))
@@ -327,11 +346,6 @@ FILTERS is a list of function symbols for use with
                           (and (= xlen ylen)
                                (folio-uca-lessp
                                 (caddr x) (caddr y))))))))))
-
-(defconst folio-vocabulary-filter-alist
-  '((misspellings . folio-vocabulary-filter-misspellings)
-    (good-words . folio-vocabulary-filter-good-words))
-  "Alist mapping filter name to filter function.")
 
 (defconst folio-vocabulary-ordering-alist
   '((lexicographic . folio-vocabulary-sort-lexicographic)
