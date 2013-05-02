@@ -91,6 +91,8 @@ spelling and punctuation.  This heading must be child to
   "Log an entry for a correction in spelling or punctuation."
   (interactive "sEntry: ")
   (with-current-buffer (folio-get-log-buffer (current-buffer))
+    (unless (derived-mode-p 'org-mode)
+      (org-mode))
     (goto-char (point-min))
     (let ((pos (condition-case nil
                    (org-find-olp `(,folio-log-correction-heading
