@@ -275,18 +275,25 @@ lower-case."
        (aref k 0) 'general-category) 'Ll))
 
 (defun folio-vocabulary-filter-numeric (k v)
-  "Return t if the word for the vocabulary entry K, V has
-a numeric value."
-  (let ((roman-numerals '(?i ?I ?v ?V ?x ?X ?c ?C ?d ?D ?m ?M))
-        (i 0)
-        (j (length k))
-        (pass t))
-    (while (and pass (< i j))
-      (setq pass (or (get-char-code-property
-                      (aref k i) 'numeric-value)
-                     (memq (aref k i) roman-numerals))
-            i (1+ i)))
-    pass))
+  "Return non-nil if the word for the vocabulary entry K, V has a
+numeric value or builds a numeric sequence.  Include
+compatibility mappings of Roman numerals."
+  (let* ((i 1)
+         (j (1- (length k)))
+         (numericp (and (get-char-code-property
+                         (aref k 0) 'numeric-value)
+                        (get-char-code-property
+                         (aref k j) 'numeric-value)))
+         c)
+    (while (and numericp (< i j))
+      (setq c (aref k i) i (1+ i)
+            numericp (or (get-char-code-property c 'numeric-value)
+                         (folio-mid-numeric-p c))))
+    (if (null numericp)
+        ;; non-strict Roman numeral compatibility mappings
+        (or (string-match-p "\\`[ivxcdm]+\\'" k)
+            (string-match-p "\\`[IVXCDM]+\\'" k))
+      numericp)))
 
 (defconst folio-vocabulary-filter-alist
   '((misspellings . folio-vocabulary-filter-misspellings)
