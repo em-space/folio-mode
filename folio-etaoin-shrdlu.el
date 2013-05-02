@@ -53,6 +53,7 @@
 (require 'folio-spellcheck)
 (require 'folio-time)
 (require 'folio-uca)
+(require 'folio-word-break)
 
 (defconst folio-vocabulary-default-regexp
   "\\<\\(\\sw+\\)\\>\\([ \n\t\f]+\\(\\1\\>\\)\\)?"
