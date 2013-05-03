@@ -209,13 +209,6 @@ widget :value should be a word from the text vocabulary."
 
 (defun folio-widget-vocabulary-entry-notify (widget child &optional event)
   "Handle a state change of WIDGET's CHILD widget."
-
-  (message "XXX dict entry notify child %S event %S"
-           (car-safe child) (car-safe event))
-  (message "XXX dict entry from node %s is child %s"
-           (eq (car-safe child) 'folio-widget-vocabulary-item)
-           (car-safe (widget-get widget :node)))
-
   (if (eq (widget-type child) 'folio-widget-soundslike-node)
       (cond
        ((eq (car-safe event) 'dict-substitute) ;; XXX replace/all
