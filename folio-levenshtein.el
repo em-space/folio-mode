@@ -87,17 +87,71 @@ The return value in this case is nil."
                      (<= (aref prev-col m) max-distance)))
             (aref prev-col m)))))))
 
-;; (eq (folio-levenshtein-distance
-;;      "Marry Poppins"
-;;      "Supercalifrajilisticexpialidotious") 29)
-
-;; (folio-levenshtein-distance
-;;  "Supercalifragilisticexpialidocious"
-;;  "Supercalifrajilisticexpialidotious" 2)
-
-;; (folio-levenshtein-distance
-;;  "Supercalifrajilisticexpialidotious"
-;;  "Supercalifragilisticexpialidocious" 2)
+(defun folio-jaro-winkler-distance (str1 str2 &optional min-score)
+  "XXX"
+  (let ((score-threshold 0.7)
+        (score-chars 3)
+        (n (length str1))
+        (m (length str2))
+        (common 0)
+        (transposed 0)
+        (score 0.0)
+        i j k range match1 match2)
+    (cond ;; trivial cases
+     ((or (= n 0) (= m 0))
+      (when (= n m)
+        (setq score 1.0)))
+     ((> n m)
+      (setq score (folio-jaro-winkler-distance
+                   str2 str1 min-score)))
+     (t
+      ;; m is larger than or equal to n
+      (setq match1 (make-vector n nil)
+            match2 (make-vector m nil)
+            range (max 0 (1- (/ m 2)))
+            i 0)
+      (while (< i n)
+        (setq j (max 0 (- i range))
+              k (min (+ i range 1) m))
+        (while (< j k)
+          (if (or (aref match2 j)
+                  (not (char-equal (aref str1 i)
+                                   (aref str2 j))))
+              (setq j (1+ j))
+            (aset match1 i t)
+            (aset match2 j t)
+            (setq common (1+ common)
+                  j k)))
+        (setq i (1+ i)))
+      (unless (= common 0)
+        (setq i 0 j 0 transposed 0)
+        (while (< i n)
+          (when (aref match1 i)
+            (while (and (< j m)
+                        (null (aref match2 j)))
+              (setq j (1+ j)))
+            (unless (char-equal (aref str1 i)
+                                (aref str2 j))
+              (setq transposed (1+ transposed)))
+            (setq j (1+ j)))
+          (setq i (1+ i)))
+        ;; Jaro score
+        (setq score (/ (+ (/ (float common) n)
+                           (/ (float common) m)
+                           (/ (- common (/ transposed 2.0))
+                              (float common)))
+                       3.0))
+        ;; Winkler prefix boost
+        (when (> score score-threshold)
+          (setq j 0 k (min score-chars n))
+          (while (and (< j k)
+                      (char-equal (aref str1 j) (aref str2 j)))
+            (setq j (1+ j)))
+          (when (/= j 0)
+            (setq score (+ score (* j 0.1 (- 1.0 score)))))))))
+    (if (and min-score (< score min-score))
+        nil
+      score)))
 
 
 
