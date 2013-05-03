@@ -153,6 +153,98 @@ The return value in this case is nil."
         nil
       score)))
 
+(defun folio-ngram-distance (str1 str2 &optional min-score)
+  "XXX"
+  (let ((n (length str1))
+        (m (length str2))
+        (cost 0)
+        (distance 0.0)
+        i j tj0 tj1 sa0 sa1 sa p d)
+    (cond
+     ((or (= n 0) (= m 0))
+      (setq distance 1.0))
+     ((> m n) ;; str1 should be the longer string
+      (setq distance (folio-ngram-distance
+                      str2 str1 min-score)))
+     ((< n 2)
+      (dotimes (i n)
+        (when (char-equal (aref str1 i) (aref str2 i))
+          (setq cost (1+ cost))))
+      (setq distance (/ (float cost) m)))
+     (t
+      ;; one char prefix padding for bi-grams
+      (setq sa (concat (string #x0000) str1)
+            p (make-vector (1+ n) 0.0)
+            d (make-vector (1+ n) 0.0)
+            i 1 j 1)
+      (dotimes (i (1+ n))
+        (aset p i i))
+      (while (<= j m)
+        ;; extract t_j n-gram
+        (if (< j 2)
+            (setq tj0 (aref str2 0)
+                  tj1 (aref str2 1)
+                  i 1)
+          (setq tj0 (aref str2 (- j 2))
+                tj1 (aref str2 (- j 1))
+                i 1))
+        (aset d 0 (float j))
+        (setq i 1)
+        (while (<= i n)
+          ;; compare sa to t_j
+          (setq sa0 (aref sa (1- i))
+                sa1 (aref sa i)
+                cost 0)
+          (unless (= sa0 #x0000) ;; discount prefix
+            (when (not (char-equal sa0 tj0))
+              (setq cost (1+ cost)))
+            (when (not (char-equal sa1 tj1))
+              (setq cost (1+ cost)))
+            (setq cost (/ (float cost) 2)))
+          (aset d i (min (min (1+ (aref d (1- i)))
+                              (1+ (aref p i)))
+                         (+ (aref p (1- i)) cost)))
+          (setq i (1+ i)))
+        (cl-rotatef p d)
+        (setq j (1+ j)))
+      (setq distance (- 1.0 (/ (aref p n) (float n))))))
+    (if (and min-score (< distance min-score))
+        nil
+      distance)))
+
+(when nil
+(let ((iii 0))
+  (dotimes (iii 10000)
+
+    ;; folio-ngram-distance        50000 33.919688999   0.0006783937
+    ;; folio-levenshtein-distance  50000  7.3527599999  0.0001470551
+    ;; folio-jaro-winkler-distance 50000  1.8399310000  3.679...e-05
+
+    ;; (eq (folio-levenshtein-distance
+    ;;  "Marry Poppins"
+    ;;     "Supercalifrajilisticexpialidotious") 29)
+
+    (folio-levenshtein-distance
+     "Supercalifrajilisticexpialidotious"
+     "Supercalifragilisticexpialidocious")
+    (folio-jaro-winkler-distance
+     "Supercalifrajilisticexpialidotious"
+     "Supercalifragilisticexpialidocious")
+    (folio-ngram-distance
+     "Supercalifrajilisticexpialidotious"
+     "Supercalifragilisticexpialidocious")
+
+    (folio-levenshtein-distance "zimmermann" "cannon")
+    (folio-jaro-winkler-distance "zimmermann" "cannon")
+    (folio-ngram-distance "zimmermann" "cannon")
+
+    (folio-levenshtein-distance "martha" "marhta")
+    (folio-jaro-winkler-distance "martha" "marhta")
+    (folio-ngram-distance "martha" "marhta")
+
+    (folio-levenshtein-distance "aye" "cannon")
+    (folio-jaro-winkler-distance "aye" "cannon")
+    (folio-ngram-distance "aye" "cannon"))))
 
 
 (provide 'folio-levenshtein)
