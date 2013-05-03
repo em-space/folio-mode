@@ -52,14 +52,11 @@ The return value in this case is nil."
       n)
      ((and max-distance (> (abs (- n m)) max-distance))
       nil)
+     ((> n m) ;; str1 should be the shorter string
+      (folio-levenshtein-distance str2 str1 max-distance))
      (t
-      ;; str1 should be the shorter string
-      (when (> n m)
-        (let ((str1-temp str1)
-              (n-temp n))
-          (setq str1 str2 n m str2 str1-temp m n-temp)))
-      ;; only two columns are maintained, the current one that
-      ;; is being built and the previous one
+      ;; only two columns are maintained, the current one that is
+      ;; being built and the previous one
       (let ((col (make-vector (1+ m) 0))
             (prev-col (make-vector (1+ m) 0))
             break)
