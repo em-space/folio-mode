@@ -154,6 +154,49 @@ Test with INPUT as the input symbol.  Return the new NFA states."
           states)
     (folio-expand-nfa-frontier nfa (delq nil new-states))))
 
+(defun folio-make-dfa (start)
+  "Return a DFA with the initial state START."
+  (let ((dfa (make-vector 3 nil)))
+    (aset dfa 0 start)
+    (aset dfa 1 (make-hash-table :test 'equal))
+    (aset dfa 2 (make-hash-table :test 'equal))
+    dfa))
+
+(defun folio-add-dfa-transition (dfa from-state input to-state)
+  "Add a state transition to the DFA.
+FROM-STATE is the source parametric state, INPUT the input
+symbol, TO-STATE the destination state.  INPUT may be 'any, but
+not 'epsilon, obviously."
+  (if (eq input 'any)
+      (setf (gethash from-state (aref dfa 1))
+            to-state)
+    (when (null (gethash from-state (aref dfa 1)))
+      (puthash from-state (make-hash-table :test 'equal)
+               (aref dfa 1)))
+    (puthash input to-state (gethash from-state (aref dfa 1)))))
+
+(defun folio-add-final-dfa-state (dfa state)
+  "Make STATE a final state of the DFA."
+  (puthash state t (aref dfa 2)))
+
+(defun folio-final-dfa-state-p (dfa state)
+  "Return non-nil if STATE is final state of the DFA."
+  (gethash state (aref dfa 2)))
+
+(defun folio-evolve-dfa (dfa state input)
+  "Evolve the DFA according to the current state STATE.
+Test with INPUT as the input symbol.  Return the new DFA state or
+nil if INPUT is rejected."
+  (let ((new-state (gethash state (aref dfa 1))))
+    (if (hash-table-p new-state)
+        (gethash input new-state)
+      ;; includes 'any
+      new-state)))
+
+
+(defvar nfa nil)
+(defvar dfa nil)
+
 (defun folio-nfa-test ()
   (setq nfa (folio-make-nfa '(0 . 0)))
   (when t
@@ -164,6 +207,11 @@ Test with INPUT as the input symbol.  Return the new NFA states."
   (folio-add-final-nfa-state nfa '(7 . 7))
   (folio-add-final-nfa-state nfa '(9 . 9))
   (message "%S" nfa)
+
+  (setq dfa (folio-make-dfa '(0 . 0)))
+  (folio-add-dfa-transition dfa '(1 . 2) 'any '(3 . 4))
+
+  (folio-add-dfa-transition dfa '(1 . 3) ?a '(3 . 4))
   )
 
 
