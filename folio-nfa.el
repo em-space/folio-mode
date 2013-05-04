@@ -149,7 +149,8 @@ Test with INPUT as the input symbol.  Return the new NFA states."
   (let (new-states)
     (mapc (lambda (x)
             (nconc new-states
-                   (folio-nfa-accept-input nfa input x)))
+                   (folio-nfa-accept-input
+                    nfa (list input 'any) x)))
           states)
     (folio-expand-nfa-frontier nfa (delq nil new-states))))
 
