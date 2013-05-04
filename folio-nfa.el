@@ -76,6 +76,7 @@ TO-STATE the destination state."
                                            to-state))))))))))
 
 (defun folio-add-final-nfa-state (nfa state)
+  "Make STATE a final state of the NFA."
   (let ((final-states (aref nfa 2)))
     (if final-states
         (nconc final-states (list state))
@@ -94,11 +95,13 @@ the NFA."
     final))
 
 (defsubst folio-get-nfa-transitions (nfa state)
-  "Retrieve the NFA moves possible in state STATE.  Return an
-alist mapping input symbols to destination states."
+  "Retrieve the NFA moves possible in state STATE.
+Return an alist mapping input symbols to destination states."
   (cadr (assoc state (aref nfa 1))))
 
 (defun folio-accepted-nfa-inputs (nfa states)
+  "Return the set of input symbols the NFA accepts at states
+STATES."
   (let (inputs)
     (mapc (lambda (x)
             (nconc inputs
@@ -127,6 +130,8 @@ function is used internally."
         transitions)
     (while next
       (mapc (lambda (x)
+              ;; Test NFA acceptance by pushing epsilon; extend STATES
+              ;; with any state returned that is not already extant.
               (unless (member x states)
                 (push x states)
                 (push x next)))
@@ -139,9 +144,8 @@ function is used internally."
   (folio-expand-nfa-frontier nfa (list (aref nfa 0))))
 
 (defun folio-nfa-evolve (nfa states input)
-  "Evolve the NFA according to the current NFA states STATES, the
-NFA's transition table, and input symbol INPUT.  Return the new
-NFA state."
+  "Evolve the NFA according to the current NFA states STATES.
+Test with INPUT as the input symbol.  Return the new NFA states."
   (let (new-states)
     (mapc (lambda (x)
             (nconc new-states
