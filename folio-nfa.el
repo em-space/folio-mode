@@ -103,10 +103,13 @@ Return an alist mapping input symbols to destination states."
   "Return the set of input symbols the NFA accepts at states
 STATES."
   (let (inputs)
+    (unless (listp states)
+      (setq states (list states)))
     (mapc (lambda (x)
-            (nconc inputs
-                   (mapcar #'car (folio-get-nfa-transitions
-                                  nfa x)))) states)
+            (mapc (lambda (y)
+                    (setq inputs (cons y inputs)))
+                  (mapcar #'car (folio-get-nfa-transitions
+                                 nfa x)))) states)
     (delete-duplicates inputs)))
 
 (defun folio-nfa-accept-input (nfa input state)
