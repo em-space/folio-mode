@@ -111,7 +111,7 @@ TO-STATE the destination state."
         (nconc final-states (list state))
       (aset nfa 2 (list state)))))
 
-(defun folio-final-nfa-states-p (nfa states)
+(defun folio-final-nfa-state-p (nfa states)
   "Return non-nil if STATES contains at least one final state of
 the NFA."
   (let ((final-states (aref nfa 2))
@@ -131,6 +131,7 @@ Return an alist mapping input symbols to destination states."
 (defun folio-accepted-nfa-inputs (nfa states)
   "Return the set of input symbols the NFA accepts at states
 STATES."
+  (message "=========== %S" states)
   (let (inputs)
     (unless (listp states)
       (setq states (list states)))
@@ -214,15 +215,15 @@ Test with INPUT as the input symbol.  Return the new NFA states."
 (defun folio-add-dfa-transition (dfa from-state input to-state)
   "Add a state transition to the DFA.
 FROM-STATE is the source parametric state, INPUT the input
-symbol, TO-STATE the destination state.  INPUT may be 'any, but
+symbol, TO-STATE the destination states.  INPUT may be 'any, but
 not 'epsilon, obviously."
-  (if (eq input 'any)
-      (setf (gethash from-state (aref dfa 1))
-            to-state)
-    (when (null (gethash from-state (aref dfa 1)))
-      (puthash from-state (make-hash-table :test 'equal)
-               (aref dfa 1)))
-    (puthash input to-state (gethash from-state (aref dfa 1)))))
+  (message "DFA transition from-state %s input %s to-state %s"
+  from-state (if (symbolp input) (format "%s" input) (format "%c" input))
+           to-state)
+  (when (null (gethash from-state (aref dfa 1)))
+    (puthash from-state (make-hash-table :test 'equal)
+             (aref dfa 1)))
+  (puthash input to-state (gethash from-state (aref dfa 1))))
 
 (defun folio-add-final-dfa-state (dfa state)
   "Make STATE a final state of the DFA."
@@ -232,15 +233,20 @@ not 'epsilon, obviously."
   "Return non-nil if STATE is final state of the DFA."
   (gethash state (aref dfa 2)))
 
+(defsubst folio-get-dfa-transitions (dfa state)
+  (gethash state (aref dfa 1)))
+
 (defun folio-evolve-dfa (dfa state input)
   "Evolve the DFA according to the current state STATE.
 Test with INPUT as the input symbol.  Return the new DFA state or
 nil if INPUT is rejected."
-  (let ((new-state (gethash state (aref dfa 1))))
-    (if (hash-table-p new-state)
-        (gethash input new-state)
-      ;; includes 'any
-      new-state)))
+  (let ((transitions (gethash state (aref dfa 1)))
+        new-state)
+    (when transitions
+      (setq new-state (gethash input transitions))
+      (unless new-state
+        (setq new-state (gethash 'any transitions))))
+    new-state))
 
 
 (defvar nfa nil)
