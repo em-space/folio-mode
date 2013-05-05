@@ -60,6 +60,35 @@
   "Add a state transition to the NFA.
 FROM-STATE is the source parametric state, INPUT the input symbol,
 TO-STATE the destination state."
+  (let ((transitions (aref nfa 1))
+        update
+        cell)
+    (cond
+     ((null transitions)
+      (aset nfa 1 (list (cons from-state
+                              (list (cons input
+                                          (list to-state)))))))
+     (t
+      (mapc (lambda (x)
+              (when (equal (car x) from-state)
+                (mapc (lambda (y)
+                        (when (eq (car y) input)
+                          (push to-state (cdr y))
+                          (setq update t))) (cdr x))
+                (unless update
+                  (push (cons input
+                              (list to-state)) (cdr x))
+                  (setq update t))))
+            transitions)
+      (unless update
+        (push (cons from-state
+                    (list (cons input
+                                (list to-state)))) (aref nfa 1)))))))
+
+(defun x-folio-add-nfa-transition (nfa from-state input to-state)
+  "Add a state transition to the NFA.
+FROM-STATE is the source parametric state, INPUT the input symbol,
+TO-STATE the destination state."
   (let ((transition (aref nfa 1))
         cell)
     (cond
@@ -97,7 +126,7 @@ the NFA."
 (defsubst folio-get-nfa-transitions (nfa state)
   "Retrieve the NFA moves possible in state STATE.
 Return an alist mapping input symbols to destination states."
-  (cadr (assoc state (aref nfa 1))))
+  (cdr (assoc state (aref nfa 1))))
 
 (defun folio-accepted-nfa-inputs (nfa states)
   "Return the set of input symbols the NFA accepts at states
@@ -112,50 +141,67 @@ STATES."
                                  nfa x)))) states)
     (delete-duplicates inputs)))
 
-(defun folio-nfa-accept-input (nfa input state)
-  (let ((transitions (folio-get-nfa-transitions nfa state))
+(defun folio-nfa-move (nfa states input)
+  (let (transitions
         new-states)
     (unless (listp input)
       (setq input (list input)))
-    (mapc (lambda (x)
-            (setq new-states
-                  (cons (cdr (assq x transitions))
-                        new-states)))
-          input)
-    (delq nil new-states)))
+    (mapc (lambda (state)
+            (setq transitions
+                  (folio-get-nfa-transitions nfa state))
+            (mapc (lambda (i)
+                    ;; not consing here, value is list of lists
+                    (setq new-states
+                          (append (cdr (assq i transitions))
+                                  new-states))) input)) states)
+    new-states))
 
 (defun folio-expand-nfa-frontier (nfa states)
   "Expand the NFA frontier to the set of STATES.
 STATES is a set \(list) of parametric destination states.  Return
 STATES updated to reflect the current frontier of states.  This
 function is used internally."
-  (let ((next states)
-        transitions)
-    (while next
-      (mapc (lambda (x)
-              ;; Test NFA acceptance by pushing epsilon; extend STATES
-              ;; with any state returned that is not already extant.
-              (unless (member x states)
-                (push x states)
-                (push x next)))
-            (folio-nfa-accept-input nfa 'epsilon (car next)))
-      (pop next))
-    states))
+  (let (new-states)
+    (mapc (lambda (state)
+            (mapc (lambda (new-state)
+                    ;; Probe NFA acceptance by pushing epsilon; extend
+                    ;; STATES with any state returned not already
+                    ;; extant.
+                    (unless (member new-state states)
+                      (push new-state new-states)))
+                  (folio-nfa-move
+                   nfa (list state) 'epsilon)))
+          states)
+    (when new-states
+      (message "NEW STATES %S old %S" new-states states)
+      (setq states
+            (append states
+                    new-states
+                    (folio-expand-nfa-frontier nfa new-states)))))
+  (remove-duplicates states :test 'equal))
 
 (defun folio-nfa-start-state (nfa)
   "Return the start state of the NFA."
   (folio-expand-nfa-frontier nfa (list (aref nfa 0))))
 
-(defun folio-nfa-evolve (nfa states input)
+(defun folio-evolve-nfa (nfa states input)
   "Evolve the NFA according to the current NFA states STATES.
 Test with INPUT as the input symbol.  Return the new NFA states."
   (let (new-states)
-    (mapc (lambda (x)
-            (nconc new-states
-                   (folio-nfa-accept-input
-                    nfa (list input 'any) x)))
-          states)
-    (folio-expand-nfa-frontier nfa (delq nil new-states))))
+    (unless (listp states)
+      (setq states (list states)))
+    (unless (listp input)
+      (setq input (list input)))
+    (unless (memq 'any input)
+      (setq input (cons 'any input)))
+    (message "evolve states %S input %s" states input)
+    (mapc (lambda (state)
+            (mapc (lambda (new-state)
+                    (message "evolve new state %s" new-state)
+                    (push new-state new-states))
+                  (folio-nfa-move
+                   nfa (list state) input))) states)
+    (folio-expand-nfa-frontier nfa new-states)))
 
 (defun folio-make-dfa (start)
   "Return a DFA with the initial state START."
