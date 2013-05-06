@@ -189,6 +189,10 @@ Ideographs in the ranges 4E00-62FF, 6300-77FF, 7800-8CFF,
                     #x0000
                     #x0000))) prefix)))
 
+;; XXX rename to folio-uca-string-sort-key
+;; XXX provide folio-uca-char-sort-key
+
+;; XXX provide char-table code point-FCD
 (defun folio-uca-sort-key (string &optional order)
   "Create an UCA sort key."
   (let ((prefix (string-to-list string))
@@ -225,6 +229,9 @@ Ideographs in the ranges 4E00-62FF, 6300-77FF, 7800-8CFF,
         (push 0 key)
         (setq level (1+ level))))
     (cdr key)))
+
+;; XXX rename to folio-uca-string-lessp
+;; XXX provide folio-uca-char-lessp
 
 (defun folio-uca-lessp (lhs rhs)
   "Less-than operator for sorting by UCA sort key."
