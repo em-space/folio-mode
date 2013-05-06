@@ -22,7 +22,12 @@
 
 ;;; Commentary:
 
-;;
+;; This package provides support for Unicode Collation Algorithm (UCA)
+;; based on the Unicode 6.2 DUCET table with three-level collation
+;; elements, but currently non-tailorable except for the number of UCA
+;; levels and the level order.  The latter can be forward or backward
+;; for each level as with French accent weighting that is reversed
+;; (backward) at the secondary level.
 
 ;;; Code:
 
@@ -162,7 +167,7 @@ If there is no match return nil."
       (cons (car node) remainder))))
 
 (defun folio-uca-cjk-ideographs-find-prefix (prefix)
-  "Return the implicit weight for a CJK Ideograph.
+  "Return the implicit weight for a CJK ideograph.
 The collation element is valid for the core Han Unified
 Ideographs in the ranges 4E00-62FF, 6300-77FF, 7800-8CFF,
 8D00-9FFF."
