@@ -27,7 +27,13 @@
 ;; elements, but currently non-tailorable except for the number of UCA
 ;; levels and the level order.  The latter can be forward or backward
 ;; for each level as with French accent weighting that is reversed
-;; (backward) at the secondary level.
+;; (backward) at the secondary level (see also [1][2]).
+;;
+;; [1] UTS #10: Unicode Collation Algorithm (UCA),
+;; http://www.unicode.org/reports/tr10/.
+;;
+;; [2] Unicode Technical Note #34, Unicode Collation Case Study:
+;; Sorting French Topic Lists, http://www.unicode.org/notes/tn34/.
 
 ;;; Code:
 
