@@ -299,7 +299,13 @@ Return non-nil if point has moved.  See also
                                  (value-extract #'identity))
   (folio-binary-search value ordered-seq
                        :value-extract value-extract
-                       :upper-test '<))
+                       :upper-test #'<))
+
+;;;###autoload
+(defun* folio-lower-bound (value ordered-seq &key
+                                 (value-extract #'identity))
+  (folio-binary-search value ordered-seq
+   :value-extract value-extract :upper-test #'<= :lower-test #'<))
 
 ;;;###autoload
 (defun* folio-binary-search (value ordered-seq &key
