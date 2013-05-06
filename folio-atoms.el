@@ -294,6 +294,7 @@ Return non-nil if point has moved.  See also
 ;;;; search algorithms
 
 ;;; XXX TODO change those to accept &rest args, and pop keywords
+;;; XXX TODO rework those into iterative versions
 ;;;###autoload
 (defun* folio-upper-bound (value ordered-seq &key
                                  (value-extract #'identity))
