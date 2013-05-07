@@ -34,9 +34,9 @@
 ;; An NFA is created from `folio-make-nfa'.  Moves and final states
 ;; are defined using `folio-add-nfa-transition' and
 ;; `folio-add-final-nfa-state', respectively.  NFA resources are the
-;; initial state, the transition table, and the set of final states.
-;; Notably the NFA's current state is maintained outside the NFA and
-;; therefore is input parameter.
+;; initial state (a scalar parametric state), the transition table,
+;; and the set of final states.  Notably the NFA's current state is
+;; maintained outside the NFA and therefore is input parameter.
 ;;
 ;; XXX TODO DFA
 ;; XXX TODO Levenshtein automata
@@ -44,7 +44,7 @@
 ;; word lengths
 ;;
 ;; [1] Hopcroft, Motwani, Ullman, Introduction to Automata Theory,
-;; Languages, and Computation
+;; Languages, and Computation.
 
 ;;; Code:
 
@@ -58,8 +58,11 @@
 
 (defun folio-add-nfa-transition (nfa from-state input to-state)
   "Add a state transition to the NFA.
-FROM-STATE is the source parametric state, INPUT the input symbol,
-TO-STATE the destination state."
+FROM-STATE is the source parametric state, INPUT the input
+symbol, TO-STATE the destination state.  Using the symbol
+'epsilon for INPUT makes this transition an epsilon move; 'any
+makes the NFA accept any input symbol at FROM-STATE (other than
+'any which is a reserved symbol for this purpose.)"
   (let ((transitions (aref nfa 1))
         update
         cell)
@@ -105,7 +108,7 @@ TO-STATE the destination state."
                                            to-state))))))))))
 
 (defun folio-add-final-nfa-state (nfa state)
-  "Make STATE a final state of the NFA."
+  "Make STATE a final (or accepting) state of the NFA."
   (let ((final-states (aref nfa 2)))
     (if final-states
         (nconc final-states (list state))
@@ -143,6 +146,8 @@ STATES."
     (delete-duplicates inputs)))
 
 (defun folio-nfa-move (nfa states input)
+  "Apply the input symbol INPUT to the NFA at state STATES.
+INPUT also can be a list of symbols.  Return the new states."
   (let (transitions
         new-states)
     (unless (listp input)
@@ -157,17 +162,17 @@ STATES."
                                   new-states))) input)) states)
     new-states))
 
-(defun folio-expand-nfa-frontier (nfa states)
-  "Expand the NFA frontier to the set of STATES.
-STATES is a set \(list) of parametric destination states.  Return
-STATES updated to reflect the current frontier of states.  This
+(defun folio-nfa-epsilon-closure (nfa states)
+  "Find the epsilon-closure for the NFA at state STATES.
+The e-closure of a state is the set of all states, including
+STATES itself, that you can get to via e-transitions.  This
 function is used internally."
   (let (new-states)
+    ;; From any state in STATES apply epsilon.  If there are
+    ;; e-transition add the destination states to the set of STATES
+    ;; and apply epsilon recursively to any new state.
     (mapc (lambda (state)
             (mapc (lambda (new-state)
-                    ;; Probe NFA acceptance by pushing epsilon; extend
-                    ;; STATES with any state returned not already
-                    ;; extant.
                     (unless (member new-state states)
                       (push new-state new-states)))
                   (folio-nfa-move
