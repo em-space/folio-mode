@@ -238,8 +238,22 @@ not 'epsilon, obviously."
   "Return non-nil if STATE is final state of the DFA."
   (gethash state (aref dfa 2)))
 
-(defsubst folio-get-dfa-transitions (dfa state)
+(defsubst folio-dfa-transitions (dfa state)
+  "Return the transitions for the DFA at state STATE.
+This is a mapping of input symbols to destination state."
   (gethash state (aref dfa 1)))
+
+(defun folio-dfa-transition-labels (dfa state)
+  "Return the transition labels for the DFA at state STAGE.
+The return value is an alist mapping input symbols to destination
+states."
+  (let ((transitions (folio-dfa-transitions dfa state))
+        labels)
+    (when transitions
+      (maphash (lambda (k v)
+                 (setq labels (cons k labels)))
+               transitions))
+    labels))
 
 (defun folio-evolve-dfa (dfa state input)
   "Evolve the DFA according to the current state STATE.
