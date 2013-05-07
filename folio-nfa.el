@@ -134,7 +134,6 @@ Return an alist mapping input symbols to destination states."
 (defun folio-accepted-nfa-inputs (nfa states)
   "Return the set of input symbols the NFA accepts at states
 STATES."
-  (message "=========== %S" states)
   (let (inputs)
     (unless (listp states)
       (setq states (list states)))
@@ -179,7 +178,6 @@ function is used internally."
                    nfa (list state) 'epsilon)))
           states)
     (when new-states
-      (message "NEW STATES %S old %S" new-states states)
       (setq states
             (append states
                     new-states
@@ -200,10 +198,8 @@ Test with INPUT as the input symbol.  Return the new NFA states."
       (setq input (list input)))
     (unless (memq 'any input)
       (setq input (cons 'any input)))
-    (message "evolve states %S input %s" states input)
     (mapc (lambda (state)
             (mapc (lambda (new-state)
-                    (message "evolve new state %s" new-state)
                     (push new-state new-states))
                   (folio-nfa-move
                    nfa (list state) input))) states)
