@@ -181,16 +181,19 @@ function is used internally."
       (setq states
             (append states
                     new-states
-                    (folio-expand-nfa-frontier nfa new-states)))))
+                    (folio-nfa-epsilon-closure nfa new-states)))))
   (remove-duplicates states :test 'equal))
 
 (defun folio-nfa-start-state (nfa)
-  "Return the start state of the NFA."
-  (folio-expand-nfa-frontier nfa (list (aref nfa 0))))
+  "Return the initial state of the NFA.
+This only is a singleton state if there is no e-transition to
+other states than the initial."
+  (folio-nfa-epsilon-closure nfa (list (aref nfa 0))))
 
 (defun folio-evolve-nfa (nfa states input)
-  "Evolve the NFA according to the current NFA states STATES.
-Test with INPUT as the input symbol.  Return the new NFA states."
+  "Evolve the NFA by applying the input symbol INPUT to each
+state in STATES.  Return the new NFA states including those
+reachable by e-moves."
   (let (new-states)
     (unless (listp states)
       (setq states (list states)))
@@ -203,7 +206,8 @@ Test with INPUT as the input symbol.  Return the new NFA states."
                     (push new-state new-states))
                   (folio-nfa-move
                    nfa (list state) input))) states)
-    (folio-expand-nfa-frontier nfa new-states)))
+    (remove-duplicates
+     (folio-nfa-epsilon-closure nfa new-states) :test 'equal)))
 
 (defun folio-make-dfa (start)
   "Return a DFA with the initial state START."
