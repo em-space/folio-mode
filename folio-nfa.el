@@ -88,25 +88,6 @@ makes the NFA accept any input symbol at FROM-STATE (other than
                     (list (cons input
                                 (list to-state)))) (aref nfa 1)))))))
 
-(defun x-folio-add-nfa-transition (nfa from-state input to-state)
-  "Add a state transition to the NFA.
-FROM-STATE is the source parametric state, INPUT the input symbol,
-TO-STATE the destination state."
-  (let ((transition (aref nfa 1))
-        cell)
-    (cond
-     ((null transition)
-      (aset nfa 1 (list (cons from-state
-                              (list (list (cons input
-                                          to-state)))))))
-     ((setq cell (assoc from-state transition))
-      (nconc (cadr cell) (list (cons input to-state))))
-     (t
-      (nconc transition
-             (list (cons from-state
-                         (list (list (cons input
-                                           to-state))))))))))
-
 (defun folio-add-final-nfa-state (nfa state)
   "Make STATE a final (or accepting) state of the NFA."
   (let ((final-states (aref nfa 2)))
