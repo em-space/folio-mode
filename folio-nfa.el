@@ -168,7 +168,7 @@ function is used internally."
 (defun folio-nfa-start-state (nfa)
   "Return the initial state of the NFA.
 This only is a singleton state if there is no e-transition to
-other states than the initial."
+states other than the initial."
   (folio-nfa-epsilon-closure nfa (list (aref nfa 0))))
 
 (defun folio-evolve-nfa (nfa states input)
@@ -237,9 +237,9 @@ states."
     labels))
 
 (defun folio-evolve-dfa (dfa state input)
-  "Evolve the DFA according to the current state STATE.
-Test with INPUT as the input symbol.  Return the new DFA state or
-nil if INPUT is rejected."
+  "Evolve the DFA from the current state STATE by applying INPUT
+as the input symbol.  Return the new DFA state or nil if INPUT is
+rejected."
   (let ((transitions (gethash state (aref dfa 1)))
         new-state)
     (when transitions
