@@ -216,8 +216,13 @@ not 'epsilon, obviously."
   (puthash state t (aref dfa 2)))
 
 (defun folio-final-dfa-state-p (dfa state)
-  "Return non-nil if STATE is final state of the DFA."
+  "Return non-nil if STATE is a final (accepting) state of the
+DFA."
   (gethash state (aref dfa 2)))
+
+(defsubst folio-dfa-start-state (dfa)
+  "Return the initial state of the DFA."
+  (aref dfa 0))
 
 (defsubst folio-dfa-transitions (dfa state)
   "Return the transitions for the DFA at state STATE.
@@ -225,7 +230,7 @@ This is a mapping of input symbols to destination state."
   (gethash state (aref dfa 1)))
 
 (defun folio-dfa-transition-labels (dfa state)
-  "Return the transition labels for the DFA at state STAGE.
+  "Return the transition labels for the DFA at state STATE.
 The return value is an alist mapping input symbols to destination
 states."
   (let ((transitions (folio-dfa-transitions dfa state))
