@@ -250,6 +250,16 @@ the car and spellchecker suggestions in the cdr."
   (folio-vocabulary-entry-dict
    (folio-vocabulary-get-entry word)))
 
+(defun folio-vocabulary-alphabet ()
+  "Return the alphabet for the vocabulary as a char table.
+The value is an absolute occurrence count."
+  (let ((alphabet (make-char-table 'vocabulary-alphabet 0)))
+    (maphash (lambda (k v)
+               (dotimes (i (1- (length k)))
+                 (incf (aref alphabet (aref k i)) 1)))
+             folio-vocabulary)
+    alphabet))
+
 (defun folio-vocabulary-filter-misspellings (k v)
   "Return t if the vocabulary entry K, V is marked misspelled.
 Also see `folio-vocabulary-apply-filters'."
