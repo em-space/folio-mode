@@ -245,7 +245,7 @@ states."
   "Evolve the DFA from the current state STATE by applying INPUT
 as the input symbol.  Return the new DFA state or nil if INPUT is
 rejected."
-  (let ((transitions (gethash state (aref dfa 1)))
+  (let ((transitions (folio-dfa-transitions dfa state))
         new-state)
     (when transitions
       (setq new-state (gethash input transitions))
