@@ -325,23 +325,12 @@ WIDGET must be of type `folio-widget-dict-entry-item'."
 
 (defun folio-widget-dict-entry-item-action (widget &optional event)
   "Handle user initiated events."
-  (message "--- XXX widget item action EVENT %S" event)
-  ;; (message "--- XXX widget item action BUTTONS %S" (widget-get widget :buttons))
   (let ((parent (widget-get widget :parent)))
     (cond
-     ((eq (car-safe event) 'dict-apply)
-      (let ((buttons (widget-get widget :buttons))
-            (entry (widget-get widget :dict-value))
-            action)
-        (mapc (lambda (x)
-                (when (eq (widget-type x) 'choice)
-                  (setq action (widget-get x :value)))) buttons)
-        (when action
-          (widget-apply
-           parent :notify widget `(dict-apply ,action ,entry)))))
      ((widget-get parent :open)
       (let ((entry (widget-get widget :dict-value)))
-        (widget-apply parent :notify widget `(dict-choice ,entry))))
+        (widget-apply
+         parent :notify widget `(dict-choice ,entry))))
      (t
       (widget-apply parent :notify widget 'dict-focus)))))
 
