@@ -180,6 +180,13 @@ Return values are ignored.")
 (defvar folio-dict-maintainance-functions nil
   "Abnormal hook run for dictionary maintenance.")
 
+(defsubst folio-make-vocabulary ()
+  "Create and return a new hash table for a vocabulary."
+  (make-hash-table :test (if folio-case-folded-dictionary
+                             'folio-case-fold-hash-table-test
+                           'equal)
+                   :size folio-dictionary-size))
+
 (defsubst folio-vocabulary-get-entry (word)
   "Return the vocabulary entry for WORD."
   (and folio-vocabulary
