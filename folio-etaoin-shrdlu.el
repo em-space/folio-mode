@@ -208,6 +208,31 @@ reset the dictionary entry to nil."
       (aset entry 2 sort-key))
     entry))
 
+
+(defun folio-maintain-dictionary (command word)
+  "Maintain dictionaries applying COMMAND.
+COMMAND is one of the symbols accept-session, save-local, or
+save-global.  WORD identifies the dictionary entry."
+  ;; XXX TODO undo-history
+  (let* ((dict-alist '((accept-session
+                        . (folio-vocabulary-session
+                           "accepted this session"))
+                       (save-local
+                        . (folio-vocabulary-project
+                           "saved to project dictionary"))
+                       (save-global
+                        . (folio-vocabulary-global
+                           "saved to global dictionary"))))
+         (entry (folio-vocabulary-get-entry word))
+         (select (assq command dict-alist))
+         (dict (cadr select)))
+    (unless (symbol-value dict)
+      (set dict (folio-make-vocabulary)))
+    (puthash word entry (symbol-value dict))
+    (folio-vocabluary-update-entry
+     entry (folio-vocabulary-entry-count entry) 'dict-reset)
+    (message "`%s' %s" word (caddr select))))
+
 (defsubst folio-vocabulary-entry-count (entry)
   "Return the word count for the vocabulary entry ENTRY."
   (if entry (aref entry 0) 0))
