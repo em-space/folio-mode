@@ -212,10 +212,6 @@ The widget maintains a misspelled word and its frequency count."
   :frequency-lookup 'folio-widget-dict-frequency-lookup
   :good-word-lookup 'folio-widget-dict-good-words-lookup)
 
-(defvar folio-widget-dict-entry-choice 'accept-session
-  "Save action chosen for the last dictionary entry.")
-(make-variable-buffer-local 'folio-widget-dict-entry-choice)
-
 (defun folio-widget-dict-entry-menu ()
   "Handle the popup-menu for a dictionary entry."
   (interactive)
