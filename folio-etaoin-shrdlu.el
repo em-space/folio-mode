@@ -196,11 +196,14 @@ Return values are ignored.")
   "Update the vocabulary entry ENTRY with the word count COUNT.
 If DICT is non-nil update the dictionary data with DICT, too.
 DICT should be a cons of current spell-checker language and the
-list of suggestions."
+list of suggestions.  If DICT is the symbol 'dict-reset instead
+reset the dictionary entry to nil."
   (let ((entry (or entry (make-vector 3 nil))))
     (aset entry 0 count)
     (when dict
-      (aset entry 1 (append (aref entry 1) (list dict))))
+      (if (eq dict 'dict-reset)
+          (aset entry 1 nil)
+        (aset entry 1 (append (aref entry 1) (list dict)))))
     (when sort-key
       (aset entry 2 sort-key))
     entry))
