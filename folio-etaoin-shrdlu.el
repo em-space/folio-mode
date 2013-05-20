@@ -1151,6 +1151,8 @@ otherwise remove the keywords."
                      . folio-vocabulary-build-progress)
                     (folio-word-occurrence-functions
                      . folio-locate-word)
+                    (folio-dict-maintainance-functions
+                     . folio-maintain-dictionary)
                     (folio-word-substitution-functions
                      . folio-replace-word)))
       (if remove
