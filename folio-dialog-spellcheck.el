@@ -47,6 +47,13 @@
     map)
   "Keymap for the dictionary widget.")
 
+(defvar folio-widget-dict-entry-item-keymap
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map folio-widget-dict-entry-keymap)
+    (define-key map (kbd "A-<return>") 'folio-widget-dict-entry-menu)
+    map)
+  "Keymap for an entry of the dictionary widget.")
+
 (defun folio-widget-dict-value (&optional regexp)
   "Return the value for the dictionary widget.
 If the regexp REGEXP is non-nil filter out any words in the
