@@ -278,43 +278,8 @@ WIDGET must be of type `folio-widget-dict-entry-item'."
                                             'face 'folio-gwl-tag
                                             'help-echo
                                             "Listed in `good words'"))))))
-    (widget-insert (propertize tag 'keymap (widget-get widget :keymap)))
-    ;; XXX dynamically add language choice
-    (when focused
-      (let (buttons)
-        (widget-insert
-         (propertize " " 'display '(space :align-to 34)))
-        (push
-         (widget-create-child-and-convert
-          widget 'choice
-          :tag "Entry"
-          :format "%[%t%] %v"
-          :button-face 'custom-button
-          :button-prefix ""
-          :button-suffix ""
-          :value 'save-local
-          :value-face 'folio-widget-field
-          `(const :tag ,(propertize " accept this session "
-                                    'face 'folio-widget-field)
-                  :format "%t" accept-session)
-          `(const :tag ,(propertize " add to project dictionary "
-                                    'face 'folio-widget-field)
-                  :format "%t" save-local)
-          `(const :tag ,(propertize " add to global dictionary "
-                                    'face 'folio-widget-field)
-                  :format "%t" save-global)) buttons)
-        (widget-insert "  ")
-        (push
-         (widget-create-child-and-convert
-          widget 'push-button
-          :button-face 'custom-button
-          :button-prefix ""
-          :button-suffix ""
-          :format "%[%t%]"
-          :action (lambda (widget &optional event)
-                    (widget-parent-action widget `(dict-apply)))
-          "Apply") buttons)
-        (widget-put widget :buttons buttons)))))
+    (widget-insert
+     (propertize tag 'keymap (widget-get widget :keymap)))))
 
 (defun folio-widget-dict-entry-item-action (widget &optional event)
   "Handle user initiated events."
