@@ -247,6 +247,8 @@ The widget maintains a misspelled word and its frequency count."
                   :key-sequence ,[(control x) (a)]
                   :keys "\\[accept-session]"
                   :help "Accept current word this session"))
+    ;; There appears to be no way to pre-select an item in the menu
+    ;; (push (listify-key-sequence (kbd "<down>")) unread-command-events)
     (when (setq choice (car (x-popup-menu t menu)))
       (widget-apply
        parent :notify parent `(dict-apply ,choice ,word)))))
