@@ -217,6 +217,8 @@ The widget maintains a misspelled word and its frequency count."
 (make-variable-buffer-local 'folio-widget-dict-entry-choice)
 
 (defun folio-widget-dict-entry-item-value-create (widget)
+  "Value create the widget WIDGET.
+WIDGET must be of type `folio-widget-dict-entry-item'."
   (let* ((word (widget-get widget :value))
          (focused (widget-get (widget-get widget :parent) :focus-entry))
          (frequency (or (widget-apply widget :frequency-lookup word) 0))
