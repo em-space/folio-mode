@@ -465,13 +465,13 @@ an invalid value."
   (insert (widget-get widget :value)))
 
 (define-widget 'folio-widget-repeat 'repeat
-  "A scrollable widget list widget."
+  "A scrollable list widget."
+  :create 'folio-widget-repeat-create
   :value-create 'folio-widget-repeat-value-create
   :insert-before 'folio-widget-repeat-insert-before
   :insert-after 'folio-widget-repeat-insert-after
   :notify 'folio-widget-repeat-notify
   :focus 'folio-widget-repeat-focus
-;; XXX  :keymap folio-widget-repeat-keymap
   :format "\n%v\n"
   :entry-format "%v"
   :value-no-entry "         <no entries>"
@@ -479,6 +479,17 @@ an invalid value."
   :indent 6
   :num-entries 15
   :context-entries 1)
+
+(defun folio-widget-repeat-create (widget)
+  "Create WIDGET at point in the current buffer."
+  (widget-default-create widget)
+  (let ((from (widget-get widget :from))
+        (to (widget-get widget :to))
+        (keymap (widget-get widget :keymap)))
+    (when keymap
+      (let ((overlay (make-overlay from to nil nil 'rear-sticky)))
+        (widget-put widget :keymap-overlay overlay)
+        (overlay-put overlay 'local-map keymap)))))
 
 (defun folio-widget-repeat-value-create (widget)
   "Value create the widget WIDGET."
