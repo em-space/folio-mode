@@ -92,14 +92,7 @@ out any word that is in the `good word' list."
   "An entry within a dictionary section."
   :value-create 'folio-widget-dict-item-value-create
   :value-to-internal 'folio-widget-dict-item-value-to-internal
-  :notify 'folio-widget-dict-item-notify
-  ;; :keymap folio-widget-dict-keymap ;; XXX
   :format "%[%v%]\n")
-
-(defun folio-widget-dict-item-notify (widget _child &optional event) ;; XXX remove
-  (message "XXX dict item notify value %s--event %S"
-           (list (widget-get widget :dict-value)) event)
-  (widget-default-notify widget _child event))
 
 (defun folio-widget-dict-item-value-create (widget)
   "Insert text representing the `on' and `off' states."
