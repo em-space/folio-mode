@@ -423,7 +423,6 @@ children of WIDGET."
      (t
       nil)))
    (t
-    (message "XXX dict notify default")
     (widget-default-notify widget child event))))
 
 (defun folio-widget-dict-entry-next ()
