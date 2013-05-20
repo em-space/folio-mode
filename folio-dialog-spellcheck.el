@@ -225,6 +225,7 @@ The widget maintains a misspelled word and its frequency count."
   :tag ""
   :format "%[%v%]\n"
   :action 'folio-widget-dict-entry-item-action
+  :keymap folio-widget-dict-entry-item-keymap
   :frequency-lookup 'folio-widget-dict-frequency-lookup
   :good-word-lookup 'folio-widget-dict-good-words-lookup)
 
@@ -284,7 +285,7 @@ WIDGET must be of type `folio-widget-dict-entry-item'."
                                             'face 'folio-gwl-tag
                                             'help-echo
                                             "Listed in `good words'"))))))
-    (widget-insert tag)
+    (widget-insert (propertize tag 'keymap (widget-get widget :keymap)))
     ;; XXX dynamically add language choice
     (when focused
       (let (buttons)
