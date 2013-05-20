@@ -232,6 +232,31 @@ The widget maintains a misspelled word and its frequency count."
   "Save action chosen for the last dictionary entry.")
 (make-variable-buffer-local 'folio-widget-dict-entry-choice)
 
+(defun folio-widget-dict-entry-menu ()
+  "Handle the popup-menu for a dictionary entry."
+  (interactive)
+  (let* ((widget (widget-at))
+         (parent (widget-get widget :parent))
+         (word (widget-get widget :value))
+         (menu (make-sparse-keymap (concat "`" word "'")))
+         choice)
+    (define-key menu [save-global]
+      `(menu-item "Add to global dictionary" save-global
+                  :key-sequence ,[(control x) (g)]
+                  :help "Add current word to global dictionary"))
+    (define-key menu [save-local]
+      `(menu-item "Add to project dictionary" save-local
+                  :key-sequence ,[(control x) (p)]
+                  :help "Add current word to project dictionary"))
+    (define-key menu [accept-session]
+      `(menu-item "Accept this session" accept-session
+                  :key-sequence ,[(control x) (a)]
+                  :keys "\\[accept-session]"
+                  :help "Accept current word this session"))
+    (when (setq choice (car (x-popup-menu t menu)))
+      (widget-apply
+       parent :notify parent `(dict-apply ,choice ,word)))))
+
 (defun folio-widget-dict-entry-item-value-create (widget)
   "Value create the widget WIDGET.
 WIDGET must be of type `folio-widget-dict-entry-item'."
