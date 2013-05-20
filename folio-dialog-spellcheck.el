@@ -147,8 +147,6 @@ converted."
   :value-create 'folio-widget-dict-node-value-create
   :keep '(:dict-value)
   :expander 'folio-widget-dict-node-expand
-  ;;  :keymap folio-widget-dict-keymap
-  :notify 'folio-widget-dict-node-notify
   :frequency-lookup 'folio-widget-dict-frequency-lookup)
 
 (defun folio-widget-dict-node-value-create (widget)
@@ -202,14 +200,6 @@ Reuse :args cache if it exists."
         (unless children
           (push '(const :tag "<no entries>") children))
         (nreverse children))))
-
-(defun folio-widget-dict-node-notify (widget child &optional event) ;; XXX remove?
-  "Pass notification to parent."
-  (message "dict node notify child %S event %S" (car-safe child) (car-safe event))
-  (if nil ;;(eq (car-safe event) 'substitute)
-      (widget-apply (widget-get widget :parent) :notify widget event)
-    (message "XXX --- dict node default action")
-    (widget-default-action widget event)))
 
 (define-widget 'folio-widget-dict-entry-item 'item
   "Widget for an item in a dictionary entry.
