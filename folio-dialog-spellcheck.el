@@ -374,10 +374,18 @@ children of WIDGET."
     (goto-char (widget-get
                 (car (widget-get widget :children)) :from))))
 
+(defvar folio-widget-dict-keymap
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map widget-keymap)
+    (define-key map (kbd "<S-wheel-down>") 'folio-widget-dict-entry-next)
+    (define-key map (kbd "<S-wheel-up>") 'folio-widget-dict-entry-previous)
+    map)
+  "Keymap for the dictionary widget.")
+
 (define-widget 'folio-widget-dict 'folio-widget-repeat
   "A scrollable dictionary widget."
   :notify 'folio-widget-dict-notify
-  ;; XXX  :keymap folio-widget-dict-keymap
+  :keymap folio-widget-dict-keymap
   :offset 0
   :indent 6)
 
