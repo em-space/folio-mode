@@ -1437,13 +1437,8 @@ can be used for querying, see which."
          (concat folio-spellcheck-skip-keywords-default "\\|"
                  folio-spellcheck-skip-regexp-default)))
       (unless (and folio-vocabulary folio-vocabulary-marker)
-        (setq folio-vocabulary
-              (make-hash-table
-               :test (if folio-case-folded-dictionary
-                         'folio-case-fold-hash-table-test
-                       'equal)
-               :size folio-dictionary-size))
-        (setq folio-vocabulary-marker nil))
+        (setq folio-vocabulary (folio-make-vocabulary)
+              folio-vocabulary-marker nil))
       ;; `vocabulary' is an idle timer called each time Emacs has been
       ;; idle for `folio-vocabulary-build-delay' seconds with
       ;; `folio-vocabulary-process-buffers' for the worker function.
