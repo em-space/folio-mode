@@ -371,8 +371,7 @@ widget :value should be a word from the text vocabulary."
              (error "Invalid tree-widget :node %S" node))
       (let* ((value (widget-get widget :value)))
         (setq node `(folio-widget-dict-entry-item
-                     :value ,value
-                     :keymap ,(widget-get widget :keymap)))
+                     :value ,value))
         (widget-put widget :node node)
         (widget-put node :dict-value value))))
   (tree-widget-value-create widget))
