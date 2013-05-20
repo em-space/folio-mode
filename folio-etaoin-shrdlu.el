@@ -259,7 +259,7 @@ the car and spellchecker suggestions in the cdr."
 
 (defun folio-vocabulary-alphabet ()
   "Return the alphabet for the vocabulary as a char table.
-The value is an absolute occurrence count."
+The value of a table entry is an absolute occurrence count."
   (let ((alphabet (make-char-table 'vocabulary-alphabet 0)))
     (maphash (lambda (k v)
                (dotimes (i (1- (length k)))
