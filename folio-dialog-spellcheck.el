@@ -465,10 +465,9 @@ children of WIDGET."
       ;; XXX 'delete word
       (widget-apply widget :delete-at child)
       (folio-with-parent-buffer
-        (run-hook-with-args 'folio-widget-dict-maintainance-functions
-                            `(,(cadr event) ,(caddr event))))
-      (message "XXX dict apply word %s" (caddr event))
-      (folio-widget-dict-filter-value-reset)
+        (run-hook-with-args 'folio-dict-maintainance-functions
+                            (cadr event) (caddr event)))
+      (widget-apply widget :focus nil)
       t)
      ((eq (car-safe event) 'dict-focus)
       (message "XXX dict notify focus 2 child %s" (car-safe child))
