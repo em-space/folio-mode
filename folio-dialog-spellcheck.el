@@ -38,6 +38,15 @@
 (require 'folio-image)
 (require 'folio-uca)
 
+(defvar folio-widget-dict-entry-keymap
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map widget-keymap)
+    (define-key map (kbd "C-e") 'widget-end-of-line)
+    (define-key map (kbd "<M-right>") 'folio-widget-dict-entry-next)
+    (define-key map (kbd "<M-left>") 'folio-widget-dict-entry-previous)
+    map)
+  "Keymap for the dictionary widget.")
+
 (defun folio-widget-dict-value (&optional regexp)
   "Return the value for the dictionary widget.
 If the regexp REGEXP is non-nil filter out any words in the
@@ -302,14 +311,6 @@ WIDGET must be of type `folio-widget-dict-entry-item'."
         (widget-apply parent :notify widget `(dict-choice ,entry))))
      (t
       (widget-apply parent :notify widget 'dict-focus)))))
-
-(defvar folio-widget-dict-entry-keymap
-  (let ((map (copy-keymap widget-keymap)))
-    (define-key map (kbd "C-e") 'widget-end-of-line)
-    (define-key map (kbd "<M-right>") 'folio-widget-dict-entry-next)
-    (define-key map (kbd "<M-left>") 'folio-widget-dict-entry-previous)
-    map)
-  "Keymap for the dictionary widget.")
 
 (define-widget 'folio-widget-dict-entry 'tree-widget
   "A dictionary entry for `folio-widget-dict'.
