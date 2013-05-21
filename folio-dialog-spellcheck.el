@@ -141,7 +141,6 @@ converted."
    (t
     (error "Invalid widget value"))))
 
-
 (define-widget 'folio-widget-dict-node 'tree-widget
   "A dictionary section."
   :value-create 'folio-widget-dict-node-value-create
@@ -379,15 +378,12 @@ children of WIDGET."
 
 (defun folio-widget-dict-notify (widget child &optional event)
   "Pass notification to parent."
-  (message "dict notify XXX child %S event %S" (car-safe child) event)
-
   (cond
    ((eq (widget-type child) 'folio-widget-dict-entry)
     (cond
      ((eq event 'dict-focus)
       (widget-default-notify widget child event)
       (widget-apply widget :focus child))
-
      ((eq (car-safe event) 'dict-choice)
       (message "XXX dict notify focus child %s" (car-safe child))
       (widget-apply widget :focus child)
