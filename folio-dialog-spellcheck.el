@@ -40,7 +40,9 @@
 
 (defvar folio-widget-dict-entry-keymap
   (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map widget-keymap)
+    (set-keymap-parent
+     map (make-composed-keymap
+          widget-keymap folio-dialog-form-mode-map))
     (define-key map (kbd "C-e") 'widget-end-of-line)
     (define-key map (kbd "<M-right>") 'folio-widget-dict-entry-next)
     (define-key map (kbd "<M-left>") 'folio-widget-dict-entry-previous)
