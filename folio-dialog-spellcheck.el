@@ -377,7 +377,7 @@ children of WIDGET."
 ;;  (remove-hook 'folio-word-occurrence-functions 'folio-locate-word t)
 
 (defun folio-widget-dict-notify (widget child &optional event)
-  "Pass notification to parent."
+  "Handle notification event EVENT from child widget CHILD."
   (cond
    ((eq (widget-type child) 'folio-widget-dict-entry)
     (cond
@@ -385,13 +385,13 @@ children of WIDGET."
       (widget-default-notify widget child event)
       (widget-apply widget :focus child))
      ((eq (car-safe event) 'dict-choice)
-      (message "XXX dict notify focus child %s" (car-safe child))
-      (widget-apply widget :focus child)
       (save-selected-window
         (switch-to-buffer-other-window folio-parent-buffer)
         (run-hook-with-args
-         'folio-word-occurrence-functions (cadr event))))
-
+         'folio-word-occurrence-functions (cadr event)))
+      ;; (re-)focus the child up-stack that originally produced the
+      ;; event
+      (widget-apply widget :focus child))
      ((eq (car-safe event) 'dict-substitute)
       (folio-with-parent-buffer
         (run-hook-with-args 'folio-word-substitution-functions
@@ -407,9 +407,6 @@ children of WIDGET."
                             (cadr event) (caddr event)))
       (widget-apply widget :focus nil)
       t)
-     ((eq (car-safe event) 'dict-focus)
-      (message "XXX dict notify focus 2 child %s" (car-safe child))
-      (widget-apply widget :focus child))
      (t
       nil)))
    (t
