@@ -54,6 +54,20 @@
     map)
   "Keymap for an entry of the dictionary widget.")
 
+(defvar folio-widget-dict-keymap
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent
+     map (make-composed-keymap
+          widget-keymap folio-dialog-form-mode-map))
+    (define-key map (kbd "<wheel-down>") 'folio-widget-dict-entry-next)
+    (define-key map (kbd "<wheel-up>") 'folio-widget-dict-entry-previous)
+    ;; XXX "fast" scroll by jumping to lexicographic next/previous
+    ;; initial letter
+    ;; (define-key map (kbd "<S-wheel-down>") 'folio-widget-dict-entry-next)
+    ;; (define-key map (kbd "<S-wheel-up>") 'folio-widget-dict-entry-previous
+    map)
+  "Keymap for the dictionary widget.")
+
 (defun folio-widget-dict-value (&optional regexp)
   "Return the value for the dictionary widget.
 If the regexp REGEXP is non-nil filter out any words in the
@@ -348,24 +362,14 @@ children of WIDGET."
 (defun folio-widget-dict-entry-focus (widget &optional arg)
   "Set focus for WIDGET according to ARG."
   (widget-put widget :focus-entry (and arg t))
-
   ;; Expand when in focus or otherwise collapse the node by calling
   ;; the tree-widget's action function.
   (unless (eq (and (widget-get widget :open) t) (and arg t))
     (widget-apply widget :action))
-
   ;; Position cursor at the beginning of the node item.
   (when arg
     (goto-char (widget-get
                 (car (widget-get widget :children)) :from))))
-
-(defvar folio-widget-dict-keymap
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map widget-keymap)
-    (define-key map (kbd "<S-wheel-down>") 'folio-widget-dict-entry-next)
-    (define-key map (kbd "<S-wheel-up>") 'folio-widget-dict-entry-previous)
-    map)
-  "Keymap for the dictionary widget.")
 
 (define-widget 'folio-widget-dict 'folio-widget-repeat
   "A scrollable dictionary widget."
