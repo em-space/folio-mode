@@ -541,7 +541,7 @@ list entry is created by value."
   (widget-apply widget :notify widget))
 
 (defun folio-widget-repeat-insert-after (widget value &optional after)
-  ;; Insert a new child in the list of children.
+  "Insert a new child in the list of children."
   (save-excursion
     (let ((children (widget-get widget :children))
           (inhibit-read-only t)
