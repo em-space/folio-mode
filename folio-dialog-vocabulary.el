@@ -30,6 +30,21 @@
 
 (require 'folio-dialog-forms)
 
+(defvar folio-widget-vocabulary-keymap
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent
+     map (make-composed-keymap
+          widget-keymap folio-dialog-form-mode-map))
+    (define-key map (kbd "<wheel-down>")
+      'folio-widget-vocabulary-entry-next)
+    (define-key map (kbd "<wheel-up>")
+      'folio-widget-vocabulary-entry-previous)
+    ;; XXX "fast" scroll by jumping to lexicographic next/previous
+    ;; initial letter
+    ;; (define-key map (kbd "<S-wheel-down>") 'folio-widget-dict-entry-next)
+    ;; (define-key map (kbd "<S-wheel-up>") 'folio-widget-dict-entry-previous
+    map)
+  "Keymap for the vocabulary widget.")
 
 (defun folio-widget-vocabulary-value (&optional regexp)
   "Return the value for the vocabulary widget.
@@ -65,15 +80,6 @@ This is an adaption of `folio-soundslikes' for use with the
   "Return non-nil if WORD is in the project local `good word' list."
   (folio-with-parent-buffer
     (folio-vocabulary-good-word-p word)))
-
-(defvar folio-widget-vocabulary-keymap
-  (let ((map (copy-keymap widget-keymap)))
-    (define-key map (kbd "C-e") 'widget-end-of-line)
-    (define-key map (kbd "<M-right>")
-      'folio-widget-vocabulary-entry-next)
-    (define-key map (kbd "<M-left>")
-      'folio-widget-vocabulary-entry-previous) map)
-  "Keymap for the vocabulary widget.")
 
 (define-widget 'folio-widget-vocabulary-item 'item
   "Widget for an item in a vocabulary entry.
@@ -255,7 +261,7 @@ Return the children of WIDGET."
 (define-widget 'folio-widget-vocabulary 'folio-widget-repeat
   "A scrollable widget for word and word frequency checks."
   :notify 'folio-widget-vocabulary-notify
-;; XXX  :keymap folio-widget-vocabulary-keymap
+  :keymap folio-widget-vocabulary-keymap
   :offset 0
   :indent 6)
 
