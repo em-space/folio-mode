@@ -526,6 +526,9 @@ list entry is created by value."
              (goto-char (widget-get before :entry-from)))
             (t
              (goto-char (widget-get widget :value-pos))))
+      ;; Ensure child always is created relative to the beginning of
+      ;; the current line.
+      (beginning-of-line)
       (let ((child (widget-editable-list-entry-create
                     widget value (not (null value)))))
         (when (< (widget-get child :entry-from)
@@ -555,6 +558,9 @@ list entry is created by value."
                  (goto-char (widget-get
                              (car (last children)) :entry-to))
                (goto-char (widget-get widget :value-pos)))))
+      ;; Ensure child always is created relative to the beginning of
+      ;; the current line.
+      (beginning-of-line)
       ;; Insert child widget.
       (let ((new-child (widget-editable-list-entry-create
                         widget value (not (null value)))))
