@@ -328,9 +328,6 @@ widget :value should be a word from the text vocabulary."
 
 (defun folio-widget-dict-entry-notify (widget child &optional event)
   "Handle a state change of WIDGET's CHILD widget."
-  (message "XXX dict entry notify child %S event %S" (car-safe child) (car-safe event))
-  (message "XXX dict entry from node %s is child %s" (eq (car-safe child) 'folio-widget-dict-entry-item)
-           (car-safe (widget-get widget :node)))
   (if (eq (widget-type child) 'folio-widget-dict-node)
       (cond
        ((eq (car-safe event) 'dict-substitute)
@@ -404,9 +401,6 @@ children of WIDGET."
                             (caadr event) (cdadr event))))
 
      ((eq (car-safe event) 'dict-apply)
-      ;;dict notify XXX child folio-widget-dict-entry event (dict-apply accept-session "Alleyne")
-      ;;  (widget-apply widget :focus 1)
-      ;; XXX 'delete word
       (widget-apply widget :delete-at child)
       (folio-with-parent-buffer
         (run-hook-with-args 'folio-dict-maintainance-functions
