@@ -30,6 +30,22 @@
 
 (require 'folio-dialog-forms)
 
+(defvar folio-widget-vocabulary-item-keymap
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent
+     map (make-composed-keymap
+          widget-keymap folio-dialog-form-mode-map))
+    (define-key map (kbd "C-e") 'widget-end-of-line)
+    (define-key map (kbd "<wheel-down>")
+      'folio-widget-vocabulary-entry-next)
+    (define-key map (kbd "<wheel-up>")
+      'folio-widget-vocabulary-entry-previous)
+    (define-key map (kbd "<M-right>")
+      'folio-widget-vocabulary-entry-next)
+    (define-key map (kbd "<M-left>")
+      'folio-widget-vocabulary-entry-previous) map)
+  "Keymap for the entry of the vocabulary widget.")
+
 (defvar folio-widget-vocabulary-keymap
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent
@@ -84,12 +100,25 @@ This is an adaption of `folio-soundslikes' for use with the
 (define-widget 'folio-widget-vocabulary-item 'item
   "Widget for an item in a vocabulary entry.
 The widget maintains a word and its frequency count as a button."
+  :create 'folio-widget-vocabulary-item-create
   :value-create 'folio-widget-vocabulary-item-value-create
   :tag ""
   :format "%[%v%]\n"
   :action 'folio-widget-vocabulary-item-action
+  :keymap folio-widget-vocabulary-item-keymap
   :frequency-lookup 'folio-widget-vocabulary-frequency-lookup
   :good-word-lookup 'folio-widget-vocabulary-good-words-lookup)
+
+(defun folio-widget-vocabulary-item-create (widget)
+  "Create WIDGET at point in the current buffer."
+  (widget-default-create widget)
+  (let ((from (widget-get widget :from))
+        (to (widget-get widget :to))
+        (keymap (widget-get widget :keymap)))
+    (when keymap
+      (let ((overlay (make-overlay from to nil nil 'rear-sticky)))
+        (widget-put widget :keymap-overlay overlay)
+        (overlay-put overlay 'local-map keymap)))))
 
 (defun folio-widget-vocabulary-item-value-create (widget)
   "Value create the widget WIDGET.
@@ -211,8 +240,7 @@ widget :value should be a word from the text vocabulary."
              (error "Invalid tree-widget :node %S" node))
       (let* ((value (widget-get widget :value)))
         (setq node `(folio-widget-vocabulary-item
-                     :value ,value
-                     :keymap ,(widget-get widget :keymap)))
+                     :value ,value))
         (widget-put widget :node node)
         (widget-put node :vocabulary-value value))))
   (tree-widget-value-create widget))
