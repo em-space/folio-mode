@@ -113,14 +113,14 @@ WIDGET should be of the type `folio-widget-vocabulary-item'."
 
 (defun folio-widget-vocabulary-item-action (widget &optional event)
   "Handle user initiated events."
-  (let ((value (widget-get widget :value))
-        (pos (marker-position (widget-get widget :from))))
-    (widget-apply (widget-get widget :parent)
-                  :notify widget `(vocabulary-choice ,value))
-    (when pos
-      ;; XXX mouse click should move point too for this widget, see
-      ;; `widget-button-click-moves-point',
-      (goto-char pos))))
+  (let ((parent (widget-get widget :parent)))
+    (cond
+     ((widget-get parent :open)
+      (let ((value (widget-get widget :value)))
+        (widget-apply
+         parent :notify widget `(vocabulary-choice ,value))))
+     (t
+      (widget-apply parent :notify widget 'vocabulary-focus)))))
 
 (define-widget 'folio-widget-soundslike-node 'tree-widget
   "A sounds-like section in the vocabulary widget."
@@ -260,7 +260,7 @@ Return the children of WIDGET."
   (cond
    ((eq (widget-type child) 'folio-widget-vocabulary-entry)
     (cond
-     ((eq (car-safe event) 'vocabulary-focus)
+     ((eq event 'vocabulary-focus)
       (widget-default-notify widget child event)
       (widget-apply widget :focus child))
      ((eq (car-safe event) 'vocabulary-choice)
@@ -268,8 +268,8 @@ Return the children of WIDGET."
         (switch-to-buffer-other-window folio-parent-buffer)
         (run-hook-with-args
          'folio-word-occurrence-functions (cadr event)))
-      ;; XXX this should focus the child up-stack that originally
-      ;; produced the event
+      ;; (re-)focus the child up-stack that originally produced the
+      ;; event
       (widget-apply widget :focus child))
      (t nil)))
    (t
