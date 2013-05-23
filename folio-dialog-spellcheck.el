@@ -38,7 +38,7 @@
 (require 'folio-image)
 (require 'folio-uca)
 
-(defvar folio-widget-dict-entry-item-keymap
+(defvar folio-widget-dict-entry-keymap
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent
      map (make-composed-keymap
@@ -50,6 +50,8 @@
       'folio-widget-dict-entry-previous)
     (define-key map (kbd "A-<return>")
       'folio-widget-dict-entry-menu)
+    (define-key map [down-mouse-1]
+      'widget-move-and-invoke)
     map)
   "Keymap for an entry of the dictionary widget.")
 
@@ -248,7 +250,7 @@ The widget maintains a misspelled word and its frequency count."
   :tag ""
   :format "%[%v%]\n"
   :action 'folio-widget-dict-entry-item-action
-  :keymap folio-widget-dict-entry-item-keymap
+  :keymap folio-widget-dict-entry-keymap
   :frequency-lookup 'folio-widget-dict-frequency-lookup
   :good-word-lookup 'folio-widget-dict-good-words-lookup)
 
@@ -304,6 +306,7 @@ again tree-widgets for suggestions of a spellchecker run."
   :dict-lookup 'folio-widget-dict-lookup
   :focus 'folio-widget-dict-entry-focus
   :focus-entry nil
+  :keymap folio-widget-dict-entry-keymap
   :frequency-lookup 'folio-widget-dict-frequency-lookup)
 
 (defun folio-widget-dict-entry-value-create (widget)

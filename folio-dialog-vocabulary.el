@@ -30,7 +30,7 @@
 
 (require 'folio-dialog-forms)
 
-(defvar folio-widget-vocabulary-item-keymap
+(defvar folio-widget-vocabulary-entry-keymap
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent
      map (make-composed-keymap
@@ -43,7 +43,10 @@
     (define-key map (kbd "<M-right>")
       'folio-widget-vocabulary-entry-next)
     (define-key map (kbd "<M-left>")
-      'folio-widget-vocabulary-entry-previous) map)
+      'folio-widget-vocabulary-entry-previous)
+    (define-key map [down-mouse-1]
+      'widget-move-and-invoke)
+    map)
   "Keymap for the entry of the vocabulary widget.")
 
 (defvar folio-widget-vocabulary-keymap
@@ -105,7 +108,7 @@ The widget maintains a word and its frequency count as a button."
   :tag ""
   :format "%[%v%]\n"
   :action 'folio-widget-vocabulary-item-action
-  :keymap folio-widget-vocabulary-item-keymap
+  :keymap folio-widget-vocabulary-entry-keymap
   :frequency-lookup 'folio-widget-vocabulary-frequency-lookup
   :good-word-lookup 'folio-widget-vocabulary-good-words-lookup)
 
@@ -219,7 +222,8 @@ WIDGET."
   :expander 'folio-widget-vocabulary-entry-expand
   :notify 'folio-widget-vocabulary-entry-notify
   :focus 'folio-widget-vocabulary-entry-focus
-  :focus-entry nil)
+  :focus-entry nil
+  :keymap folio-widget-vocabulary-entry-keymap)
 
 (defun folio-widget-vocabulary-entry-value-create (widget)
   "Value create the widget WIDGET.
