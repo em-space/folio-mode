@@ -216,19 +216,9 @@ Reuse :args cache if it exists."
           (push '(const :tag "<no entries>") children))
         (nreverse children))))
 
-(define-widget 'folio-widget-dict-entry-item 'item
-  "Widget for an item in a dictionary entry.
-The widget maintains a misspelled word and its frequency count."
-  :value-create 'folio-widget-dict-entry-item-value-create
-  :tag ""
-  :format "%[%v%]\n"
-  :action 'folio-widget-dict-entry-item-action
-  :keymap folio-widget-dict-entry-item-keymap
-  :frequency-lookup 'folio-widget-dict-frequency-lookup
-  :good-word-lookup 'folio-widget-dict-good-words-lookup)
-
 (defun folio-widget-dict-entry-menu ()
   "Handle the popup-menu for a dictionary entry."
+  ;; XXX TODO sub-menus for multi-dicts
   (interactive)
   (let* ((widget (widget-at))
          (parent (widget-get widget :parent))
@@ -253,6 +243,17 @@ The widget maintains a misspelled word and its frequency count."
     (when (setq choice (car (x-popup-menu t menu)))
       (widget-apply
        parent :notify parent `(dict-apply ,choice ,word)))))
+
+(define-widget 'folio-widget-dict-entry-item 'item
+  "Widget for an item in a dictionary entry.
+The widget maintains a misspelled word and its frequency count."
+  :value-create 'folio-widget-dict-entry-item-value-create
+  :tag ""
+  :format "%[%v%]\n"
+  :action 'folio-widget-dict-entry-item-action
+  :keymap folio-widget-dict-entry-item-keymap
+  :frequency-lookup 'folio-widget-dict-frequency-lookup
+  :good-word-lookup 'folio-widget-dict-good-words-lookup)
 
 (defun folio-widget-dict-entry-item-value-create (widget)
   "Value create the widget WIDGET.
