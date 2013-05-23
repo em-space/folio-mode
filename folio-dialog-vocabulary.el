@@ -166,14 +166,7 @@ WIDGET should be of the type `folio-widget-vocabulary-item'."
   :value-create 'folio-widget-soundslike-node-value-create
   :keep '(:soundslike-value)
   :expander 'folio-widget-soundslike-node-expand
-  :keymap folio-widget-vocabulary-keymap
-;;  :notify 'folio-widget-soundslike-node-notify
   :frequency-lookup 'folio-widget-vocabulary-frequency-lookup)
-
-(defun folio-widget-soundslike-node-notify (widget _child &optional event) ;; XXX remove
-  (message "XXX vocabulary item notify value %s--event %S"
-           (list (widget-get widget :vocabulary-value)) event)
-  (widget-default-notify widget _child event))
 
 (defun folio-widget-soundslike-node-value-create (widget)
   "Value create the widget WIDGET for a vocabulary sounds-like node.
@@ -225,7 +218,6 @@ WIDGET."
   :keep '(:vocabulary-value :focus-entry)
   :expander 'folio-widget-vocabulary-entry-expand
   :notify 'folio-widget-vocabulary-entry-notify
-  :keymap folio-widget-vocabulary-keymap
   :focus 'folio-widget-vocabulary-entry-focus
   :focus-entry nil)
 
