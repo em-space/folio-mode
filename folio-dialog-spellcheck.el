@@ -38,21 +38,18 @@
 (require 'folio-image)
 (require 'folio-uca)
 
-(defvar folio-widget-dict-entry-keymap
+(defvar folio-widget-dict-entry-item-keymap
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent
      map (make-composed-keymap
           widget-keymap folio-dialog-form-mode-map))
     (define-key map (kbd "C-e") 'widget-end-of-line)
-    (define-key map (kbd "<M-right>") 'folio-widget-dict-entry-next)
-    (define-key map (kbd "<M-left>") 'folio-widget-dict-entry-previous)
-    map)
-  "Keymap for the dictionary widget.")
-
-(defvar folio-widget-dict-entry-item-keymap
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map folio-widget-dict-entry-keymap)
-    (define-key map (kbd "A-<return>") 'folio-widget-dict-entry-menu)
+    (define-key map (kbd "<M-right>")
+      'folio-widget-dict-entry-next)
+    (define-key map (kbd "<M-left>")
+      'folio-widget-dict-entry-previous)
+    (define-key map (kbd "A-<return>")
+      'folio-widget-dict-entry-menu)
     map)
   "Keymap for an entry of the dictionary widget.")
 
@@ -304,7 +301,6 @@ again tree-widgets for suggestions of a spellchecker run."
   :keep '(:dict-value :focus-entry)
   :expander 'folio-widget-dict-entry-expand
   :notify 'folio-widget-dict-entry-notify
-  :keymap folio-widget-dict-entry-keymap
   :dict-lookup 'folio-widget-dict-lookup
   :focus 'folio-widget-dict-entry-focus
   :focus-entry nil
