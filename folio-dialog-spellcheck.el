@@ -282,8 +282,7 @@ WIDGET must be of type `folio-widget-dict-entry-item'."
                                             'face 'folio-gwl-tag
                                             'help-echo
                                             "Listed in `good words'"))))))
-    (widget-insert
-     (propertize tag 'keymap (widget-get widget :keymap)))))
+    (widget-insert tag)))
 
 (defun folio-widget-dict-entry-item-action (widget &optional event)
   "Handle user initiated events."
