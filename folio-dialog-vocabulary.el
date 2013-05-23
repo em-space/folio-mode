@@ -256,7 +256,7 @@ Return the children of WIDGET."
   :indent 6)
 
 (defun folio-widget-vocabulary-notify (widget child &optional event)
-  "Pass notification to parent."
+  "Handle notification event EVENT from child widget CHILD."
   (cond
    ((eq (widget-type child) 'folio-widget-vocabulary-entry)
     (cond
