@@ -26,6 +26,10 @@
 
 ;;; Code:
 
+(require 'tree-widget)
+
+(require 'folio-dialog-forms)
+
 
 (defun folio-widget-vocabulary-value (&optional regexp)
   "Return the value for the vocabulary widget.
