@@ -471,6 +471,48 @@ input."
     (when state
       (folio-mafsa-final-state-p fsa state))))
 
+;; XXX deal with 'any input to MA-FSA
+(defun folio-mafsa-insersect (fsa dfa)
+  (let ((intersect (lambda (lhs rhs)
+                     ;; Return the intersection of the two lists
+                     ;; (sets) LHS and RHS using `eq'.
+                     (let (elt interq)
+                       (while lhs
+                         (setq elt (car lhs)
+                               lhs (cdr lhs))
+                         (when (memq elt rhs)
+                           (setq interq (cons elt interq))))
+                       interq)))
+        (states (list nil
+                      (folio-mafsa-start-state fsa)
+                      (folio-dfa-start-state dfa)))
+        state fsa-state dfa-state path edges output)
+    (while states
+      (setq state (pop states)
+            path (elt state 0)
+            fsa-state (elt state 1)
+            dfa-state (elt state 2)
+            edges (funcall intersect
+                           (folio-mafsa-transition-labels
+                            fsa fsa-state)
+                           (folio-dfa-transition-labels
+                            dfa dfa-state)))
+      (mapc (lambda (x)
+              (setq fsa-state (folio-mafsa-evolve
+                               fsa fsa-state x)
+                    dfa-state (folio-dfa-evolve
+                               dfa dfa-state x))
+              (when (and fsa-state dfa-state)
+                (push x path)
+                (push (list path fsa-state dfa-state) states)
+                (when (and (folio-mafsa-final-state-p
+                            fsa fsa-state)
+                           (folio-dfa-final-state-p
+                            dfa dfa-state))
+                  (push (string (nreverse path)) output))))
+            edges))
+    output))
+
 
 (provide 'folio-automata)
 
