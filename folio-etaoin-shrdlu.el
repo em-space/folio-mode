@@ -990,7 +990,7 @@ pending input is observed."
                       (format "%s: %d words, "
                               (buffer-name buffer)
                               (count-words (point-min) (point-max)))
-                      (format "%d unique words spell-checked, "
+                      (format "%d distinct words spell-checked, "
                               (folio-vocabulary-word-count))
                       (format "%d misses, "
                               (folio-vocabulary-miss-count))
