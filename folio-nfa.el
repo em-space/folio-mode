@@ -253,6 +253,59 @@ rejected."
         (setq new-state (gethash 'any transitions))))
     new-state))
 
+(defun folio-nfa-to-dfa (nfa)
+  "Return a DFA corresponding to the NFA by powerset construction.
+The new DFA is able to recognize the same language as the NFA,
+but executes more efficiently.
+
+The NFA is the non-deterministic finite automaton created and
+defined by `folio-make-nfa', `folio-add-nfa-transition',
+`folio-add-final-nfa-state', respectively.  The set of all states
+of the DFA is the powerset of Q, the set of all possible subsets
+of Q, with Q being the set of all possible states of the NFA."
+  ;; The initial state T of the DFA constructed from this NFA(-ε) is
+  ;; the set of all NFA states that are reachable from the NFA's
+  ;; initial state by ε-moves.
+  (let* ((current-state (folio-nfa-start-state nfa))
+         (dfa (folio-make-dfa current-state))
+         (marked-states (make-hash-table :test 'equal))
+         (states (list current-state))
+         inputs
+         new-state)
+    (message "TRANSFORM START")
+    ;; The transition function of the DFA maps a state S (representing
+    ;; a subset of Q) and an input symbol x to the set T(S,x) =
+    ;; ∪{T(q,x) | q ∈ S}, the set of all states that can be reached by
+    ;; an x-transition from a state in S [Wikipedia].
+    (while states
+      (setq current-state (pop states)
+            inputs (folio-accepted-nfa-inputs
+                    nfa current-state))
+      ;; Subset construction: Cycle the NFA by applying inputs
+      ;; sequentially ...
+      (mapc (lambda (input)
+              (unless (eq input 'epsilon)
+                ;; current-state is the new-state is the e-closure of
+                ;; the move (T,x)
+                (setq new-state (folio-evolve-nfa
+                                 nfa current-state input))
+                ;; visit any unmarked state only once ...
+                (unless (gethash new-state marked-states)
+                  (puthash new-state t marked-states)
+                  (push new-state states)
+                  ;; The final states of the DFA are those sets that
+                  ;; contain a final state of the NFA.
+                  (when (folio-final-nfa-state-p nfa new-state)
+                    (folio-add-final-dfa-state dfa new-state)))
+                (message "TO DFA %s: %s => %s"
+                         (if (symbolp input)
+                             (format "%s" input)
+                           (format "%c" input))
+                         current-state
+                         new-state)
+                (folio-add-dfa-transition
+                 dfa current-state input new-state))) inputs))
+    dfa))
 
 (defvar nfa nil)
 (defvar dfa nil)
