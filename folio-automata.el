@@ -353,6 +353,123 @@ input."
       (folio-nfa-add-final-state nfa (cons len d)))
     nfa))
 
+
+;;;; MAFSAs
+
+(defun folio-make-mafsa-state (fsa)
+  (let ((state (make-vector 3 nil)))
+    (aset state 0 (incf (aref fsa 0)))
+    (aset state 2 (make-char-table 'mafsa))
+    state))
+
+(defun folio-mafsa-add-transition (state char next-state)
+  (let ((edges (aref state 2)))
+    (aset edges char next-state)))
+
+(defsubst folio-mafsa-move (state char)
+  (aref (aref state 2) char))
+
+(defun folio-mafsa-transition-labels (_fsa state)
+  (let (inputs)
+    (map-char-table (lambda (x)
+                      (setq inputs (cons x inputs)))
+                    (aref state 2))
+    inputs))
+
+(defsubst folio-mafsa-mark-final (state)
+  (aset state 1 t))
+
+(defsubst folio-mafsa-final-state-p (_fsa state)
+  (aref state 1))
+
+(defun folio-make-mafsa ()
+  (let ((fsa (make-vector 5 nil)))
+    (aset fsa 0 -1)
+    (aset fsa 1 (folio-make-mafsa-state fsa))
+    (aset fsa 2 (make-hash-table :test #'equal))
+    fsa))
+
+(defsubst folio-mafsa-previous-word (fsa &optional new-word)
+  (if new-word
+      (aset fsa 1 new-word)
+    (aref fsa 1)))
+
+(defsubst folio-mafsa-start-state (fsa)
+  (aref fsa 2))
+
+(defmacro folio-mafsa-states (fsa)
+  `(aref ,fsa 3))
+
+(defsubst folio-mafsa-next-state (fsa state)
+  (gethash state (folio-mafsa-states fsa)))
+
+(defsubst folio-mafsa-add-state (fsa from-state to-state)
+  (puthash from-state to-state (folio-mafsa-states fsa)))
+
+(defmacro folio-mafsa-unchecked-states (fsa)
+  `(aref ,fsa 4))
+
+(defun folio-mafsa-minimize (fsa prefix)
+  (let* ((states (folio-mafsa-unchecked-states fsa))
+         (len (length states))
+         current char child)
+    (while (< prefix len)
+      (setq current (pop states)
+            child (folio-mafsa-next-state
+                   fsa (elt current 0)))
+      (if child
+          ;; replace child with previously encountered state
+          (folio-mafsa-add-transition
+           (elt current 2) (elt current 1) child)
+        ;; keep state
+        (folio-mafsa-add-state fsa child child))
+      (setq prefix (1+ prefix)))
+    (setf (folio-mafsa-unchecked-states fsa) states)))
+
+(defun folio-mafsa-insert-word (fsa word)
+  (let* ((prefix 0)
+         (previous-word (folio-mafsa-previous-word fsa))
+         (len (min (length previous-word) (length word)))
+         char state next-state)
+    (catch 'prefix
+      (while (< prefix len)
+        (when (/= (aref word prefix)
+                  (aref previous-word prefix))
+          (throw 'prefix prefix))
+        (setq prefix (1+ prefix))))
+    ;; store as previous word
+    (folio-mafsa-previous-word fsa word)
+    (folio-mafsa-minimize fsa prefix)
+    ;; add suffix
+    (unless (setq len (length word)
+                  state (caar (folio-mafsa-unchecked-states fsa)))
+      (setq state (folio-mafsa-start-state fsa)))
+    (while (< prefix len)
+      (setq next-state (folio-make-mafsa-state fsa)
+            char (aref word prefix))
+      (folio-mafsa-add-transition state char next-state)
+      (push (list next-state char state)
+            (folio-mafsa-unchecked-states fsa))
+      (setq state next-state
+            prefix (1+ prefix)))
+    (folio-mafsa-mark-final state)))
+
+(defun folio-mafsa-finalize (fsa)
+  (folio-mafsa-minimize fsa 0))
+
+(defun folio-mafsa-evolve (_fsa state input)
+  (folio-mafsa-move state input))
+
+(defun folio-mafsa-string-accept-p (fsa word)
+  (let ((state (folio-mafsa-start-state fsa))
+        (i 0)
+        (len (length word)))
+    (while (and (< i len)
+                (setq state (folio-mafsa-evolve
+                             fsa state (aref word i))))
+      (setq i (1+ i)))
+    (when state
+      (folio-mafsa-final-state-p fsa state))))
 
 
 (provide 'folio-automata)
