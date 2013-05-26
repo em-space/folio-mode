@@ -307,6 +307,15 @@ of Q, with Q being the set of all possible states of the NFA."
                  dfa current-state input new-state))) inputs))
     dfa))
 
+(defun folio-dfa-string-match-p (dfa str)
+  (let ((state (folio-dfa-start-state dfa))
+        (i 0)
+        (len (length str)))
+    (while (and state (< i len))
+      (setq state (folio-evolve-dfa dfa state (aref str i)))
+      (setq i (1+ i)))
+    (and (folio-final-dfa-state-p dfa state) t)))
+
 (defun folio-make-levenshtein-nfa (word max-distance)
   "Return a Levenshtein automaton for word WORD.
 The NFA accepts any input up to a maximal Levenshtein edit
