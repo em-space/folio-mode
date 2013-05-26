@@ -32,8 +32,8 @@
 ;; not accept symbol ranges at a given state.
 ;;
 ;; An NFA is created from `folio-make-nfa'.  Moves and final states
-;; are defined using `folio-add-nfa-transition' and
-;; `folio-add-final-nfa-state', respectively.  NFA resources are the
+;; are defined using `folio-nfa-add-transition' and
+;; `folio-nfa-add-final-state', respectively.  NFA resources are the
 ;; initial state (a scalar parametric state), the transition table,
 ;; and the set of final states.  Notably the NFA's current state is
 ;; maintained outside the NFA and therefore is input parameter.
@@ -56,7 +56,7 @@
     (aset nfa 0 start)
     nfa))
 
-(defun folio-add-nfa-transition (nfa from-state input to-state)
+(defun folio-nfa-add-transition (nfa from-state input to-state)
   "Add a state transition to the NFA.
 FROM-STATE is the source parametric state, INPUT the input
 symbol, TO-STATE the destination state.  Using the symbol
@@ -88,14 +88,14 @@ makes the NFA accept any input symbol at FROM-STATE (other than
                     (list (cons input
                                 (list to-state)))) (aref nfa 1)))))))
 
-(defun folio-add-final-nfa-state (nfa state)
+(defun folio-nfa-add-final-state (nfa state)
   "Make STATE a final (or accepting) state of the NFA."
   (let ((final-states (aref nfa 2)))
     (if final-states
         (nconc final-states (list state))
       (aset nfa 2 (list state)))))
 
-(defun folio-final-nfa-state-p (nfa states)
+(defun folio-nfa-final-state-p (nfa states)
   "Return non-nil if STATES contains at least one final state of
 the NFA."
   (let ((final-states (aref nfa 2))
@@ -107,12 +107,12 @@ the NFA."
              (pop states)))
     final))
 
-(defsubst folio-get-nfa-transitions (nfa state)
+(defsubst folio-nfa-get-transitions (nfa state)
   "Retrieve the NFA moves possible in state STATE.
 Return an alist mapping input symbols to destination states."
   (cdr (assoc state (aref nfa 1))))
 
-(defun folio-accepted-nfa-inputs (nfa states)
+(defun folio-nfa-accepted-inputs (nfa states)
   "Return the set of input symbols the NFA accepts at states
 STATES."
   (let (inputs)
@@ -121,7 +121,7 @@ STATES."
     (mapc (lambda (x)
             (mapc (lambda (y)
                     (setq inputs (cons y inputs)))
-                  (mapcar #'car (folio-get-nfa-transitions
+                  (mapcar #'car (folio-nfa-get-transitions
                                  nfa x)))) states)
     (delete-duplicates inputs)))
 
@@ -134,7 +134,7 @@ INPUT also can be a list of symbols.  Return the new states."
       (setq input (list input)))
     (mapc (lambda (state)
             (setq transitions
-                  (folio-get-nfa-transitions nfa state))
+                  (folio-nfa-get-transitions nfa state))
             (mapc (lambda (i)
                     ;; not consing here, value is list of lists
                     (setq new-states
@@ -171,7 +171,7 @@ This only is a singleton state if there is no e-transition to
 states other than the initial."
   (folio-nfa-epsilon-closure nfa (list (aref nfa 0))))
 
-(defun folio-evolve-nfa (nfa states input)
+(defun folio-nfa-evolve (nfa states input)
   "Evolve the NFA by applying the input symbol INPUT to each
 state in STATES.  Return the new NFA states including those
 reachable by e-moves."
@@ -198,7 +198,7 @@ reachable by e-moves."
     (aset dfa 2 (make-hash-table :test 'equal))
     dfa))
 
-(defun folio-add-dfa-transition (dfa from-state input to-state)
+(defun folio-dfa-add-transition (dfa from-state input to-state)
   "Add a state transition to the DFA.
 FROM-STATE is the source parametric state, INPUT the input
 symbol, TO-STATE the destination states.  INPUT may be 'any, but
@@ -211,11 +211,11 @@ not 'epsilon, obviously."
              (aref dfa 1)))
   (puthash input to-state (gethash from-state (aref dfa 1))))
 
-(defun folio-add-final-dfa-state (dfa state)
+(defun folio-dfa-add-final-state (dfa state)
   "Make STATE a final state of the DFA."
   (puthash state t (aref dfa 2)))
 
-(defun folio-final-dfa-state-p (dfa state)
+(defun folio-dfa-final-state-p (dfa state)
   "Return non-nil if STATE is a final (accepting) state of the
 DFA."
   (gethash state (aref dfa 2)))
@@ -241,7 +241,7 @@ states."
                transitions))
     labels))
 
-(defun folio-evolve-dfa (dfa state input)
+(defun folio-dfa-evolve (dfa state input)
   "Evolve the DFA from the current state STATE by applying INPUT
 as the input symbol.  Return the new DFA state or nil if INPUT is
 rejected."
@@ -259,8 +259,8 @@ The new DFA is able to recognize the same language as the NFA,
 but executes more efficiently.
 
 The NFA is the non-deterministic finite automaton created and
-defined by `folio-make-nfa', `folio-add-nfa-transition',
-`folio-add-final-nfa-state', respectively.  The set of all states
+defined by `folio-make-nfa', `folio-nfa-add-transition',
+`folio-nfa-add-final-state', respectively.  The set of all states
 of the DFA is the powerset of Q, the set of all possible subsets
 of Q, with Q being the set of all possible states of the NFA."
   ;; The initial state T of the DFA constructed from this NFA(-ε) is
@@ -279,7 +279,7 @@ of Q, with Q being the set of all possible states of the NFA."
     ;; an x-transition from a state in S [Wikipedia].
     (while states
       (setq current-state (pop states)
-            inputs (folio-accepted-nfa-inputs
+            inputs (folio-nfa-accepted-inputs
                     nfa current-state))
       ;; Subset construction: Cycle the NFA by applying inputs
       ;; sequentially ...
@@ -287,7 +287,7 @@ of Q, with Q being the set of all possible states of the NFA."
               (unless (eq input 'epsilon)
                 ;; current-state is the new-state is the e-closure of
                 ;; the move (T,x)
-                (setq new-state (folio-evolve-nfa
+                (setq new-state (folio-nfa-evolve
                                  nfa current-state input))
                 ;; visit any unmarked state only once ...
                 (unless (gethash new-state marked-states)
@@ -295,15 +295,15 @@ of Q, with Q being the set of all possible states of the NFA."
                   (push new-state states)
                   ;; The final states of the DFA are those sets that
                   ;; contain a final state of the NFA.
-                  (when (folio-final-nfa-state-p nfa new-state)
-                    (folio-add-final-dfa-state dfa new-state)))
+                  (when (folio-nfa-final-state-p nfa new-state)
+                    (folio-dfa-add-final-state dfa new-state)))
                 (message "TO DFA %s: %s => %s"
                          (if (symbolp input)
                              (format "%s" input)
                            (format "%c" input))
                          current-state
                          new-state)
-                (folio-add-dfa-transition
+                (folio-dfa-add-transition
                  dfa current-state input new-state))) inputs))
     dfa))
 
@@ -312,9 +312,9 @@ of Q, with Q being the set of all possible states of the NFA."
         (i 0)
         (len (length str)))
     (while (and state (< i len))
-      (setq state (folio-evolve-dfa dfa state (aref str i)))
+      (setq state (folio-dfa-evolve dfa state (aref str i)))
       (setq i (1+ i)))
-    (and (folio-final-dfa-state-p dfa state) t)))
+    (and (folio-dfa-final-state-p dfa state) t)))
 
 (defun folio-make-levenshtein-nfa (word max-distance)
   "Return a Levenshtein automaton for word WORD.
@@ -332,25 +332,25 @@ input."
     (while (< i len)
       (dotimes (d (1+ max-distance))
         ;; correct character, and correct path for d = 0
-        (folio-add-nfa-transition
+        (folio-nfa-add-transition
          nfa (cons i d) (aref word i) (cons (1+ i) d))
         (when (< d max-distance)
           ;; deletion
-          (folio-add-nfa-transition
+          (folio-nfa-add-transition
            nfa (cons i d) 'any (cons i (1+ d)))
           ;; insertion
-          (folio-add-nfa-transition
+          (folio-nfa-add-transition
            nfa (cons i d) 'any (cons (1+ i) (1+ d)))
           ;; substitution
-          (folio-add-nfa-transition
+          (folio-nfa-add-transition
            nfa (cons i d) 'epsilon (cons (1+ i) (1+ d)))))
       (setq i (1+ i)))
     ;; Setup final states at (length word).
     (dotimes (d (1+ max-distance))
       (when (< d max-distance)
-        (folio-add-nfa-transition
+        (folio-nfa-add-transition
          nfa (cons len d) 'any (cons len (1+ d))))
-      (folio-add-final-nfa-state nfa (cons len d)))
+      (folio-nfa-add-final-state nfa (cons len d)))
     nfa))
 
 
