@@ -345,32 +345,12 @@ input."
       (folio-add-final-nfa-state nfa (cons len d)))
     nfa))
 
-(defvar nfa nil)
-(defvar dfa nil)
-
-(defun folio-nfa-test ()
-  (setq nfa (folio-make-nfa '(0 . 0)))
-  (when t
-  (folio-add-nfa-transition nfa '(1 . 2) ?b '(3 . 4))
-  (folio-add-nfa-transition nfa '(1 . 2) ?c '(7 . 8))
-  (folio-add-nfa-transition nfa '(2 . 3) ?d '(0 . 0))
-  (folio-add-nfa-transition nfa '(2 . 3) 'epsilon '(0 . 0)))
-  (folio-add-final-nfa-state nfa '(7 . 7))
-  (folio-add-final-nfa-state nfa '(9 . 9))
-  (message "%S" nfa)
-
-  (setq dfa (folio-make-dfa '(0 . 0)))
-  (folio-add-dfa-transition dfa '(1 . 2) 'any '(3 . 4))
-
-  (folio-add-dfa-transition dfa '(1 . 3) ?a '(3 . 4))
-  )
-
 
 
-(provide 'folio-nfa)
+(provide 'folio-automata)
 
 ;; Local Variables:
 ;; byte-compile-warnings: (not cl-functions)
 ;; End:
 
-;;; folio-nfa.el ends here
+;;; folio-automata.el ends here
