@@ -307,6 +307,44 @@ of Q, with Q being the set of all possible states of the NFA."
                  dfa current-state input new-state))) inputs))
     dfa))
 
+(defun folio-make-levenshtein-nfa (word max-distance)
+  "Return a Levenshtein automaton for word WORD.
+The NFA accepts any input up to a maximal Levenshtein edit
+distance MAX-DISTANCE.  `folio-nfa-to-dfa' should be used to
+transform the NFA into an equivalent DFA accepting the same
+input."
+  (let ((nfa (folio-make-nfa '(0 . 0)))
+        (inputs (string-to-list word))
+        (len (length word))
+        (i 0))
+    ;; Setup edges, starting from the initial state '(0 . 0) with
+    ;; state counter i from 0 to (1- |word|) and edit distance d.  d
+    ;; becomes state parameter in the form of an error count in the
+    ;; range (0, max-distance).
+    (mapc (lambda (x)
+            (dotimes (d (1+ max-distance))
+              ;; correct character, and correct path for d = 0
+              (folio-add-nfa-transition
+               nfa (cons i d) x (cons (1+ i) d))
+              (when (< d max-distance)
+                ;; deletion
+                (folio-add-nfa-transition
+                 nfa (cons i d) 'any (cons i (1+ d)))
+                ;; insertion
+                (folio-add-nfa-transition
+                 nfa (cons i d) 'any (cons (1+ i) (1+ d)))
+                ;; substitution
+                (folio-add-nfa-transition
+                 nfa (cons i d) 'epsilon (cons (1+ i) (1+ d)))))
+            (setq i (1+ i))) inputs)
+    ;; Setup final states at (length word).
+    (dotimes (d (1+ max-distance))
+      (when (< d max-distance)
+        (folio-add-nfa-transition
+         nfa (cons len d) 'any (cons len (1+ d))))
+      (folio-add-final-nfa-state nfa (cons len d)))
+    nfa))
+
 (defvar nfa nil)
 (defvar dfa nil)
 
