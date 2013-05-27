@@ -463,6 +463,7 @@ input."
 (defun folio-mafsa-evolve (_fsa state input)
   (folio-mafsa-move state input))
 
+;; XXX TODO prefix-match
 (defun folio-mafsa-string-accept-p (fsa word)
   (let ((state (folio-mafsa-start-state fsa))
         (i 0)
