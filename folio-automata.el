@@ -371,8 +371,8 @@ input."
 
 (defun folio-mafsa-transition-labels (_fsa state)
   (let (inputs)
-    (map-char-table (lambda (x)
-                      (setq inputs (cons x inputs)))
+    (map-char-table (lambda (k v)
+                      (setq inputs (cons k inputs)))
                     (aref state 2))
     inputs))
 
