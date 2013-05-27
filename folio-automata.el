@@ -385,8 +385,11 @@ input."
 (defun folio-make-mafsa ()
   (let ((fsa (make-vector 5 nil)))
     (aset fsa 0 -1)
-    (aset fsa 1 (folio-make-mafsa-state fsa))
-    (aset fsa 2 (make-hash-table :test #'equal))
+    ;; previous word
+    (aset fsa 1 "")
+    (aset fsa 2 (folio-make-mafsa-state fsa))
+    (aset fsa 3 (make-hash-table :test #'equal))
+    ;; unchecked states in slot 4
     fsa))
 
 (defsubst folio-mafsa-previous-word (fsa &optional new-word)
