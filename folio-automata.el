@@ -478,10 +478,11 @@ input."
                          (when (memq elt rhs)
                            (setq interq (cons elt interq))))
                        interq)))
-        (states (list nil
-                      (folio-mafsa-start-state fsa)
-                      (folio-dfa-start-state dfa)))
-        state fsa-state dfa-state path edges output)
+        (states `((""
+                   ,(folio-mafsa-start-state fsa)
+                   ,(folio-dfa-start-state dfa))))
+        state fsa-state xfsa-state dfa-state xdfa-state
+        path xpath edges output)
     (while states
       (setq state (pop states)
             path (elt state 0)
@@ -492,21 +493,22 @@ input."
                             fsa fsa-state)
                            (folio-dfa-transition-labels
                             dfa dfa-state)))
-      (mapc (lambda (x)
-              (setq fsa-state (folio-mafsa-evolve
-                               fsa fsa-state x)
-                    dfa-state (folio-dfa-evolve
-                               dfa dfa-state x))
-              (when (and fsa-state dfa-state)
-                (push x path)
-                (push (list path fsa-state dfa-state) states)
-                (when (and (folio-mafsa-final-state-p
-                            fsa fsa-state)
-                           (folio-dfa-final-state-p
-                            dfa dfa-state))
-                  (push (string (nreverse path)) output))))
-            edges))
-    output))
+      (mapc
+       (lambda (x)
+         (setq xdfa-state (folio-dfa-evolve
+                           dfa dfa-state x)
+               xfsa-state (folio-mafsa-evolve
+                           fsa fsa-state x))
+         (when (and xfsa-state xdfa-state)
+           (setq xpath (concat path (list x)))
+           (push `(,xpath ,xfsa-state ,xdfa-state) states)
+           (when (and (folio-mafsa-final-state-p
+                       fsa xfsa-state)
+                      (folio-dfa-final-state-p
+                       dfa xdfa-state))
+             (push xpath output)))) edges))
+    (nreverse output)))
+
 
 
 (provide 'folio-automata)
