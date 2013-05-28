@@ -374,12 +374,16 @@ input."
 
 (defun folio-make-mafsa ()
   (let ((fsa (make-vector 5 nil)))
+    ;; running sequence to draw node ids from
     (aset fsa 0 -1)
-    ;; previous word
+    ;; previous word seen
     (aset fsa 1 "")
+    ;; start state
     (aset fsa 2 (folio-make-mafsa-state fsa))
+    ;; table mapping source to target state in the minimized part of
+    ;; the FSA
     (aset fsa 3 (make-hash-table :test #'equal))
-    ;; unchecked states in slot 4
+    ;; unchecked states of the yet unminimized part of the FSA in slot ;; 4
     fsa))
 
 (defsubst folio-mafsa-previous-word (fsa &optional new-word)
@@ -430,7 +434,7 @@ input."
                   (aref previous-word prefix))
           (throw 'prefix prefix))
         (setq prefix (1+ prefix))))
-    ;; store as previous word
+    ;; update previous word to current WORD
     (folio-mafsa-previous-word fsa word)
     (folio-mafsa-minimize fsa prefix)
     ;; add suffix
