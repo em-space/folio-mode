@@ -201,11 +201,8 @@ reachable by e-moves."
 (defun folio-dfa-add-transition (dfa from-state input to-state)
   "Add a state transition to the DFA.
 FROM-STATE is the source parametric state, INPUT the input
-symbol, TO-STATE the destination states.  INPUT may be 'any, but
+symbol, TO-STATE the destination state.  INPUT may be 'any, but
 not 'epsilon, obviously."
-  (message "DFA transition from-state %s input %s to-state %s"
-  from-state (if (symbolp input) (format "%s" input) (format "%c" input))
-           to-state)
   (when (null (gethash from-state (aref dfa 1)))
     (puthash from-state (make-hash-table :test 'equal)
              (aref dfa 1)))
@@ -272,7 +269,6 @@ of Q, with Q being the set of all possible states of the NFA."
          (states (list current-state))
          inputs
          new-state)
-    (message "TRANSFORM START")
     ;; The transition function of the DFA maps a state S (representing
     ;; a subset of Q) and an input symbol x to the set T(S,x) =
     ;; ∪{T(q,x) | q ∈ S}, the set of all states that can be reached by
@@ -297,12 +293,6 @@ of Q, with Q being the set of all possible states of the NFA."
                   ;; contain a final state of the NFA.
                   (when (folio-nfa-final-state-p nfa new-state)
                     (folio-dfa-add-final-state dfa new-state)))
-                (message "TO DFA %s: %s => %s"
-                         (if (symbolp input)
-                             (format "%s" input)
-                           (format "%c" input))
-                         current-state
-                         new-state)
                 (folio-dfa-add-transition
                  dfa current-state input new-state))) inputs))
     dfa))
