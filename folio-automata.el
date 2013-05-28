@@ -466,7 +466,8 @@ input."
       (folio-mafsa-final-state-p fsa state))))
 
 ;; XXX deal with 'any input to MA-FSA
-(defun folio-mafsa-insersect (fsa dfa)
+;; XXX deal with 'any input to MAFSA
+(defun folio-mafsa-intersect (fsa dfa)
   (let ((intersect (lambda (lhs rhs)
                      ;; Return the intersection of the two lists
                      ;; (sets) LHS and RHS using `eq'.
