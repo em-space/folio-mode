@@ -58,6 +58,16 @@ Run-time complexity is O\(sqrt\(N))."
             (t 2))
     nil))
 
+(defun folio-fnv (str &optional base)
+  "Return a 24-bit hash of the string STR.
+The hash algorithm is 32-bit FNV-1a xor-folded down to 24 bit."
+  ;; http://isthe.com/chongo/tech/comp/fnv/
+  ;; http://tools.ietf.org/html/draft-eastlake-fnv-03
+  (let ((hash (or base #x811c9dc5)))
+    (mapc (lambda (x)
+            (setq hash (* #x01000193 (logxor hash x)))) str)
+    (logxor (lsh hash -24) (logand hash #xffffff))))
+
 
 (provide 'folio-hash)
 
