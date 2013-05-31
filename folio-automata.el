@@ -1,4 +1,4 @@
-;;; folio-nfa.el --- NFA and DFA building blocks for Folio mode
+;;; folio-automata.el --- Finite State Automata for Folio mode
 
 ;; Copyright (C) 2013  Christoph W. Kluge
 
@@ -22,10 +22,11 @@
 
 ;;; Commentary:
 
-;; Support for NFA-εs, non-deterministic finite automata capable of
-;; doing spontaneous ε-transitions, i.e. transitions that use up no
-;; input, like the empty string ε.  A modified power set construction
-;; is used to create a DFA accepting the same language.[1]
+;; This package provides support for NFAs, DFAs, and DAFSAs (MAFSA).
+
+;; NFAs are NFA-εs, non-deterministic finite automata capable of doing
+;; spontaneous ε-transitions, i.e. transitions that use up no input,
+;; like the empty string ε.
 ;;
 ;; An ε-move is defined by the symbol 'epsilon; 'any can be used for
 ;; moves where any input symbol is accepted--the NFA currently does
@@ -37,14 +38,29 @@
 ;; initial state (a scalar parametric state), the transition table,
 ;; and the set of final states.  Notably the NFA's current state is
 ;; maintained outside the NFA and therefore is input parameter.
-;;
-;; XXX TODO DFA
-;; XXX TODO Levenshtein automata
-;; XXX TODO precomputed Levenshtein automata for given k and a set of
-;; word lengths
-;;
+
+;; Using a modified power set construction `folio-nfa-to-dfa' converts
+;; a given NFA into a deterministic finite state automaton (DFA)
+;; recognizing the same language as the NFA, but executing more
+;; efficiently.[1]
+
+;; `folio-make-mafsa' creates a minimal acyclic finite state automaton
+;; for use with static dictionaries where fast access times,
+;; lexicographic ordering, and low memory footprint through prefix and
+;; infix compression is required.[2]
+
+;; `folio-make-levenshtein-nfa' creates a Levenshtein automaton for a
+;; given word and edit distance.  The intersection of the equivalent
+;; DFA with a dictionary FSA allows fuzzy or similarity searches (or
+;; the implementation of suggesters and auto-correctors).
+
+;; XXX TODO pre-computed universal Levenshtein automata for given k
+;; and a set of word lengths.
+
 ;; [1] Hopcroft, Motwani, Ullman, Introduction to Automata Theory,
-;; Languages, and Computation.
+;;       Languages, and Computation.
+;; [2] Daciuk,􏰏Watson, and Watson, Incremental Construction of Minimal
+;;       Acyclic Finite State Automata and Transducers.
 
 ;;; Code:
 
