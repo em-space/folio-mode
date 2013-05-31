@@ -315,10 +315,11 @@ input."
   (let ((nfa (folio-make-nfa '(0 . 0)))
         (len (length word))
         (i 0))
-    ;; Setup edges, starting from the initial state '(0 . 0) with
-    ;; state counter i from 0 to (1- |word|) and edit distance d.  d
-    ;; becomes state parameter in the form of an error count in the
-    ;; range (0, max-distance).
+    ;; Setup edges of the form '(i . d), starting from the initial
+    ;; state '(0 . 0) with state counter, that is character position i
+    ;; ranging from 0 to (1- |word|), and edit distance d.  d becomes
+    ;; state parameter in the form of an error count in the range (0,
+    ;; max-distance).
     (while (< i len)
       (dotimes (d (1+ max-distance))
         ;; correct character, and correct path for d = 0
@@ -383,7 +384,8 @@ input."
     ;; table mapping source to target state in the minimized part of
     ;; the FSA
     (aset fsa 3 (make-hash-table :test #'equal))
-    ;; unchecked states of the yet unminimized part of the FSA in slot ;; 4
+    ;; slot 4 maintains unchecked states of the yet unminimized part
+    ;; of the FSA
     fsa))
 
 (defsubst folio-mafsa-previous-word (fsa &optional new-word)
