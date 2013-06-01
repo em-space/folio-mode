@@ -492,7 +492,7 @@ This macro is used internally."
     (when state
       (folio-mafsa-final-state-p fsa state))))
 
-(defun folio-mafsa-intersect (fsa dfa)
+(defun folio-intersect-mafsa (fsa dfa)
   (let ((intersect (lambda (lhs rhs)
                      ;; Return the intersection of the two lists
                      ;; (sets) LHS and RHS using `eq'.  RHS may
