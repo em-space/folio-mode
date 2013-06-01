@@ -61,6 +61,9 @@
                               word max-distance))))
       (folio-intersect-mafsa (aref dict 0) levenshtein-dfa))))
 
+(defun folio-map-dictionary (function dict)
+  "Apply FUNCTION to each entry in the dictionary DICT."
+  (folio-map-mafsa function (aref dict 0)))
 
 (provide 'folio-dictionary)
 
