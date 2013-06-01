@@ -405,14 +405,19 @@ input."
     fsa))
 
 (defsubst folio-mafsa-common-prefix (fsa &optional prefix)
-  (if new-word
+  "When PREFIX is non-nil set otherwise get the common prefix.
+This function is used internally when constructing the FSA."
+  (if prefix
       (aset fsa 1 prefix)
     (aref fsa 1)))
 
 (defsubst folio-mafsa-start-state (fsa)
+  "Return the start state of the FSA."
   (aref fsa 2))
 
 (defmacro folio-mafsa-states (fsa)
+  "Return the FSA's source and target states.
+This macro is used internally."
   `(aref ,fsa 3))
 
 (defsubst folio-mafsa-next-state (fsa state)
@@ -452,7 +457,7 @@ input."
                   (aref common-prefix prefix))
           (throw 'prefix prefix))
         (setq prefix (1+ prefix))))
-    ;; update previous word to current WORD
+    ;; update common prefix
     (folio-mafsa-common-prefix fsa word)
     (folio-mafsa-minimize fsa prefix)
     ;; add suffix
