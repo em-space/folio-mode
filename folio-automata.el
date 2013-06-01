@@ -375,6 +375,10 @@ input."
     (aset state 2 (make-char-table 'mafsa))
     state))
 
+(defsubst folio-mafsa-state-id (state)
+  "Return the id of the FSA state STATE."
+  (aref state 0))
+
 (defun folio-mafsa-add-transition (state char next-state)
   "Add a state transition for the input CHAR.
 STATE is the source state, NEXT-STATE the destination state."
