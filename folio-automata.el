@@ -393,20 +393,20 @@ input."
   (let ((fsa (make-vector 5 nil)))
     ;; running sequence to draw node ids from
     (aset fsa 0 -1)
-    ;; previous word seen
+    ;; common prefix
     (aset fsa 1 "")
     ;; start state
     (aset fsa 2 (folio-make-mafsa-state fsa))
-    ;; table mapping source to target state in the minimized part of
-    ;; the FSA
+    ;; table mapping source state to destination state in the
+    ;; minimized part of the FSA
     (aset fsa 3 (make-hash-table :test #'equal))
     ;; slot 4 maintains unchecked states of the yet unminimized part
     ;; of the FSA
     fsa))
 
-(defsubst folio-mafsa-previous-word (fsa &optional new-word)
+(defsubst folio-mafsa-common-prefix (fsa &optional prefix)
   (if new-word
-      (aset fsa 1 new-word)
+      (aset fsa 1 prefix)
     (aref fsa 1)))
 
 (defsubst folio-mafsa-start-state (fsa)
@@ -443,17 +443,17 @@ input."
 
 (defun folio-mafsa-insert-word (fsa word)
   (let* ((prefix 0)
-         (previous-word (folio-mafsa-previous-word fsa))
-         (len (min (length previous-word) (length word)))
+         (common-prefix (folio-mafsa-common-prefix fsa))
+         (len (min (length common-prefix) (length word)))
          char state next-state)
     (catch 'prefix
       (while (< prefix len)
         (when (/= (aref word prefix)
-                  (aref previous-word prefix))
+                  (aref common-prefix prefix))
           (throw 'prefix prefix))
         (setq prefix (1+ prefix))))
     ;; update previous word to current WORD
-    (folio-mafsa-previous-word fsa word)
+    (folio-mafsa-common-prefix fsa word)
     (folio-mafsa-minimize fsa prefix)
     ;; add suffix
     (unless (setq len (length word)
