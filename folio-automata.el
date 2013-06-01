@@ -418,6 +418,17 @@ input CHAR is applied to STATE."
     ;; of the FSA
     fsa))
 
+(defun folio-mafsa-p (object)
+  "Return t if OBJECT is a minimal acyclic finite state
+automaton."
+  (and (vectorp object)
+       (= (length object) 5)
+       (integerp (aref object 0))
+       (stringp (aref object 1))
+       (vectorp (aref object 2))
+       (hash-table-p (aref object 3))
+       (listp (aref object 4))))
+
 (defsubst folio-mafsa-common-prefix (fsa &optional prefix)
   "When PREFIX is non-nil set otherwise get the common prefix.
 This function is used internally when constructing the FSA."
