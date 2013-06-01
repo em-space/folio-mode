@@ -492,6 +492,25 @@ This macro is used internally."
     (when state
       (folio-mafsa-final-state-p fsa state))))
 
+(defun folio-map-mafsa (function fsa)
+  "Call FUNCTION for all words in the FSA.
+FUNCTION is called with the current word for the argument.
+Return FSA."
+  (let ((states `(("" . ,(folio-mafsa-start-state fsa))))
+        state next-state path next-path edges)
+    (while states
+      (setq path (caar states)
+            state (cdar states)
+            edges (folio-mafsa-transition-labels fsa state))
+            (pop states)
+      (mapc (lambda (x)
+              (setq next-state (folio-mafsa-evolve fsa state x)
+                    next-path (concat path (list x)))
+              (when next-state
+                (when (folio-mafsa-final-state-p fsa next-state)
+                  (funcall function next-path))
+                (push (cons next-path next-state) states))) edges))))
+
 (defun folio-intersect-mafsa (fsa dfa)
   (let ((intersect (lambda (lhs rhs)
                      ;; Return the intersection of the two lists
