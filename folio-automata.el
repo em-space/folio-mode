@@ -66,6 +66,8 @@
 
 (require 'cl)
 
+;;;; NFAs
+
 (defun folio-make-nfa (start)
   "Return an NFA with the initial state START."
   (let ((nfa (make-vector 3 nil)))
@@ -205,6 +207,9 @@ reachable by e-moves."
                    nfa (list state) input))) states)
     (remove-duplicates
      (folio-nfa-epsilon-closure nfa new-states) :test 'equal)))
+
+
+;;;; DFAs
 
 (defun folio-make-dfa (start)
   "Return a DFA with the initial state START."
@@ -364,16 +369,21 @@ input."
 ;;;; MAFSAs
 
 (defun folio-make-mafsa-state (fsa)
+  "Return a newly created state object for the FSA."
   (let ((state (make-vector 3 nil)))
     (aset state 0 (incf (aref fsa 0)))
     (aset state 2 (make-char-table 'mafsa))
     state))
 
 (defun folio-mafsa-add-transition (state char next-state)
+  "Add a state transition for the input CHAR.
+STATE is the source state, NEXT-STATE the destination state."
   (let ((edges (aref state 2)))
     (aset edges char next-state)))
 
 (defsubst folio-mafsa-move (state char)
+  "Return the destination state the FSA would assume when the
+input CHAR is applied to STATE."
   (aref (aref state 2) char))
 
 (defun folio-mafsa-transition-labels (_fsa state)
@@ -432,17 +442,17 @@ This macro is used internally."
 (defun folio-mafsa-minimize (fsa prefix)
   (let* ((states (folio-mafsa-unchecked-states fsa))
          (len (length states))
-         current char child)
+         current next char)
     (while (< prefix len)
       (setq current (pop states)
-            child (folio-mafsa-next-state
+            next (folio-mafsa-next-state
                    fsa (elt current 0)))
-      (if child
-          ;; replace child with previously encountered state
+      (if next
+          ;; replace next with previously encountered state
           (folio-mafsa-add-transition
-           (elt current 2) (elt current 1) child)
-        ;; keep state
-        (folio-mafsa-add-state fsa child child))
+           (elt current 2) (elt current 1) next)
+        ;; add state
+        (folio-mafsa-add-state fsa next next))
       (setq prefix (1+ prefix)))
     (setf (folio-mafsa-unchecked-states fsa) states)))
 
