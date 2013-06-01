@@ -52,13 +52,14 @@
       (aset dict 2 (make-vector extra-slots nil)))
     dict))
 
-(defun folio-dictionary-lookup (dict word &optional max-distance)
+(defun folio-lookup-dictionary (word dict &optional max-distance)
+  "Lookup WORD in the dictionary DICT."
   (if (zerop (or max-distance 0))
       (folio-mafsa-string-accept-p (aref dict 0) word)
     (let ((levenshtein-dfa
            (folio-nfa-to-dfa (folio-make-levenshtein-nfa
                               word max-distance))))
-      (folio-mafsa-intersect (aref dict 0) levenshtein-dfa))))
+      (folio-intersect-mafsa (aref dict 0) levenshtein-dfa))))
 
 
 (provide 'folio-dictionary)
