@@ -64,6 +64,20 @@
 (defun folio-map-dictionary (function dict)
   "Apply FUNCTION to each entry in the dictionary DICT."
   (folio-map-mafsa function (aref dict 0)))
+
+(defun folio-dictionary-extra-slot (dict n)
+  "Return the contents of extra slot N of DICT.
+
+The number of extra slots in a dictionary is fixed at
+construction time."
+  (aref (aref dict 2) n))
+
+(defun folio-dictionary-set-extra-slot (dict n value)
+  "Store VALUE in extra slot N of DICT.
+
+The number of extra slots in a dictionary is fixed at
+construction time."
+  (aset (aref dict 2) n value))
 
 (provide 'folio-dictionary)
 
