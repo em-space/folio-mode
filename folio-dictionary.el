@@ -36,6 +36,37 @@
 ;; XXX (require 'folio-hash)
 
 (defun folio-make-dictionary (entries &optional predicate extra-slots)
+Dictionaries are compact fast random access data structures
+maintaining a fixed lexicographic sort order.  They are meant for
+basically static word corpora where inserts and deletes happen
+rarely as a dictionary has to be recreated to accommodate a
+modification.  A dictionary can be queried for exact matches or,
+given a maximal edit distance, also for word similarities.
+
+A dictionary entry is a word and, optionally, an associated value.
+ENTRIES can be a hash table, an alist or a plain word list.  In
+the latter case no value is assumed at construction time, for a
+hash table the key's value, and for an alist the cdr of a list
+member is stored.
+
+LESSP is a binary function that is called for any two elements of
+ENTRIES.  If ENTRIES is a hash table, the element is the cons of
+key and value much like for an alist.  The default for LESSP is
+`string-lessp'.  If ENTRIES is known to be correctly sorted
+already, LESSP should be set to `identity'.
+
+KEYWORDS are additional keyword arguments.  If the keyword
+:no-values is non-nil no storage is reserved for word-specific
+data; none then can be added later.  Additionally, a dictionary
+can have extra slots to hold additional data not associated with
+particular entries.  The :extra-slots keyword specifies the
+number of slots to allocate.
+
+The primary query function for is `folio-lookup-dictionary';
+general dictionary traversal is provided by
+`folio-map-dictionary', and slots are accessible using
+`folio-dictionary-extra-slot' and
+`folio-dictionary-set-extra-slot', respectively, see which."
   (let ((dict (make-vector 3 nil))
         (fsa (folio-make-mafsa))
         (pred (symbol-function (or predicate #'string<)))
@@ -65,6 +96,19 @@
            (folio-nfa-to-dfa (folio-make-levenshtein-nfa
                               word max-distance))))
       (folio-intersect-mafsa (aref dict 0) levenshtein-dfa))))
+  "Lookup WORD in the dictionary DICT.
+
+KEYWORDS are additional keyword arguments.
+
+The search is exact unless the keyword :max-distance is set to a
+non-zero value in which case a Levenshtein similarity search is
+performed considering insertion, deletion, and substitution of
+letters.
+
+If the query for WORD was successful return non-nil, or nil else.
+For a successful search, the return value is an alist of key-value
+pairs unless the keyword :no-values is set to non-nil in which case
+the return value is a plain list of words."
 
 (defun folio-map-dictionary (function dict)
   "Apply FUNCTION to each entry in the dictionary DICT."
