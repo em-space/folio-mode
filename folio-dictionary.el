@@ -32,10 +32,11 @@
 ;;; Code:
 
 (require 'folio-automata)
+(require 'folio-hash)
 
-;; XXX (require 'folio-hash)
+(defun folio-make-dictionary (entries &optional lessp &rest keywords)
+  "Return a newly created dictionary with entries ENTRIES.
 
-(defun folio-make-dictionary (entries &optional predicate extra-slots)
 Dictionaries are compact fast random access data structures
 maintaining a fixed lexicographic sort order.  They are meant for
 basically static word corpora where inserts and deletes happen
@@ -68,34 +69,70 @@ general dictionary traversal is provided by
 `folio-dictionary-extra-slot' and
 `folio-dictionary-set-extra-slot', respectively, see which."
   (let ((dict (make-vector 3 nil))
-        (fsa (folio-make-mafsa))
-        (pred (symbol-function (or predicate #'string<)))
-        keys)
-    (if (consp (car entries))
-        (setq keys (mapcar (lambda (x)
-                             (car x))
-                           (sort entries
-                                 (lambda (x y)
-                                   (funcall pred
-                                            (cdr x) (cdr y))))))
-      (setq keys (sort entries pred)))
-    (mapc (lambda (x)
-            (folio-mafsa-insert-word fsa x)) keys)
+        (lessp (unless (and (symbolp lessp)
+                            (eq lessp #'identity))
+                 (symbol-function (or lessp #'string<))))
+        (extra-keywords nil)
+        (extra-slots nil)
+        (no-values nil)
+        keyword structured keys fsa mphf)
+
+    ;; Destructure keywords.
+    (while (keywordp (setq keyword (car keywords)))
+      (setq keywords (cdr keywords))
+      (pcase keyword
+        (`:extra-slots (setq extra-slots (pop keywords)))
+        (`:no-values (setq no-values (pop keywords)))
+        (_ (push keyword extra-keywords)
+           (push (pop keywords) extra-keywords))))
+    (when extra-keywords
+      (error "Unrecognized keywords `%s'"
+             (nreverse extra-keywords)))
+
+    ;; Prepare dictionary data.
+    (cond ((hash-table-p entries)
+           (maphash (lambda (k v)
+                      (setq structured
+                            (cons (cons k v) structured)))
+                    entries))
+          ((and (listp entries)
+                (consp (car entries))
+                (stringp (caar entries)))
+           (setq structured entries))
+          ((and (listp entries)
+                (stringp (car entries)))
+           (setq keys entries))
+          (t
+           (error "Invalid dictionary data")))
+
+    ;; Sort lexicographic.
+    (when lessp
+      (if structured
+          (setq structured (sort structured lessp)
+                keys (mapcar (lambda (x)
+                               (car x)) structured))
+        (setq keys (sort keys lessp))))
+
+    ;; Build data structures.
+    (setq fsa (folio-make-mafsa)
+          mphf (unless no-values
+                 (folio-make-mphf-hash-table keys)))
+    (if structured
+        (mapc (lambda (x)
+                (folio-mafsa-insert-word fsa (car x))
+                (unless no-values
+                  (folio-mphf-puthash mphf (car x) (cdr x))))
+                structured)
+      (mapc (lambda (x)
+              (folio-mafsa-insert-word fsa x)) keys))
     (folio-mafsa-finalize fsa)
     (aset dict 0 fsa)
-    ;; Index 1 is reserved for dictionary values.
+    (aset dict 1 mphf)
     (unless (zerop (or extra-slots 0))
       (aset dict 2 (make-vector extra-slots nil)))
     dict))
 
-(defun folio-lookup-dictionary (word dict &optional max-distance)
-  "Lookup WORD in the dictionary DICT."
-  (if (zerop (or max-distance 0))
-      (folio-mafsa-string-accept-p (aref dict 0) word)
-    (let ((levenshtein-dfa
-           (folio-nfa-to-dfa (folio-make-levenshtein-nfa
-                              word max-distance))))
-      (folio-intersect-mafsa (aref dict 0) levenshtein-dfa))))
+(defun folio-lookup-dictionary (word dict &rest keywords)
   "Lookup WORD in the dictionary DICT.
 
 KEYWORDS are additional keyword arguments.
@@ -109,10 +146,69 @@ If the query for WORD was successful return non-nil, or nil else.
 For a successful search, the return value is an alist of key-value
 pairs unless the keyword :no-values is set to non-nil in which case
 the return value is a plain list of words."
+  (let (keyword extra-keywords max-distance no-values table keys
+                values)
 
-(defun folio-map-dictionary (function dict)
-  "Apply FUNCTION to each entry in the dictionary DICT."
-  (folio-map-mafsa function (aref dict 0)))
+    ;; Destructure keywords.
+    (while (keywordp (setq keyword (car keywords)))
+      (setq keywords (cdr keywords))
+      (pcase keyword
+        (`:max-distance (setq max-distance (pop keywords)))
+        (`:no-values (setq no-values (pop keywords)))
+        (_ (push keyword extra-keywords)
+           (push (pop keywords) extra-keywords))))
+    (when extra-keywords
+      (error "Unrecognized keywords `%s'"
+             (nreverse extra-keywords)))
+
+    ;; Retrieve keys.
+    (if (zerop (or max-distance 0))
+        (when (folio-mafsa-string-accept-p (aref dict 0) word)
+          (setq keys (list word)))
+      (let ((levenshtein-dfa
+             (folio-nfa-to-dfa (folio-make-levenshtein-nfa
+                                word max-distance))))
+        (setq keys (folio-intersect-mafsa
+                    (aref dict 0) levenshtein-dfa))))
+
+    ;; Collect associated values.
+    (if no-values
+        keys
+      (setq table (aref dict 1))
+      (mapc (lambda (x)
+              (push (cons x (folio-mphf-gethash
+                             table x)) values)) keys)
+      values)))
+
+(defun folio-map-dictionary (function dict &rest keywords)
+  "Apply FUNCTION to each entry in the dictionary DICT.
+
+KEYWORDS are additional keyword arguments.
+
+FUNCTION should be a binary function accepting key and value
+arguments unless the keyword :no-values is set to non-nil in
+which case it only is called with one argument for the key."
+  (let (keyword extra-keywords no-values values)
+
+    ;; Destructure keywords.
+    (while (keywordp (setq keyword (car keywords)))
+      (setq keywords (cdr keywords))
+      (pcase keyword
+        (`:no-values (setq no-values (pop keywords)))
+        (_ (push keyword extra-keywords)
+           (push (pop keywords) extra-keywords))))
+    (when extra-keywords
+      (error "Unrecognized keywords `%s'"
+             (nreverse extra-keywords)))
+
+    ;; Map over FSA and fetch associated values.
+    (if (unless no-values
+          (setq values (aref dict 1)))
+        (folio-map-mafsa
+         (lambda (x)
+           (funcall function x (folio-mphf-gethash values x)))
+         (aref dict 0))
+      (folio-map-mafsa function (aref dict 0)))))
 
 (defun folio-dictionary-extra-slot (dict n)
   "Return the contents of extra slot N of DICT.
