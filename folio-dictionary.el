@@ -22,7 +22,12 @@
 
 ;;; Commentary:
 
-;;
+;; This package provides dictionaries, static but compact fast random
+;; access data structures maintaining a fixed lexicographic sort
+;; order.  Dictionaries use a minimal acyclic finite state automaton
+;; for storing words, and a minimal perfect hash function to map the
+;; word of an entry to its value, if any.  Dictionaries support fast
+;; exact and fuzzy queries using Levenshtein edit distances.
 
 ;;; Code:
 
