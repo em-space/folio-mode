@@ -519,22 +519,31 @@ This macro is used internally."
 
 (defun folio-map-mafsa (function fsa)
   "Call FUNCTION for all words in the FSA.
-FUNCTION is called with the current word for the argument.
-Return FSA."
+FUNCTION is called with the current word for the argument
+retaining the original sort order."
   (let ((states `(("" . ,(folio-mafsa-start-state fsa))))
-        state next-state path next-path edges)
+        state next-state path next-path edges words)
     (while states
       (setq path (caar states)
             state (cdar states)
-            edges (folio-mafsa-transition-labels fsa state))
-            (pop states)
+            edges (folio-mafsa-transition-labels fsa state)
+            states (cdr states))
       (mapc (lambda (x)
               (setq next-state (folio-mafsa-evolve fsa state x)
                     next-path (concat path (list x)))
               (when next-state
                 (when (folio-mafsa-final-state-p fsa next-state)
-                  (funcall function next-path))
-                (push (cons next-path next-state) states))) edges))))
+                  (push (cons next-path
+                              (folio-mafsa-state-id next-state))
+                        words))
+                (push (cons next-path next-state) states)))
+            edges))
+    (mapc (lambda (x)
+            (funcall function x))
+          (mapcar (lambda (x)
+                    (car x))
+                  (sort words (lambda (x y)
+                                (> (cdr x) (cdr y))))))))
 
 (defun folio-intersect-mafsa (fsa dfa)
   (let ((intersect (lambda (lhs rhs)
