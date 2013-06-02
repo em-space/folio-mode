@@ -210,7 +210,7 @@ Ideographs in the ranges 4E00-62FF, 6300-77FF, 7800-8CFF,
         (order (or order folio-uca-order))
         (collation-elements (make-list folio-uca-levels nil))
         match levels key)
-    ;; XXX FCD, canonical decomposition
+    ;; XXX FCD, canonical decomposition http://www.unicode.org/notes/tn5/
     (while prefix
       (setq match (folio-uca-find-prefix prefix))
       (unless match
