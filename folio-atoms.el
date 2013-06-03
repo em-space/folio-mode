@@ -432,6 +432,15 @@ or nil otherwise."
   (sxhash (upcase str)))
 
 ;;;###autoload
+(defun folio-hash-table-to-alist (table)
+  "Map the hash table TABLE into an alist."
+  (let (alist)
+    (maphash (lambda (k v)
+               (setq alist
+                     (cons (cons k v) alist))) table)
+    alist))
+
+;;;###autoload
 (define-hash-table-test 'folio-case-fold-hash-table-test
   'folio-case-fold-string-equal 'folio-case-fold-string-hash)
 
