@@ -37,6 +37,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+
 (defvar folio-uca-levels 3
   "The number of collation element levels to maintain.
 This variable is meant for let binding when tailoring.  Changing
@@ -51,7 +53,7 @@ that level; `b' means to regard the table backward at that level.
 The order string must be of length `folio-uca-levels', see
 which.")
 
-(defvar folio-uca-table (make-char-table 'uca-table)
+(defvar folio-uca-table nil
   "DUCET table associating code points to collation vectors.
 As of Unicode 6.2.0 this table maintains 24405 single-character
 entries, 723 two-character contractions and 4 tree-character
@@ -93,16 +95,16 @@ parameter marking the element variable.  Point ought to be
 positioned at the opening bracket.  The call to this defun must
 be repeated for entries having multiple character such as
 contractions."
-  (let (levels)
-    (while (looking-at "\\[[.*]\\([0-9a-f.]+\\)\\]")
-      (let* ((pos (match-end 1))
-             (match (nbutlast (split-string
-                               (match-string 1) "[.]" t) 1))
-             (level (mapcar (lambda (x)
-                              (string-to-number x 16))
-                            match)))
-        (push level levels)
-        (goto-char (1+ pos))))
+  (let (level levels pos match)
+    (while (looking-at "\\[[.*]\\([0-9A-F.]+\\)\\]")
+      (setq pos (match-end 1)
+            match (nbutlast (split-string
+                             (match-string 1) "[.]" t) 1)
+            level (mapcar (lambda (x)
+                            (string-to-number x 16))
+                          match))
+      (push level levels)
+      (goto-char (1+ pos)))
     (nreverse levels)))
 
 (defun folio-uca-table-put-internal (table char-list
@@ -122,38 +124,53 @@ This function should not be called directly."
       (folio-uca-table-put-internal
        (cdr (aref table char)) char-list collation-elements))))
 
-(defun folio-uca-table-put (char-list collation-elements)
+(defun folio-uca-table-put (table char-list collation-elements)
   "Store an entry in the DUCET table.
 CHAR-LIST and COLLATION-ELEMENTS list the character or character
 contractions and their weights as parsed from the `allkeys' DUCET
 file."
   (folio-uca-table-put-internal
-   folio-uca-table char-list collation-elements))
+   table char-list collation-elements))
 
-(defun folio-uca-parse-table ()
+(defun folio-uca-parse-table (table)
   "Parse the DUCET `allkeys' file in the format as specified by
-sec. 3.6.1 of the UCA.  Store the result in the global variable
-`folio-uca-table'.  For querying the table the defun
-`folio-uca-find-prefix' should be used, see which."
+sec. 3.6.1 of the UCA.  Store the result in TABLE.  For querying
+such a table the defun `folio-uca-find-prefix' should be used,
+see which."
   (let ((char-list-regexp
-         "^\\([0-9a-f]+\\(?:\s+[0-9a-f]+\\)*\\)\s+;\s+"))
+         "^\\([0-9A-F]+\\(?:\s+[0-9A-F]+\\)*\\)\s+;\s+"))
     (goto-char (point-min))
-    (while (re-search-forward char-list-regexp nil t)
-      (let ((chars (mapcar (lambda (x)
-                             (string-to-number x 16))
-                           (split-string
-                            (match-string 1) "[ ]" t)))
-            collation-elements)
-      (while (progn
-               (push (folio-uca-parse-levels)
-                     collation-elements)
-               (not (null (car collation-elements)))))
-      (setq collation-elements
-            (car (nreverse (cdr collation-elements))))
-      (folio-uca-table-put chars collation-elements)))))
+    (while (not (eobp))
+      (when (looking-at char-list-regexp)
+        (let* ((pos (match-end 0))
+               (match (match-string 1))
+               (chars (mapcar (lambda (x)
+                                (string-to-number x 16))
+                              (split-string match "[ ]" t)))
+              collation-elements)
+          (goto-char pos)
+          (while (progn
+                   (push (folio-uca-parse-levels)
+                         collation-elements)
+                   (not (null (car collation-elements)))))
+          (setq collation-elements
+                (nreverse (cdr collation-elements)))
+          (unless collation-elements
+            (error "failure parsing DUCET table data"))
+          (folio-uca-table-put
+           table chars (car collation-elements))))
+      (forward-line))))
 
-;; XXX eval-when-compile parse/dump table
-;; XXX eval-after-load load table
+(defun folio-uca-load-table (&optional file)
+  (let ((table (make-char-table 'uca-table)))
+    (with-temp-buffer
+      (insert-file-contents
+       (file-truename (or file "data/uca-ducet-allkeys.txt")))
+      (folio-uca-parse-table table))
+    table))
+
+(setq folio-uca-table
+      (eval-when-compile (folio-uca-load-table)))
 
 (defun folio-uca-find-prefix (prefix)
   "Return the DUCET collation elements for the string prefix PREFIX.
