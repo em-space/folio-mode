@@ -138,7 +138,8 @@ sec. 3.6.1 of the UCA.  Store the result in TABLE.  For querying
 such a table the defun `folio-uca-find-prefix' should be used,
 see which."
   (let ((char-list-regexp
-         "^\\([0-9A-F]+\\(?:\s+[0-9A-F]+\\)*\\)\s+;\s+"))
+         "^\\([0-9A-F]+\\(?:\s+[0-9A-F]+\\)*\\)\s+;\s+")
+        pos match chars collation-elements range)
     (goto-char (point-min))
     (while (not (eobp))
       (when (looking-at char-list-regexp)
