@@ -162,6 +162,8 @@ see which."
          table chars (car collation-elements)))
       (forward-line))))
 
+;; XXX---trivial, yet uncompressed
+;; 538195 Jun  4 00:57 folio-uca.elc
 (defun folio-uca-load-table (&optional file)
   (let ((table (make-char-table 'uca-table)))
     (with-temp-buffer
