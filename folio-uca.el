@@ -142,23 +142,23 @@ see which."
     (goto-char (point-min))
     (while (not (eobp))
       (when (looking-at char-list-regexp)
-        (let* ((pos (match-end 0))
-               (match (match-string 1))
-               (chars (mapcar (lambda (x)
-                                (string-to-number x 16))
-                              (split-string match "[ ]" t)))
-              collation-elements)
-          (goto-char pos)
-          (while (progn
-                   (push (folio-uca-parse-levels)
-                         collation-elements)
-                   (not (null (car collation-elements)))))
-          (setq collation-elements
-                (nreverse (cdr collation-elements)))
-          (unless collation-elements
-            (error "failure parsing DUCET table data"))
-          (folio-uca-table-put
-           table chars (car collation-elements))))
+        (setq pos (match-end 0)
+              match (match-string 1)
+              chars (mapcar (lambda (x)
+                              (string-to-number x 16))
+                            (split-string match "[ ]" t))
+              collation-elements nil)
+        (goto-char pos)
+        (while (progn
+                 (push (folio-uca-parse-levels)
+                       collation-elements)
+                 (not (null (car collation-elements)))))
+        (setq collation-elements
+              (nreverse (cdr collation-elements)))
+        (unless collation-elements
+          (error "failure parsing DUCET table data"))
+        (folio-uca-table-put
+         table chars (car collation-elements)))
       (forward-line))))
 
 (defun folio-uca-load-table (&optional file)
