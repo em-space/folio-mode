@@ -130,7 +130,12 @@ general dictionary traversal is provided by
     (aset dict 1 mphf)
     (unless (zerop (or extra-slots 0))
       (aset dict 2 (make-vector extra-slots nil)))
+    (aset dict 3 (length keys))
     dict))
+
+(defun folio-dictionary-count (dict)
+  "Return the number of entries in DICT."
+  (aref dict 3))
 
 (defun folio-lookup-dictionary (word dict &rest keywords)
   "Lookup WORD in the dictionary DICT.
