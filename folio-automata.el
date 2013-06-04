@@ -397,8 +397,11 @@ input CHAR is applied to STATE."
                     (aref state 2))
     inputs))
 
-(defsubst folio-mafsa-mark-final (state)
-  (aset state 1 t))
+(defsubst folio-mafsa-mark-final (state &optional sort-key)
+  (aset state 1 (or sort-key t)))
+
+(defsubst folio-mafsa-sort-key (_fsa state)
+  (aref state 1))
 
 (defsubst folio-mafsa-final-state-p (_fsa state)
   (aref state 1))
@@ -471,7 +474,7 @@ This macro is used internally."
       (setq prefix (1+ prefix)))
     (setf (folio-mafsa-unchecked-states fsa) states)))
 
-(defun folio-mafsa-insert-word (fsa word)
+(defun folio-mafsa-insert-word (fsa word &optional sort-key)
   (let* ((prefix 0)
          (common-prefix (folio-mafsa-common-prefix fsa))
          (len (min (length common-prefix) (length word)))
@@ -497,7 +500,7 @@ This macro is used internally."
             (folio-mafsa-unchecked-states fsa))
       (setq state next-state
             prefix (1+ prefix)))
-    (folio-mafsa-mark-final state)))
+    (folio-mafsa-mark-final state sort-key)))
 
 (defun folio-mafsa-finalize (fsa)
   (folio-mafsa-minimize fsa 0))
@@ -534,7 +537,7 @@ retaining the original sort order."
               (when next-state
                 (when (folio-mafsa-final-state-p fsa next-state)
                   (push (cons next-path
-                              (folio-mafsa-state-id next-state))
+                              (folio-mafsa-sort-key fsa next-state))
                         words))
                 (push (cons next-path next-state) states)))
             edges))
