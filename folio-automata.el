@@ -538,12 +538,12 @@ retaining the original sort order."
                         words))
                 (push (cons next-path next-state) states)))
             edges))
-    (mapc (lambda (x)
-            (funcall function x))
-          (mapcar (lambda (x)
-                    (car x))
-                  (sort words (lambda (x y)
-                                (> (cdr x) (cdr y))))))))
+    (mapc function
+          (mapcar (lambda (w)
+                    (car w))
+                  (sort words
+                        (lambda (x y)
+                          (< (cdr y) (cdr x))))))))
 
 (defun folio-intersect-mafsa (fsa dfa)
   (let ((intersect (lambda (lhs rhs)
