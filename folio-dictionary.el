@@ -209,10 +209,12 @@ which case it only is called with one argument for the key."
     ;; Map over FSA and fetch associated values.
     (if (unless no-values
           (setq values (aref dict 1)))
-        (folio-map-mafsa
-         (lambda (x)
-           (funcall function x (folio-mphf-gethash values x)))
-         (aref dict 0))
+        (lexical-let ((function function)
+                      (values values))
+          (folio-map-mafsa
+           (lambda (x)
+             (funcall function x (folio-mphf-gethash
+                                  values x))) (aref dict 0)))
       (folio-map-mafsa function (aref dict 0)))))
 
 (defun folio-dictionary-extra-slot (dict n)
