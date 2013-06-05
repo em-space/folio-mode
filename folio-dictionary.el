@@ -124,6 +124,14 @@ general dictionary traversal is provided by
     (aset dict 3 (length keys))
     dict))
 
+(defun folio-dictionary-p (object)
+  "Return non-nil if OBJECT is a dictionary."
+  (and (vectorp object)
+       (= (length object) 4)
+       (folio-mafsa-p (aref object 0))
+       (folio-mphf-hash-table-p (aref object 1))
+       (integerp (aref object 3))))
+
 (defun folio-dictionary-count (dict)
   "Return the number of entries in DICT."
   (aref dict 3))
