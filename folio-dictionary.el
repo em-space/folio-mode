@@ -31,6 +31,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+
 (require 'folio-automata)
 (require 'folio-hash)
 
