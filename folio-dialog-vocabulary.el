@@ -105,6 +105,7 @@ This is an adaption of `folio-soundslikes' for use with the
 The widget maintains a word and its frequency count as a button."
   :create 'folio-widget-vocabulary-item-create
   :value-create 'folio-widget-vocabulary-item-value-create
+  :delete 'folio-widget-vocabulary-item-delete
   :tag ""
   :format "%[%v%]\n"
   :action 'folio-widget-vocabulary-item-action
@@ -119,7 +120,8 @@ The widget maintains a word and its frequency count as a button."
         (to (widget-get widget :to))
         (keymap (widget-get widget :keymap)))
     (when keymap
-      (let ((overlay (make-overlay from to nil nil 'rear-sticky)))
+      (let ((overlay (make-overlay
+                      from to nil nil 'rear-sticky)))
         (widget-put widget :keymap-overlay overlay)
         (overlay-put overlay 'evaporate t)
         (overlay-put overlay 'local-map keymap)))))
@@ -153,6 +155,13 @@ WIDGET should be of the type `folio-widget-vocabulary-item'."
                                             'help-echo
                                             "Listed in `good words'"))))))
     (widget-insert tag)))
+
+(defun folio-widget-vocabulary-item-delete (widget)
+  "Remove WIDGET from the buffer."
+  (let ((keymap-overlay (widget-get widget :keymap-overlay)))
+    (when keymap-overlay
+      (delete-overlay keymap-overlay))
+    (widget-default-delete widget)))
 
 (defun folio-widget-vocabulary-item-action (widget &optional event)
   "Handle user initiated events."

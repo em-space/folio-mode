@@ -468,6 +468,7 @@ an invalid value."
   "A scrollable list widget."
   :create 'folio-widget-repeat-create
   :value-create 'folio-widget-repeat-value-create
+  :delete 'folio-widget-repeat-delete
   :insert-before 'folio-widget-repeat-insert-before
   :insert-after 'folio-widget-repeat-insert-after
   :notify 'folio-widget-repeat-notify
@@ -487,7 +488,8 @@ an invalid value."
         (to (widget-get widget :to))
         (keymap (widget-get widget :keymap)))
     (when keymap
-      (let ((overlay (make-overlay from to nil nil 'rear-sticky)))
+      (let ((overlay (make-overlay
+                      from to nil nil 'rear-sticky)))
         (widget-put widget :keymap-overlay overlay)
         (overlay-put overlay 'local-map keymap)))))
 
@@ -512,6 +514,13 @@ an invalid value."
       (widget-create-child-and-convert
        widget `(const :tag ,(widget-get
                              widget :value-no-entry))))))
+
+(defun folio-widget-repeat-delete (widget)
+  "Remove WIDGET from the buffer."
+  (let ((keymap-overlay (widget-get widget :keymap-overlay)))
+    (when keymap-overlay
+      (delete-overlay keymap-overlay))
+    (widget-default-delete widget)))
 
 (defun folio-widget-repeat-insert-before (widget value &optional before)
   "This is like `widget-editable-list-insert-before' except that a
