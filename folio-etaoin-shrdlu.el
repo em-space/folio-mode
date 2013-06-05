@@ -45,6 +45,7 @@
 (require 'folio-babel)
 (require 'folio-base)
 (require 'folio-core)
+(require 'folio-dictionary)
 (require 'folio-faces)
 (require 'folio-font-lock)
 (require 'folio-frame)
@@ -126,6 +127,12 @@ This might include word frequency counts and suggestions from a
 spell checker.")
 (make-variable-buffer-local 'folio-vocabulary)
 
+(defvar folio-next-vocabulary nil
+  "Hash table storing the buffer local vocabulary.
+This might include word frequency counts and suggestions from a
+spell checker.")
+(make-variable-buffer-local 'folio-next-vocabulary)
+
 (defvar folio-vocabulary-session nil
   "Hash table storing session local words.")
 (make-variable-buffer-local 'folio-vocabulary-session)
@@ -187,10 +194,11 @@ Return values are ignored.")
                            'equal)
                    :size folio-dictionary-size))
 
-(defsubst folio-vocabulary-get-entry (word)
+(defun folio-vocabulary-get-entry (word)
   "Return the vocabulary entry for WORD."
-  (and folio-vocabulary
-       (gethash word folio-vocabulary)))
+  (gethash word folio-next-vocabulary))
+
+;;XXXXX       (folio-lookup-dictionary word folio-vocabulary)))
 
 (defun folio-vocabluary-update-entry (entry count &optional dict sort-key)
   "Update the vocabulary entry ENTRY with the word count COUNT.
@@ -207,31 +215,6 @@ reset the dictionary entry to nil."
     (when sort-key
       (aset entry 2 sort-key))
     entry))
-
-
-(defun folio-maintain-dictionary (command word)
-  "Maintain dictionaries applying COMMAND.
-COMMAND is one of the symbols accept-session, save-local, or
-save-global.  WORD identifies the dictionary entry."
-  ;; XXX TODO undo-history
-  (let* ((dict-alist '((accept-session
-                        . (folio-vocabulary-session
-                           "accepted this session"))
-                       (save-local
-                        . (folio-vocabulary-project
-                           "saved to project dictionary"))
-                       (save-global
-                        . (folio-vocabulary-global
-                           "saved to global dictionary"))))
-         (entry (folio-vocabulary-get-entry word))
-         (select (assq command dict-alist))
-         (dict (cadr select)))
-    (unless (symbol-value dict)
-      (set dict (folio-make-vocabulary)))
-    (puthash word entry (symbol-value dict))
-    (folio-vocabluary-update-entry
-     entry (folio-vocabulary-entry-count entry) 'dict-reset)
-    (message "`%s' %s" word (caddr select))))
 
 (defsubst folio-vocabulary-entry-count (entry)
   "Return the word count for the vocabulary entry ENTRY."
@@ -251,7 +234,7 @@ level functions most certainly want to make use of
 
 (defsubst folio-vocabulary-sort-key (word)
   (folio-vocabulary-entry-sort-key
-   (folio-vocabulary-get-entry word)))
+   (folio-lookup-dictionary word folio-vocabulary)))
 
 (defun folio-vocabulary-word-count (&optional word)
   "Return the number of unique words in the vocabulary.
@@ -259,11 +242,12 @@ If WORD is non-nil return its frequency count instead.
 Higher level functions most certainly want to make use of
 `folio-vocabulary-word-count', `folio-vocabulary-miss-count' and
 `folio-vocabulary-dict-list'."
-  (if word
-      (folio-vocabulary-entry-count
-       (folio-vocabulary-get-entry word))
-    (or (and folio-vocabulary (hash-table-count folio-vocabulary))
-        0)))
+  (if folio-vocabulary
+      (if word
+          (folio-vocabulary-entry-count
+           (cdar (folio-lookup-dictionary word folio-vocabulary)))
+        (folio-dictionary-count folio-vocabulary))
+    0))
 
 (defun folio-vocabulary-miss-count ()
   "Return the number of misspelled words in the vocabulary.
@@ -272,10 +256,11 @@ Higher level functions most certainly want to make use of
 `folio-vocabulary-dict-list'."
   (let ((count 0))
     (when folio-vocabulary
-      (maphash (lambda (k v)
-                 (when (folio-vocabulary-entry-dict v)
-                   (setq count (1+ count))))
-               folio-vocabulary))
+      (folio-map-dictionary
+       (lambda (k v)
+         (when (folio-vocabulary-entry-dict v)
+           (setq count (1+ count))))
+       folio-vocabulary))
     count))
 
 (defun folio-vocabulary-dict-list (word)
@@ -283,17 +268,44 @@ Higher level functions most certainly want to make use of
 This is an alist with the dictionary language as a BCP 47 tag in
 the car and spellchecker suggestions in the cdr."
   (folio-vocabulary-entry-dict
-   (folio-vocabulary-get-entry word)))
+   (cdar (folio-lookup-dictionary word folio-vocabulary))))
 
 (defun folio-vocabulary-alphabet ()
   "Return the alphabet for the vocabulary as a char table.
 The value of a table entry is an absolute occurrence count."
   (let ((alphabet (make-char-table 'vocabulary-alphabet 0)))
-    (maphash (lambda (k v)
-               (dotimes (i (1- (length k)))
-                 (incf (aref alphabet (aref k i)) 1)))
-             folio-vocabulary)
+    (folio-map-dictionary (lambda (k)
+                            (dotimes (i (1- (length k)))
+                              (incf (aref alphabet (aref k i))
+                                    1)))
+                          folio-vocabulary
+                          :no-values t)
     alphabet))
+
+
+(defun folio-maintain-dictionary (command word)
+  "Maintain dictionaries applying COMMAND.
+COMMAND is one of the symbols accept-session, save-local, or
+save-global.  WORD identifies the dictionary entry."
+  ;; XXX TODO undo-history
+  (let* ((dict-alist '((accept-session
+                        . (folio-vocabulary-session
+                           "accepted this session"))
+                       (save-local
+                        . (folio-vocabulary-project
+                           "saved to project dictionary"))
+                       (save-global
+                        . (folio-vocabulary-global
+                           "saved to global dictionary"))))
+         (entry (folio-lookup-dictionary word folio-vocabulary))
+         (select (assq command dict-alist))
+         (dict (cadr select)))
+    (unless (symbol-value dict)
+      (set dict (folio-make-vocabulary)))
+    (puthash word entry (symbol-value dict))
+    (folio-vocabluary-update-entry ;; XXXXX
+     entry (folio-vocabulary-entry-count entry) 'dict-reset)
+    (message "`%s' %s" word (caddr select))))
 
 (defun folio-vocabulary-filter-misspellings (k v)
   "Return t if the vocabulary entry K, V is marked misspelled.
@@ -388,25 +400,23 @@ pass, or nil otherwise."
 Members are lists of the form \(WORD COUNT UCA-SORT-KEY).
 FILTERS is a list of function symbols for use with
 `folio-vocabulary-apply-filters'."
-  (let (words)
-    (maphash (lambda (k v)
-               (when (folio-vocabulary-apply-filters filters k v)
-                 (let ((count (folio-vocabulary-entry-count v))
-                       (key (folio-vocabulary-entry-sort-key v)))
-                   (setq words
-                         (cons (list k count key) words)))))
-             folio-vocabulary)
+  (lexical-let (words)
+    (folio-map-dictionary
+     (lambda (k v)
+       (when (folio-vocabulary-apply-filters filters k v)
+         (let ((count (folio-vocabulary-entry-count v))
+               (key (folio-vocabulary-entry-sort-key v)))
+           (setq words
+                 (cons (list k count key) words)))))
+     folio-vocabulary)
     words))
 
 (defun folio-vocabulary-sort-lexicographic (&optional filters)
   "Sort vocabulary entries lexicographic."
+  ;; the dictionary is maintained in lexicographic ordering
   (let ((words (folio-vocabulary-list-lexicographic filters)))
     (mapcar (lambda (x)
-              (car x))
-            (sort words
-                  (lambda (x y)
-                    (folio-uca-lessp
-                     (caddr x) (caddr y)))))))
+              (car x)) words)))
 
 (defun folio-vocabulary-sort-frequency (&optional filters)
   "Sort vocabulary entries by frequency.
@@ -470,11 +480,12 @@ Supported values are
           (funcall (symbol-function lister) filters)
         (if (null ordering)
             (let (words)
-              (maphash (lambda (k v)
-                         (when (folio-vocabulary-apply-filters
-                                filters k v)
-                           (setq words
-                                 (cons k words)))) folio-vocabulary)
+              (folio-map-dictionary
+               (lambda (k v)
+                 (when (folio-vocabulary-apply-filters
+                        filters k v)
+                   (setq words
+                         (cons k words)))) folio-vocabulary)
               words)
           (signal 'wrong-type-argument
                   (cons ordering (type-of ordering))))))))
@@ -486,21 +497,9 @@ by the most recent spell-check or word-frequency run.  DISTANCE
 if non-nil overrides the default maximal edit distance of one."
   (interactive "M")
   (when folio-vocabulary
-    (let ((distance (or distance 1))
-          soundslikes)
-      (maphash
-       (lambda (k v)
-         (when (folio-levenshtein-distance
-                k word distance)
-           (let ((key (folio-vocabulary-entry-sort-key v)))
-             (setq soundslikes
-                   (cons (cons k key) soundslikes)))))
-       folio-vocabulary)
-      (mapcar (lambda (x)
-                (car x))
-              (sort soundslikes (lambda (x y)
-                                  (folio-uca-lessp
-                                   (cdr x) (cdr y))))))))
+    (folio-lookup-dictionary word folio-vocabulary
+                             :max-distance (or distance 1)
+                             :no-values t)))
 
 ;;;###autoload
 (defun folio-load-good-words (&optional no-error)
@@ -552,7 +551,7 @@ the `good word' list."
 If POS is non-nil return WORD with `point' updated to the next
 buffer location of WORD, or nil if WORD is not found.  If
 DICT-ENTRY is non-nil return that instead."
-  (let ((entry (folio-vocabulary-get-entry word)))
+  (let ((entry (folio-lookup-dictionary word folio-vocabulary)))
     (when (folio-vocabulary-entry-dict entry)
       (if pos
           (progn
@@ -871,7 +870,7 @@ DOUBLON if non-nil marks WORD as a doublon."
        pos (+ pos (length word)) props))
     ;; Update table data.
     (puthash word (folio-vocabluary-update-entry entry (1+ count)
-                   dict sort-key) folio-vocabulary)))
+                   dict sort-key) folio-next-vocabulary)))
 
 (defun folio-vocabulary-process-chunk (buffer beg end)
   "Collect and process words in the region defined by BEG and END.
@@ -973,6 +972,16 @@ pending input is observed."
   "")
 (make-variable-buffer-local 'folio-vocabulary-progress-last-update)
 
+(defun folio-vocabulary-build-dictionary ()
+  (let* ((lessp (lambda (x y)
+                 (folio-uca-lessp
+                  (folio-vocabulary-entry-sort-key (cdr x))
+                  (folio-vocabulary-entry-sort-key (cdr y)))))
+         (table-data (sort (folio-hash-table-to-alist
+                            folio-next-vocabulary) lessp)))
+    (setq folio-vocabulary
+          (folio-make-dictionary table-data))))
+
 (defun folio-vocabulary-build-progress (buffer progress)
   ""
   (with-current-buffer buffer
@@ -985,6 +994,8 @@ pending input is observed."
               (eq progress 'done))
           (progn
             (folio-load-good-words 'noerror)
+            (with-temp-message "Building dictionary"
+              (folio-vocabulary-build-dictionary))
             (folio-vocabulary-progress-update 'done)
             (message (concat
                       (format "%s: %d words, "
@@ -1319,7 +1330,8 @@ restricted to it."
   (interactive (list (folio-completing-read-buffer)
                      current-prefix-arg
                      nil))
-  (setq folio-vocabulary-marker nil folio-vocabulary nil) ;; XXX
+  (setq folio-vocabulary-marker nil
+        folio-next-vocabulary nil) ;; XXX
   (let ((buffer (get-buffer buffer-or-name)))
     (when (if (folio-vocabulary-build-active-p buffer)
               (if arg  ; cancel
@@ -1436,8 +1448,8 @@ can be used for querying, see which."
         (folio-spellcheck-skip
          (concat folio-spellcheck-skip-keywords-default "\\|"
                  folio-spellcheck-skip-regexp-default)))
-      (unless (and folio-vocabulary folio-vocabulary-marker)
-        (setq folio-vocabulary (folio-make-vocabulary)
+      (unless (and folio-next-vocabulary folio-vocabulary-marker)
+        (setq folio-next-vocabulary (folio-make-vocabulary)
               folio-vocabulary-marker nil))
       ;; `vocabulary' is an idle timer called each time Emacs has been
       ;; idle for `folio-vocabulary-build-delay' seconds with
@@ -1462,15 +1474,16 @@ can be used for querying, see which."
 
 (defun folio-vocabulary-discard (&optional buffer-or-name)
   "Discard any buffer local vacabulary lists collected so far.
-BUFFER-OR-NAME is a buffer object or name.  If nil apply this command
-to the current buffer."
+BUFFER-OR-NAME is a buffer object or name.  If nil apply this
+command to the current buffer."
   (interactive (list (folio-completing-read-buffer)))
   (let ((buffer (get-buffer (or buffer-or-name
                                 (current-buffer)))))
     (folio-vocabulary-build-interrupt buffer)
     (with-current-buffer buffer
-      (when folio-vocabulary
-        (setq folio-vocabulary (clrhash folio-vocabulary)))
+      (when folio-next-vocabulary
+        (setq folio-next-vocabulary
+              (clrhash folio-next-vocabulary)))
       (setq folio-vocabulary-marker nil)
       (save-excursion
         (folio-spellcheck-unpropertize))
