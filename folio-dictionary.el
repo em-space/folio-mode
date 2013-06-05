@@ -72,6 +72,7 @@ general dictionary traversal is provided by
         (lessp (unless (and (symbolp lessp)
                             (eq lessp #'identity))
                  (symbol-function (or lessp #'string<))))
+  (let ((dict (make-vector 4 nil))
         (extra-keywords nil)
         (extra-slots nil)
         (no-values nil)
