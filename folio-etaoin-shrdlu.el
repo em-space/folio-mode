@@ -104,6 +104,12 @@ maybe are unique."
   :group 'folio-technical
   :type 'number)
 
+(defcustom folio-case-folded-dictionary t
+  "If non-nil use case folded dictionary keys."
+  :tag "Use case-folded dictionary keys"
+  :group 'folio-technical
+  :type 'boolean)
+
 (defcustom folio-vocabulary-build-delay 0.3
   "Time in seconds to wait before resuming vocabulary build and spell-check."
   :group 'folio-spellcheck
@@ -1422,12 +1428,6 @@ have been processed."
             t)
         (folio-vocabulary-build-interrupt buffer)
         nil)))))
-
-(defcustom folio-case-folded-dictionary t
-  "If non-nil use case folded dictionary keys."
-  :tag "Use case-folded dictionary keys"
-  :group 'folio-technical
-  :type 'boolean)
 
 (defvar folio-vocabulary-type nil
   "")
