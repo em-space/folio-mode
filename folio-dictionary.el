@@ -34,7 +34,7 @@
 (require 'folio-automata)
 (require 'folio-hash)
 
-(defun folio-make-dictionary (entries &optional lessp &rest keywords)
+(defun folio-make-dictionary (entries &rest keywords)
   "Return a newly created dictionary with entries ENTRIES.
 
 Dictionaries are compact fast random access data structures
@@ -44,17 +44,10 @@ rarely as a dictionary has to be recreated to accommodate a
 modification.  A dictionary can be queried for exact matches or,
 given a maximal edit distance, also for word similarities.
 
-A dictionary entry is a word and, optionally, an associated value.
-ENTRIES can be a hash table, an alist or a plain word list.  In
-the latter case no value is assumed at construction time, for a
-hash table the key's value, and for an alist the cdr of a list
-member is stored.
-
-LESSP is a binary function that is called for any two elements of
-ENTRIES.  If ENTRIES is a hash table, the element is the cons of
-key and value much like for an alist.  The default for LESSP is
-`string-lessp'.  If ENTRIES is known to be correctly sorted
-already, LESSP should be set to `identity'.
+A dictionary entry is a word and, optionally, an associated
+value.  ENTRIES can be an alist or a plain word list.  In the
+latter case no value is assumed at construction time.  The
+relative order of members of ENTRIES is retained in a dictionary.
 
 KEYWORDS are additional keyword arguments.  If the keyword
 :no-values is non-nil no storage is reserved for word-specific
@@ -68,10 +61,6 @@ general dictionary traversal is provided by
 `folio-map-dictionary', and slots are accessible using
 `folio-dictionary-extra-slot' and
 `folio-dictionary-set-extra-slot', respectively, see which."
-  (let ((dict (make-vector 3 nil))
-        (lessp (unless (and (symbolp lessp)
-                            (eq lessp #'identity))
-                 (symbol-function (or lessp #'string<))))
   (let ((dict (make-vector 4 nil))
         (extra-keywords nil)
         (extra-slots nil)
@@ -91,41 +80,40 @@ general dictionary traversal is provided by
              (nreverse extra-keywords)))
 
     ;; Prepare dictionary data.
-    (cond ((hash-table-p entries)
-           (maphash (lambda (k v)
-                      (setq structured
-                            (cons (cons k v) structured)))
-                    entries))
-          ((and (listp entries)
+    (let ((i 0))
+      (cond ((and (listp entries)
                 (consp (car entries))
                 (stringp (caar entries)))
-           (setq structured entries))
+           (mapc (lambda (x)
+                   (setq structured (cons (cons i x) structured)
+                         keys (cons (car x) keys)
+                         i (1+ i))) entries))
           ((and (listp entries)
                 (stringp (car entries)))
-           (setq keys entries))
+           (mapc (lambda (x)
+                   (setq structured (cons (cons i x) structured)
+                         i (1+ i))) entries))
           (t
-           (error "Invalid dictionary data")))
+           (error "Invalid dictionary data"))))
 
     ;; Sort lexicographic.
-    (when lessp
-      (if structured
-          (setq structured (sort structured lessp)
-                keys (mapcar (lambda (x)
-                               (car x)) structured))
-        (setq keys (sort keys lessp))))
-
+    (setq structured
+          (sort structured (lambda (x y)
+                             (string-lessp (cadr x) (cadr y)))))
     ;; Build data structures.
     (setq fsa (folio-make-mafsa)
           mphf (unless no-values
                  (folio-make-mphf-hash-table keys)))
-    (if structured
-        (mapc (lambda (x)
-                (folio-mafsa-insert-word fsa (car x))
-                (unless no-values
-                  (folio-mphf-puthash mphf (car x) (cdr x))))
+    (lexical-let ((fsa fsa)
+                  (mphf mphf))
+      (if no-values
+          (mapc (lambda (x)
+                  (folio-mafsa-insert-word fsa (cadr x) (car x)))
                 structured)
-      (mapc (lambda (x)
-              (folio-mafsa-insert-word fsa x)) keys))
+        (mapc (lambda (x)
+                (folio-mafsa-insert-word fsa (cadr x) (car x))
+                (folio-mphf-puthash (cadr x) (cddr x) mphf))
+              structured)))
     (folio-mafsa-finalize fsa)
     (aset dict 0 fsa)
     (aset dict 1 mphf)
