@@ -694,6 +694,7 @@ The arguments have the same meaning like for
     (insert "\n\n")
     (put-text-property pos (1+ pos) 'face '(:underline t))
     (setq overlay (make-overlay pos (1+ pos)))
+    (overlay-put overlay 'evaporate t)
     (overlay-put overlay
                  'before-string
                  (propertize "\n" 'face '(:underline t)

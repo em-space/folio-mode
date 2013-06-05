@@ -121,6 +121,7 @@ The widget maintains a word and its frequency count as a button."
     (when keymap
       (let ((overlay (make-overlay from to nil nil 'rear-sticky)))
         (widget-put widget :keymap-overlay overlay)
+        (overlay-put overlay 'evaporate t)
         (overlay-put overlay 'local-map keymap)))))
 
 (defun folio-widget-vocabulary-item-value-create (widget)
