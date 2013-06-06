@@ -565,8 +565,8 @@ retaining the original sort order."
         (states `((""
                    ,(folio-mafsa-start-state fsa)
                    ,(folio-dfa-start-state dfa))))
-        state fsa-state xfsa-state dfa-state xdfa-state
-        path xpath edges output)
+        state finalp fsa-state xfsa-state dfa-state
+        xdfa-state path xpath edges output)
     (while states
       (setq state (pop states)
             path (elt state 0)
@@ -584,15 +584,22 @@ retaining the original sort order."
                xfsa-state (folio-mafsa-evolve
                            fsa fsa-state x))
          (when (and xfsa-state xdfa-state)
-           (setq xpath (concat path (list x)))
+           (setq xpath (concat path (list x))
+                 finalp (folio-mafsa-final-state-p
+                         fsa xfsa-state))
            (push `(,xpath ,xfsa-state ,xdfa-state) states)
-           (when (and (folio-mafsa-final-state-p
-                       fsa xfsa-state)
+           (when (and finalp
                       (folio-dfa-final-state-p
                        dfa xdfa-state))
-             (push xpath output)))) edges))
-    (nreverse output)))
-
+             (if (integerp finalp)
+                 (push (cons finalp xpath) output)
+               (push xpath output))))) edges))
+    (if (consp (car output))
+        (mapcar (lambda (x)
+                  (cdr x))
+                (sort output (lambda (x y)
+                               (< (car x) (car y)))))
+      output)))
 
 
 (provide 'folio-automata)
