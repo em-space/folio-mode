@@ -838,6 +838,7 @@ is reset when read."
                      defining-kbd-macro) t))))
 
 (defun folio-spellcheck-word (word language) ;; XXX interactive
+  (interactive (list (current-word nil t) (folio-primary-dictionary)))
   (folio-with-spellcheck-language language
     (folio-spellcheck-send-data word)
     (folio-spellcheck-receive-data)))
