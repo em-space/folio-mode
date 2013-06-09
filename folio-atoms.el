@@ -197,13 +197,16 @@ region."
 ;;;; text properties
 
 ;;;###autoload
-(defun folio-propertize-region (beg end props &optional restrict
-                                    fontify)
+(defun folio-propertize-region (beg end props
+                                    &optional restrict fontify)
   "Mark a region by adding text properties.
+
 BEG and END are buffer positions.  PROPS is plist with text
-properties to add or, if UNDO is non-nil, to instead remove.
-Search case-sensitivity is determined by the value of the
-variable `case-fold-search', which see."
+properties to add.  If RESTRICT is non-nil only propertize
+matching stretches of text within the given region; RESTRICT
+should be a regexp.  Search case-sensitivity is determined by the
+value of the variable `case-fold-search', which see.  If FONTIFY
+is non-nil additionally fontify the tagged text."
   (with-silent-modifications
     (if restrict
         (progn
@@ -216,10 +219,11 @@ variable `case-fold-search', which see."
       (font-lock-fontify-region beg end))))
 
 ;;;###autoload
-(defun folio-unpropertize-region (beg end props &optional
-                                      fontify)
+(defun folio-unpropertize-region (beg end props
+                                      &optional fontify)
   "Remove the text properties PROPS from the region BEG, END.
-PROPS and FONTIFY have the same meaning like for
+
+PROPS and FONTIFY have the same meaning as for
 `folio-propertize-region', which see."
   (with-silent-modifications
     (remove-list-of-text-properties beg end props)
