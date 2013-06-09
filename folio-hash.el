@@ -50,6 +50,7 @@
 
 (defun folio-prime-p (n)
   "Return t if it is a prime number, or nil otherwise.
+
 Run-time complexity is O\(sqrt\(N))."
   (interactive)
   (if (integerp n)
@@ -69,6 +70,7 @@ Run-time complexity is O\(sqrt\(N))."
 
 (defun folio-next-prime (n)
   "Return the next prime number after N, or nil otherwise.
+
 Run-time complexity is O\(sqrt\(N))."
   (if (integerp n)
       (cond ((> n 1)
@@ -84,6 +86,7 @@ Run-time complexity is O\(sqrt\(N))."
 
 (defun folio-hash-fnv (str &optional base)
   "Return a 24-bit hash of the string STR.
+
 The hash algorithm is 32-bit FNV-1a xor-folded down to 24 bit."
   ;; http://isthe.com/chongo/tech/comp/fnv/
   ;; http://tools.ietf.org/html/draft-eastlake-fnv-03
@@ -94,6 +97,7 @@ The hash algorithm is 32-bit FNV-1a xor-folded down to 24 bit."
 
 (defun folio-make-mphf-hash-table (keys)
   "Given a set of a priori known KEYS return a perfect hash table.
+
 The hash table is final with respect to its keys, i.e. none can
 be added or removed.  The table is built by computing a minimal
 perfect hash function for KEYS in O\(N\) space and time.  Note
@@ -178,6 +182,7 @@ values.  See also `folio-mphf-gethash', `folio-mphf-puthash', and
 
 (defmacro folio-mphf-gethash (table key)
   "Lookup KEY in TABLE and return its associated value.
+
 TABLE is a hash table as returned by `folio-make-mphf-hash-table'.
 Note that a MPHF hash table has no concept for unknown keys: KEY
 must be a member of the set of keys used when creating the table
@@ -193,12 +198,14 @@ function is O\(1)."
                                  (length (aref ,table 1))))))))
 
 (defsubst folio-mphf-puthash (key value table)
-"Associate KEY with VALUE in hash table TABLE.
+  "Associate KEY with VALUE in hash table TABLE.
+
 KEY must be a member of the set of keys used when creating the
 table.  Also note that KEY must be maintained by storage external
 to the TABLE, see `folio-make-mphf-hash-table'.  Time complexity
 of this function is O\(1).  Return VALUE."
   (setf (folio-mphf-gethash table key) value))
+
 
 (provide 'folio-hash)
 
