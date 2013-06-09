@@ -911,9 +911,6 @@ omitted only the existence of an active process is checked."
            (memq (get-buffer buffer-or-name)
                  (folio-spellcheck-get-all :buffer)))))
 
-;; XXX "8vo" -- double check word-scanner
-;; AdenVet
-
 (defun folio-vocabulary-process-chunks ()
   "Process a contiguous sequence of text chunks.
 Return t if at end of buffer.  The size of a chunk is about the
