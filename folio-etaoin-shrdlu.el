@@ -278,6 +278,7 @@ the car and spellchecker suggestions in the cdr."
 
 (defun folio-vocabulary-alphabet ()
   "Return the alphabet for the vocabulary as a char table.
+
 The value of a table entry is an absolute occurrence count."
   (let ((alphabet (make-char-table 'vocabulary-alphabet 0)))
     (folio-map-dictionary (lambda (k)
@@ -290,7 +291,8 @@ The value of a table entry is an absolute occurrence count."
 
 
 (defun folio-maintain-dictionary (command word)
-  "Maintain dictionaries applying COMMAND.
+  "Maintain dictionaries by applying COMMAND.
+
 COMMAND is one of the symbols accept-session, save-local, or
 save-global.  WORD identifies the dictionary entry."
   ;; XXX TODO undo-history
@@ -795,7 +797,10 @@ respective buffer beginning or end position is used."
 
 (defun folio-spellcheck-skip (objects)
   "Prepare buffer for regions not to spell-check.
- check De Mark semantic objects OBJECTS to "
+
+OBJECTS should be a regexp matching semantic objects in the
+buffer for which no spell-checking should be done, like proofer's
+notes, page boundary markers, etc."
   (cond
    ((stringp objects)
     (folio-propertize-region
