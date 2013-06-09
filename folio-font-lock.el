@@ -68,11 +68,11 @@ restrictions are those of `folio-font-lock-fontify-region'."
                     "Footnote:" "Sidenote:"
                     "Greek:" "Hebrew:" "Arabic:" "Chaldee:" "Syriac:"))
      . font-lock-builtin-face)
-    ("^-----File: .+$"
+    ("\\(?:^-----File: .+$\\)"
      . font-lock-preprocessor-face)
     ("\\[\\(\\*\\*[^]]+\\)"
      . (1 font-lock-warning-face))
-    ("\\*?\\[\\|\\]\\*?\\|[{}^]"
+    ("\\(?:\\*?\\[\\|\\]\\*?\\|[{}^]\\)"
      . font-lock-negation-char-face))
   "Default FontLock 'keywords'.")
 
