@@ -184,6 +184,15 @@ the return value is a plain list of words."
                              table x)) values)) keys)
       values)))
 
+(defmacro folio-get-dictionary-entry (word dict)
+  "Return the dictionary entry for WORD.
+
+WORD must have been added to the dictionary DICT previously or
+bogus data might get returned.  Different from
+`folio-lookup-dictionary' the return value is a generalized
+variable that can be modified using `setf', `aset', etc."
+  `(folio-mphf-gethash (aref ,dict 1) ,word))
+
 (defun folio-map-dictionary (function dict &rest keywords)
   "Apply FUNCTION to each entry in the dictionary DICT.
 
@@ -229,6 +238,7 @@ construction time."
 The number of extra slots in a dictionary is fixed at
 construction time."
   (aset (aref dict 2) n value))
+
 
 (provide 'folio-dictionary)
 
