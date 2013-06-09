@@ -626,9 +626,9 @@ nil otherwise.  This is the hook function run from
                   (message "Searching from start of buffer"))
               (message "No more occurrences"))))))
     (when beg
-      (goto-char beg)
       (folio-word-marker-at beg end)
-      (folio-word-marker-recenter))
+      (folio-word-marker-recenter)
+      (goto-char end))
     beg))
 
 (defvar folio-word-min-context 4
