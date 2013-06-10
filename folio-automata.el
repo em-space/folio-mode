@@ -64,7 +64,9 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(require 'cl) ;; run-time dependency
+
+(require 'folio-compat)
 
 ;;;; NFAs
 
@@ -141,7 +143,7 @@ STATES."
                     (setq inputs (cons y inputs)))
                   (mapcar #'car (folio-nfa-get-transitions
                                  nfa x)))) states)
-    (delete-duplicates inputs)))
+    (cl-delete-duplicates inputs)))
 
 (defun folio-nfa-move (nfa states input)
   "Apply the input symbol INPUT to the NFA at state STATES.
@@ -181,7 +183,7 @@ function is used internally."
             (append states
                     new-states
                     (folio-nfa-epsilon-closure nfa new-states)))))
-  (remove-duplicates states :test 'equal))
+  (cl-remove-duplicates states :test 'equal))
 
 (defun folio-nfa-start-state (nfa)
   "Return the initial state of the NFA.
@@ -205,7 +207,7 @@ reachable by e-moves."
                     (push new-state new-states))
                   (folio-nfa-move
                    nfa (list state) input))) states)
-    (remove-duplicates
+    (cl-remove-duplicates
      (folio-nfa-epsilon-closure nfa new-states) :test 'equal)))
 
 

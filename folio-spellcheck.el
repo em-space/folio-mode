@@ -64,6 +64,7 @@
 (require 'folio-atoms)
 (require 'folio-base)
 (require 'folio-babel)
+(require 'folio-compat)
 
 (defvar folio-spellcheck-buffer-data nil
   "*List of property lists maintaining spell-checker data.")
@@ -520,7 +521,7 @@ LANG."
          (engines (delq nil
                         (cons preferred
                               (delq preferred
-                                    (copy-list
+                                    (cl-copy-list ;; XXX copy?
                                      (folio-spellcheck-engine-list))))))
          engine dict)
     (while (setq preferred (pop engines))
@@ -804,8 +805,8 @@ response"))))
               (setq result
                     (cons misspelled
                           (when guess-list
-                            (subseq guess-list
-                                    0 guess-count)))))))))
+                            (cl-subseq guess-list
+                                       0 guess-count)))))))))
     result))
 
 (defun folio-aspell-completed-response-p (response)

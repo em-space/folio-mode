@@ -161,13 +161,13 @@ page at point."
   "Marshaller function for page scan file names as cached by the
 buffer-local `folio-scan-from-page' variable at run-time for use
 with `folio-save-hook' (which see)."
-  (coerce folio-scan-from-page 'list))
+  (cl-coerce folio-scan-from-page 'list))
 
 (defun folio-restore-page-scans (scans)
   "Demarshaller function for page scan file names as cached by the
 buffer-local `folio-scan-from-page' variable at run-time for use
 with `folio-save-hook' (which see)."
-  (setq folio-scan-from-page (coerce scans 'vector))
+  (setq folio-scan-from-page (cl-coerce scans 'vector))
   (add-to-list 'folio-save-list 'folio-scan-from-page))
 
 (put 'folio-scan-from-page

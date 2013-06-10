@@ -39,6 +39,7 @@
 (require 'folio-atoms)
 (require 'folio-base)
 (require 'folio-core)
+(require 'folio-compat)
 
 (defgroup folio-guiguts nil
   "Customize support for GuiGuts."
@@ -173,27 +174,24 @@ empty string) if the original STR contains no other characters."
       (when forward
         (if (eq (aref forward 0) ?^)
             (while (and (<= from to)
-                        (null (find (char-syntax (aref str from))
-                                    forward
-                                    :test 'eq
-                                    :start 1)))
+                        (null (cl-find (char-syntax (aref str from))
+                                       forward :test 'eq :start 1)))
               (setq from (1+ from)))
           (while (and (<= from to)
-                      (find (char-syntax (aref str from))
-                            forward
-                            :test 'eq))
+                      (cl-find (char-syntax (aref str from))
+                               forward :test 'eq))
             (setq from (1+ from)))))
       (if (>= from to)
           nil
         (when backward
           (if (eq (aref backward 0) ?^)
               (while (and (> to from)
-                          (null (find (char-syntax (aref str to))
-                                      backward :test 'eq :start 1)))
+                          (null (cl-find (char-syntax (aref str to))
+                                         backward :test 'eq :start 1)))
                 (setq to (1- to)))
             (while (and (> to from)
-                        (find (char-syntax (aref str to))
-                              backward :test 'eq))
+                        (cl-find (char-syntax (aref str to))
+                                 backward :test 'eq))
               (setq to (1- to)))))
         (if (>= from to)
             nil
