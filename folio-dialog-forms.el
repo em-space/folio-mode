@@ -646,7 +646,8 @@ ARG is non-nil scroll up instead."
                               (not (setq found
                                          (eq (widget-type widget)
                                              widget-type)))))
-                  (and found widget))))
+                  (and found widget)))
+        (notify-eol t))
     (if widget
         (let ((index (widget-get widget :entry-index))
               (children (widget-get widget :children)))
@@ -662,7 +663,8 @@ ARG is non-nil scroll up instead."
                       (widget-apply
                        widget :insert-after (nth new-index keys))
                       (widget-apply widget :focus 1)
-                      (widget-put widget :entry-index new-index)))
+                      (widget-put widget :entry-index new-index)
+                      (setq notify-eol nil)))
                 (let ((new-index (max (1- index) 0))
                       (num-entries (max (or (widget-get
                                              widget :num-entries) 0) 1)))
@@ -678,7 +680,10 @@ ARG is non-nil scroll up instead."
                                   (car children))
                     (widget-apply widget :focus -1)
                     (widget-put
-                     widget :entry-index new-index)))))))
+                     widget :entry-index new-index)
+                    (setq notify-eol nil))))
+              (when notify-eol
+                (message "No more entries")))))
       (message "No scrollable widget in focus"))))
 
 (defun folio-widget-repeat-scroll-up (widget-type &optional pos arg)
