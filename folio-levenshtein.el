@@ -59,7 +59,7 @@ The return value in this case is nil."
       ;; being built and the previous one
       (let ((col (make-vector (1+ m) 0))
             (prev-col (make-vector (1+ m) 0))
-            break)
+            i break prefix-distance)
         (dotimes (i (1+ m))
           (setf (aref prev-col i) i))
         (setq i 0)
