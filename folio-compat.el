@@ -22,9 +22,25 @@
 
 ;;; Commentary:
 
-;; Folio mode glue code for backwards compatibility to Emacs 23.
+;; Folio mode glue code for backwards compatibility with Emacs 23.
 
 ;;; Code:
+
+(eval-when-compile (require 'cl))
+
+;;; add reverse alias to the old cl functions if the cl-prefix is not
+;;; known
+(dolist (old-fun '(coerce
+                   copy-list
+                   delete-duplicates
+                   find
+                   remove-duplicate
+                   subseq))
+  (let ((new-fun (unless (fboundp (intern-soft
+                                   (format "cl-%s" old-fun)))
+                   (intern (format "cl-%s" old-fun)))))
+    (when new-fun
+      (defalias new-fun old-fun))))
 
 ;;;###autoload
 (defmacro folio-called-interactively-p (&optional kind)
