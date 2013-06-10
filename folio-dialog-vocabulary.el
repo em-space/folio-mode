@@ -29,6 +29,7 @@
 (require 'tree-widget)
 
 (require 'folio-dialog-forms)
+(require 'folio-time)
 
 (defvar folio-widget-vocabulary-entry-keymap
   (let ((map (make-sparse-keymap)))
@@ -409,13 +410,11 @@ Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Donec hendrerit tempor
                                         :format "%[ %v %]")))
   (widget-insert "\n\n\n")
   ;; Pretty much like 'regexp but validated a little differently.
-  (folio-dialog-form 'vocabulary-filter-regexp
-                     (widget-create 'string
-                                    :tag "Filter"
-                                    :format "%t: %v"
-                                    :size 14
-                                    :value-face 'folio-widget-field
-                                    :notify 'folio-widget-vocabulary-filter-apply))
+  (folio-dialog-form
+   'vocabulary-filter-regexp (widget-create
+                              'string :tag "Filter" :format "%t: %v" :size 14
+                              :value-face 'folio-widget-field
+                              :notify 'folio-widget-vocabulary-filter-notify))
   (widget-insert " ")
   (widget-create 'push-button
                  :format "%[%t%]"
@@ -427,42 +426,63 @@ Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Donec hendrerit tempor
 
   (folio-dialog-form-rule 32)
 
-  (folio-dialog-form 'vocabulary
-                     (widget-create 'folio-widget-vocabulary
-                                    :value (folio-widget-vocabulary-value)
-                                    `(folio-widget-vocabulary-entry)))
+  (folio-dialog-form
+   'vocabulary (widget-create 'folio-widget-vocabulary
+                              :value (folio-widget-vocabulary-value)
+                                     `(folio-widget-vocabulary-entry)))
   (widget-setup))
 
-(defun folio-widget-vocabulary-filter-apply (widget child
-                                                    &optional _event)
-  (let* ((value (widget-value child))
-         (regexp (when (stringp value) (folio-chomp value))))
-    (if (folio-regexp-valid-p regexp)
-        (let ((filtered (folio-widget-vocabulary-value regexp)))
-          (when (not (string-equal value regexp))
-            (widget-value-set child regexp))
-          (widget-value-set
-           (folio-dialog-form-get 'vocabulary) filtered)
-          (widget-setup))
+(defcustom folio-vocabulary-filter-delay 0.24
+  "Time in seconds to wait before updating the vocabulary view."
+  :group 'folio-technical
+  :tag "Folio Vocabulary View Refresh Delay"
+  :type 'number)
+
+(folio-define-timer 'vocabulary-filter-regexp
+    "Idle timer for refreshing the dictionary widget."
+  :function 'folio-widget-vocabulary-filter-apply
+  :repeat nil
+  :buffer-local t
+  :secs (lambda () folio-vocabulary-filter-delay))
+
+(defun folio-widget-vocabulary-filter-apply ()
+  "Update the dictionary widget to the current regexp filter."
+  (let ((widget (folio-dialog-form-get 'vocabulary-filter-regexp)))
+    (when widget ;; unlikely race-condition
+      (let* ((old-value (widget-get widget :filter-value))
+             (value (widget-value widget))
+             (new-value (when (stringp value) (folio-chomp value))))
+        (when (folio-regexp-valid-p new-value)
+          (let ((filtered (folio-widget-vocabulary-value new-value)))
+            (widget-value-set
+             (folio-dialog-form-get 'vocabulary) filtered))
+          (widget-put widget :filter-value new-value)
+          (widget-setup))))))
+
+(defun folio-widget-vocabulary-filter-notify (widget child &optional event)
+  "Handle notification event EVENT from child widget CHILD."
+  (let* ((old-value (widget-get widget :filter-value))
+         (value (widget-value child))
+         (new-value (when (stringp value) (folio-chomp value))))
+    (when (folio-timer-running-p 'vocabulary-filter-regexp)
+      (folio-cancel-timer 'vocabulary-filter-regexp))
+    (if (folio-regexp-valid-p new-value)
+        (unless (string-equal old-value new-value)
+          (folio-schedule-timer 'vocabulary-filter-regexp))
       ;; Apparently neither `error' nor `user-error' do play well with
       ;; widgets, leaving things in a half-operational state; the use
       ;; of the widget's `:error' property is unclear.
       (message "Invalid filter expression"))))
 
-(defun folio-widget-vocabulary-filter-value-reset ()
-  (let ((filter (folio-dialog-form-get 'vocabulary-filter-regexp)))
-    (widget-apply filter :notify filter)))
-
-(defun folio-widget-vocabulary-filter-reset (widget child
-                                                    &optional _event)
+(defun folio-widget-vocabulary-filter-reset (widget child &optional _event)
+  "Reset the filter widget and update views."
   (let* ((filter (folio-dialog-form-get 'vocabulary-filter-regexp))
          (value (widget-value filter)))
     (when (or (null value)
               (not (stringp value))
               (not (string-equal value "")))
       (widget-value-set filter "")
-      (widget-apply filter :notify filter))))
-
+      (folio-widget-vocabulary-filter-apply))))
 
 
 (provide 'folio-dialog-vocabulary)
