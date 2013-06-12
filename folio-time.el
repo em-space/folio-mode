@@ -201,6 +201,7 @@ TIMER should be the timer name used with `folio-define-timer'."
 
 (defun folio-timer-running-p (timer)
   "Return non-nil if TIMER is running.
+
 TIMER should be the symbol of a timer object originally set up
 with `folio-define-timer'."
   (let ((the-timer (folio--timer-symbol-interned timer)))
@@ -209,6 +210,7 @@ with `folio-define-timer'."
 
 (defun folio-cancel-timer (timer)
   "Cancel the timer TIMER.
+
 TIMER should be the symbol of a timer object originally set up
 with `folio-define-timer'."
   (let ((the-timer (folio--timer-symbol-interned timer)))
@@ -217,6 +219,7 @@ with `folio-define-timer'."
 
 (defun folio-schedule-timer (timer &optional secs)
   "Schedule or re-schedule the timer TIMER.
+
 SEC if non-nil overrides the scheduling time in seconds from now.
 TIMER should be the symbol of a timer object originally set up
 with `folio-define-timer'."
