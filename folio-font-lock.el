@@ -65,7 +65,7 @@ restrictions are those of `folio-font-lock-fontify-region'."
                  (mapcar (lambda (x) (concat "</" x ">")) tags))))
      . font-lock-type-face)
     (,(regexp-opt '("Blank Page" "Illustration"
-                    "Footnote:" "Sidenote:"
+                    "Footnote" "Sidenote:"
                     "Greek:" "Hebrew:" "Arabic:" "Chaldee:" "Syriac:"))
      . font-lock-builtin-face)
     ("\\(?:^-----File: .+$\\)"
