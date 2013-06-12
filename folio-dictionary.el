@@ -42,9 +42,11 @@
 Dictionaries are compact fast random access data structures
 maintaining a fixed lexicographic sort order.  They are meant for
 basically static word corpora where inserts and deletes happen
-rarely as a dictionary has to be recreated to accommodate a
-modification.  A dictionary can be queried for exact matches or,
-given a maximal edit distance, also for word similarities.
+rarely as a dictionary is immutable with respect to its keys;
+accommodating additional entries or removing obsolete entries
+requires recreating the dictionary.  A dictionary can be queried
+for exact matches or, given a maximal edit distance, also for
+word similarities.
 
 A dictionary entry is a word and, optionally, an associated
 value.  ENTRIES can be an alist or a plain word list.  In the
@@ -98,7 +100,12 @@ general dictionary traversal is provided by
           (t
            (error "Invalid dictionary data"))))
 
-    ;; Sort lexicographic.
+    ;; Sort data by sorting the keys.  The internal sort order must be
+    ;; binary not lexicographic for the graph not to break apart at
+    ;; the last common prefix!  The lexicographic sort order is the
+    ;; outer sort order; it is maintained by assigning every final
+    ;; state marking the end of a word with the word position in the
+    ;; original sequence.
     (setq structured
           (sort structured (lambda (x y)
                              (string-lessp (cadr x) (cadr y)))))
