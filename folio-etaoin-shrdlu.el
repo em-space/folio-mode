@@ -394,17 +394,24 @@ character with a numeric value."
 
 (defun folio-vocabulary-apply-filters (filters k v)
   "Apply the filter list FILTERS to the vocabulary entry K, V.
+
 K is the entry's key, V its value.  FILTERS is a list of symbols
-of binary filter functions \(K V).  Return t if all filters let
+of binary filter functions \(K V) for filtering out an entry if
+the return value is nil, or otherwise to include it in the result
+set.  If FILTERS contains a string valued member then perform a
+regexp match against K.  Return t if all filters from FILTERS let
 pass, or nil otherwise."
   (let ((pass t))
     (while (and pass filters)
-      (setq pass (funcall (symbol-function (car filters)) k v))
+      (if (stringp (car filters))
+          (setq pass (and (string-match-p (car filters) k) t))
+        (setq pass (funcall (symbol-function (car filters)) k v)))
       (pop filters))
     pass))
 
 (defun folio-vocabulary-list-lexicographic (&optional filters)
   "*List vocabulary entries for lexicographic comparisons.
+
 Members are lists of the form \(WORD COUNT UCA-SORT-KEY).
 FILTERS is a list of function symbols for use with
 `folio-vocabulary-apply-filters'."
@@ -481,8 +488,10 @@ Supported values are
                              folio-vocabulary-ordering-alist)))
           (filters (mapcar
                     (lambda (x)
-                      (cdr (assq x
-                                 folio-vocabulary-filter-alist)))
+                      (if (stringp x)
+                          x
+                        (cdr (assq x
+                                   folio-vocabulary-filter-alist))))
                     (if (listp filters) filters (list filters)))))
       (if lister
           (funcall (symbol-function lister) filters)
