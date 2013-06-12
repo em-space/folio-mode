@@ -64,11 +64,14 @@ The primary query function for is `folio-lookup-dictionary';
 general dictionary traversal is provided by
 `folio-map-dictionary', and slots are accessible using
 `folio-dictionary-extra-slot' and
-`folio-dictionary-set-extra-slot', respectively, see which."
+`folio-dictionary-set-extra-slot', respectively, see which.  The
+dictionary's alphabet can be queried from
+`folio-dictionary-alphabet'."
   (let ((dict (make-vector 4 nil))
         (extra-keywords nil)
         (extra-slots nil)
         (no-values nil)
+        (folio-mafsa-maintain-alphabet t)
         keyword structured keys fsa mphf)
 
     ;; Destructure keywords.
@@ -142,6 +145,13 @@ general dictionary traversal is provided by
 (defun folio-dictionary-count (dict)
   "Return the number of entries in DICT."
   (aref dict 3))
+
+(defun folio-dictionary-alphabet (dict)
+  "Return the alphabet of the dictionary DICT.
+
+The return value is a char-table mapping letter to absolute
+occurrence count."
+  (folio-mafsa-alphabet (aref dict 0)))
 
 (defun folio-lookup-dictionary (word dict &rest keywords)
   "Lookup WORD in the dictionary DICT.
