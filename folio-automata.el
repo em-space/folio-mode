@@ -408,8 +408,17 @@ input CHAR is applied to STATE."
 (defsubst folio-mafsa-final-state-p (_fsa state)
   (aref state 1))
 
+(defvar folio-mafsa-maintain-alphabet nil
+  "Whether to maintain an FSA's alphabet.
+
+If non-nil the FSA's alphabet is maintained as a character table
+in the form of letter-occurrence counts.
+`folio-mafsa-maintain-alphabet' should be set when building the
+FSA using `folio-make-mafsa', `folio-mafsa-insert-word', and
+`folio-mafsa-finalize'.")
+
 (defun folio-make-mafsa ()
-  (let ((fsa (make-vector 5 nil)))
+  (let ((fsa (make-vector 6 nil)))
     ;; running sequence to draw node ids from
     (aset fsa 0 -1)
     ;; common prefix
@@ -421,6 +430,8 @@ input CHAR is applied to STATE."
     (aset fsa 3 (make-hash-table :test #'equal))
     ;; slot 4 maintains unchecked states of the yet unminimized part
     ;; of the FSA
+    (when folio-mafsa-maintain-alphabet
+      (aset fsa 5 (make-char-table 'fsa-alphabet 0)))
     fsa))
 
 (defun folio-mafsa-p (object)
@@ -436,6 +447,7 @@ automaton."
 
 (defsubst folio-mafsa-common-prefix (fsa &optional prefix)
   "When PREFIX is non-nil set otherwise get the common prefix.
+
 This function is used internally when constructing the FSA."
   (if prefix
       (aset fsa 1 prefix)
@@ -447,8 +459,16 @@ This function is used internally when constructing the FSA."
 
 (defmacro folio-mafsa-states (fsa)
   "Return the FSA's source and target states.
+
 This macro is used internally."
   `(aref ,fsa 3))
+
+(defmacro folio-mafsa-alphabet (fsa)
+  "Return the FSA's alphabet.
+
+The return value is a char-table maintaining absolute occurrence
+counts."
+  `(aref ,fsa 5))
 
 (defsubst folio-mafsa-next-state (fsa state)
   (gethash state (folio-mafsa-states fsa)))
@@ -483,7 +503,10 @@ This macro is used internally."
          char state next-state)
     (catch 'prefix
       (while (< prefix len)
-        (when (/= (aref word prefix)
+        (setq char (aref word prefix))
+        (when folio-mafsa-maintain-alphabet
+          (incf (aref (folio-mafsa-alphabet fsa) char) 1))
+        (when (/= char
                   (aref common-prefix prefix))
           (throw 'prefix prefix))
         (setq prefix (1+ prefix))))
@@ -497,6 +520,8 @@ This macro is used internally."
     (while (< prefix len)
       (setq next-state (folio-make-mafsa-state fsa)
             char (aref word prefix))
+      (when folio-mafsa-maintain-alphabet
+        (incf (aref (folio-mafsa-alphabet fsa) char) 1))
       (folio-mafsa-add-transition state char next-state)
       (push (list next-state char state)
             (folio-mafsa-unchecked-states fsa))
