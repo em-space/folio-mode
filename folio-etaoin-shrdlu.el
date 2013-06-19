@@ -451,8 +451,10 @@ characters with diacritical marks."
     (good-words . folio-vocabulary-filter-good-words)
     (upper-case . folio-vocabulary-filter-upper-case)
     (lower-case . folio-vocabulary-filter-lower-case)
+    (title-case . folio-vocabulary-filter-title-case)
     (numeric . folio-vocabulary-filter-numeric)
-    (alpha-numeric . folio-vocabulary-filter-alpha-numeric))
+    (alpha-numeric . folio-vocabulary-filter-alpha-numeric)
+    (diacritics . folio-vocabulary-filter-diacritics))
   "Alist mapping filter name to filter function.")
 
 (defun folio-vocabulary-apply-filters (filters k v)

@@ -342,8 +342,10 @@ Return the children of WIDGET."
   '(("<none>" . nil)
     ("Upper Case" . upper-case)
     ("Lower Case" . lower-case)
+    ("Title Case" . title-case)
     ("Numeric" . numeric)
-    ("Alpha-Numeric" . alpha-numeric)))
+    ("Alpha-Numeric" . alpha-numeric)
+    ("Diacritics" . diacritics)))
 
 (define-widget 'folio-widget-vocabulary-qfilter 'folio-menu-choice
   "A widget for setting a predefined word filter."
