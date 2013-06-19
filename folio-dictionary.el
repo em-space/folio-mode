@@ -146,12 +146,34 @@ dictionary's alphabet can be queried from
   "Return the number of entries in DICT."
   (aref dict 3))
 
-(defun folio-dictionary-alphabet (dict)
+(defun folio-dictionary-alphabet (dict &optional as-alist)
   "Return the alphabet of the dictionary DICT.
 
 The return value is a char-table mapping letter to absolute
-occurrence count."
-  (folio-mafsa-alphabet (aref dict 0)))
+occurrence count.  If AS-ALIST is non-nil return an alist
+instead, in no particular order."
+  (let ((alphabet (folio-mafsa-alphabet (aref dict 0))))
+    (if as-alist
+        (let ((len (length alphabet))
+              from to alist)
+          (catch 'break
+            (map-char-table
+             #'(lambda (k v)
+                 (if (consp k)
+                     (progn
+                       (setq from (car k) to (cdr k))
+                       (if (and (= to len) (zerop v)) ;; at end
+                           (throw 'break t)
+                         (unless (zerop v)
+                           (while (< from (1+ to))
+                             (setq alist (cons (cons from v)
+                                               alist)
+                                   from (1+ from))))))
+                   (unless (zerop v)
+                     (setq alist (cons (cons k v) alist)))))
+             alphabet))
+          alist)
+      alphabet)))
 
 (defun folio-lookup-dictionary (word dict &rest keywords)
   "Lookup WORD in the dictionary DICT.
@@ -253,7 +275,7 @@ construction time."
   "Store VALUE in extra slot N of DICT.
 
 The number of extra slots in a dictionary is fixed at
-construction time."
+construction time.  Return VALUE."
   (aset (aref dict 2) n value))
 
 
