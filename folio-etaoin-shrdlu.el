@@ -379,6 +379,19 @@ character with a numeric value."
                         c 'numeric-value))))
     (and alphap numericp)))
 
+(defun folio-vocabulary-filter-title-case (k v)
+  "Return non-nil if the vocabulary entry K, V contains
+characters in title case.  Title case characters are in ligatures
+containing uppercase followed by lowercase letters (e.g.,  ,  ,
+ , and  ) or Greek script."
+  (let ((i 1)
+        (j (length k))
+        c titlecasep)
+    (while (and (not titlecasep) (< i j))
+      (setq c (aref k i) i (1+ i)
+            titlecasep (eq (get-char-code-property
+                            c 'general-category) 'Lt)))
+    titlecasep))
 (defconst folio-vocabulary-filter-alist
   '((misspellings . folio-vocabulary-filter-misspellings)
     (good-words . folio-vocabulary-filter-good-words)
