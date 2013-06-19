@@ -365,22 +365,18 @@ compatibility mappings of Roman numerals."
   "Return non-nil if the vocabulary entry K, V is alpha-numeric.
 By this definition it must include at least one letter and one
 character with a numeric value."
-  (let* ((alpha '(Lu Ll Lt Lm Lo))
-         (i 1)
-         (j (length k))
-         (c (aref k 0))
-         (alphap (memq (get-char-code-property
-                        c 'general-category) alpha))
-         (numericp (unless alphap
-                     (get-char-code-property c 'numeric-value))))
-    (while (and (or alphap numericp) (< i j))
+  (let ((alpha '(Lu Ll Lt Lm Lo))
+        (i 1)
+        (j (length k))
+        c alphap numericp)
+    (while (and (not (and alphap numericp)) (< i j))
       (setq c (aref k i) i (1+ i))
-      (if (memq (get-char-code-property
-                 c 'general-category) alpha)
-          (setq alphap t)
-        (if (get-char-code-property c 'numeric-value)
-            (setq numericp t)
-          (setq alphap nil numericp nil))))
+      (unless alphap
+        (setq alphap (memq (get-char-code-property
+                            c 'general-category) alpha)))
+      (unless numericp
+        (setq numericp (get-char-code-property
+                        c 'numeric-value))))
     (and alphap numericp)))
 
 (defconst folio-vocabulary-filter-alist
