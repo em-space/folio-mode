@@ -392,6 +392,60 @@ containing uppercase followed by lowercase letters (e.g.,  ,  ,
             titlecasep (eq (get-char-code-property
                             c 'general-category) 'Lt)))
     titlecasep))
+
+(defun folio-vocabulary-filter-diacritics (k v)
+  "Return non-nil if the vocabulary entry K, V contains
+characters with diacritical marks."
+  (let ((quick-check (folio-dictionary-extra-slot
+                      folio-vocabulary 0))
+        (i 0)
+        (j (length k))
+        pass)
+    (unless quick-check
+      (let ((alphabet (mapcar #'car (folio-dictionary-alphabet
+                                     folio-vocabulary 'alist)))
+            nfd char gc ccc)
+        (setq nfd (string-to-list
+                   (ucs-normalize-NFD-string
+                    (mapconcat #'string alphabet " ")))
+              quick-check (make-char-table 'diacritic))
+        (while alphabet
+          (if (= (car alphabet) (car nfd))
+              (progn
+                (pop alphabet)
+                (pop nfd))
+            (pop nfd)
+            (catch 'break
+              (while (and nfd (/= (setq char (car nfd)) ?\ ))
+                (setq gc (get-char-code-property
+                          char 'general-category)
+                      ccc (get-char-code-property
+                           char 'canonical-combining-class))
+                ;; Include a character if its canonical decomposition
+                ;; includes at least one non-spacing mark (Mn),
+                ;; ignoring space combining (Mc), enclosing (Me), and
+                ;; other (Mo) marks.  Also exclude any character with
+                ;; non-zero character combining class including
+                ;; joiners of grapheme clusters of cursive joining,
+                ;; ligaturing, etc.
+                (when (and (eq gc 'Mn)
+                           (/= ccc 0))
+                  (aset quick-check (car alphabet) t)
+                  (throw 'break t))
+                (pop nfd)))
+            (while (and nfd (/= (car nfd) ?\ ))
+              (pop nfd))
+            (pop alphabet)
+            (pop nfd)))
+        (folio-dictionary-set-extra-slot
+         folio-vocabulary 0 quick-check)))
+    (catch 'break
+      (while (< i j)
+        (when (aref quick-check (aref k i))
+          (throw 'break (setq pass t)))
+        (setq i (1+ i))))
+    pass))
+
 (defconst folio-vocabulary-filter-alist
   '((misspellings . folio-vocabulary-filter-misspellings)
     (good-words . folio-vocabulary-filter-good-words)
@@ -1007,7 +1061,7 @@ pending input is observed."
          (table-data (sort (folio-hash-table-to-alist
                             folio-next-vocabulary) lessp)))
     (setq folio-vocabulary
-          (folio-make-dictionary table-data))))
+          (folio-make-dictionary table-data :extra-slots 1))))
 
 (defun folio-vocabulary-build-progress (buffer progress)
   ""
