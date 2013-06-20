@@ -393,6 +393,26 @@ containing uppercase followed by lowercase letters (e.g.,  ,  ,
                             c 'general-category) 'Lt)))
     titlecasep))
 
+(defvar folio-vocabulary-script nil
+  "A script symbol that if non-nil selects words from the current
+vocabulary that have at least one character from to chosen
+script.")
+
+(defun folio-vocabulary-filter-script (k v)
+  "Return non-nil if the vocabulary entry K, V contains one or
+more characters from the script `folio-vocabulary-script'."
+  (if folio-vocabulary-script
+      (let ((i 0)
+            (j (length k))
+            scriptp)
+        (while (and (not scriptp) (< i j))
+          (when (eq (aref char-script-table (aref k i))
+                    folio-vocabulary-script)
+            (setq scriptp t))
+          (setq i (1+ i)))
+        scriptp)
+    t))
+
 (defun folio-vocabulary-filter-diacritics (k v)
   "Return non-nil if the vocabulary entry K, V contains
 characters with diacritical marks."
