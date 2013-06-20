@@ -469,6 +469,27 @@ possible values of KEY and SUB-KEY see
           value)))))
 
 
+(defconst folio-script-alist
+  (let ((alist nil)
+        (rlist '((linear-b . "Linear B")
+                 (cuneiform-numbers-and-punctuation
+                  . "Cuneiform Numbers and Punctuation"))))
+    (mapc (lambda (x)
+            (unless (assq x rlist)
+              (setq alist (cons (cons
+                                 (upcase-initials
+                                  (replace-regexp-in-string
+                                   "-" " " (symbol-name x)))
+                                 x) alist))))
+          (char-table-extra-slot char-script-table 0))
+    (mapc (lambda (x)
+            (push (cons (cdr x) (car x)) alist)) rlist)
+
+    alist)
+  "Alist mapping script name to the script symbol used by
+`char-script-table'.")
+
+
 ;;;; Bidirectional input
 
 ;;;###autoload
