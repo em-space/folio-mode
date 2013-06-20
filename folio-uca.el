@@ -163,7 +163,9 @@ see which."
       (forward-line))))
 
 ;; XXX---trivial, yet uncompressed
-;; 538195 Jun  4 00:57 folio-uca.elc
+;; 538225 Jun  4 00:57 folio-uca.elc
+;; XXX---with optimize-char-table
+;; 536958 Jun 19 21:18 folio-uca.elc
 (defun folio-uca-load-table (&optional file)
   (let ((table (make-char-table 'uca-table)))
     (with-temp-buffer
@@ -174,6 +176,7 @@ see which."
 
 (setq folio-uca-table
       (eval-when-compile (folio-uca-load-table)))
+(optimize-char-table folio-uca-table)
 
 (defun folio-uca-find-prefix (prefix)
   "Return the DUCET collation elements for the string prefix PREFIX.
