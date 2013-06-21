@@ -479,9 +479,9 @@ Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Donec hendrerit tempor
      'primary-dictionary
      (widget-create 'folio-menu-choice
                     :tag "Primary dictionary"
-                    :format "%[ %t   %] %v"
+                    :format "    %[ %t   %] %v"
                     :button-face 'custom-button
-                    :offset 14
+                    :notify 'folio-widget-primary-dictionary-notify
                     :value-face 'folio-widget-field
                     :value (or (folio-with-parent-buffer
                                  (folio-primary-dictionary))
@@ -502,26 +502,28 @@ Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Donec hendrerit tempor
                                  (folio-widget-dict-filter-apply))))
                    :help-echo (lambda (_widget)
                                 (let ((buffer folio-parent-buffer))
-                                  (if (folio-vocabulary-build-active-p buffer)
-                                      "Push to stop spell-checking."
-                                    "Push to start spell-checking."))))
+                                  (concat "Push to "
+                                          (if (folio-vocabulary-build-active-p buffer)
+                                              "stop" "start")
+                                          " spell-checking."))))
     (widget-insert "\n\n")
     (folio-dialog-form 'secondary-dictionary
                        (widget-create 'repeat
                                       :insert-button-args '(:button-face custom-button)
                                       :delete-button-args '(:button-face custom-button)
                                       :append-button-args '(:button-face custom-button)
-                                      :format "%v"
+                                      :format "%v  %i"
+                                      :entry-format "  %i %d   %v"
                                       :value '("<none>")
                                       :notify 'folio-widget-secondary-dictionary-notify
                                       '(folio-menu-choice
                                         :tag "Secondary dictionary"
-                                        :format "%[ %t %] %v"
+                                        :format "%[ %t %] %v\n"
                                         :value "<none>"
                                         :button-face custom-button
                                         :values folio-widget-secondary-dictionary-values)))
 
-    (widget-insert "\n\n              Accept `good words' ")
+    (widget-insert "\n\n                 Accept `good words' ")
     (folio-dialog-form
      'dict-gwl (widget-create
                 'checkbox :value nil
