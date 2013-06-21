@@ -138,7 +138,9 @@ converted."
                    (number-to-string (cadr value)))))
       (widget-put widget :dict-value (list word count))
       (widget-put widget :value word)
-      (concat (or word "<unknown>")
+      (concat (if word
+                  (folio-left-to-right-safe word)
+                "<unknown>")
               " "
               (if count
                   (propertize
@@ -263,7 +265,9 @@ WIDGET must be of type `folio-widget-dict-entry-item'."
          (frequency (or (widget-apply widget :frequency-lookup word) 0))
          (gwl (when (widget-get widget :good-word-lookup)
                 (widget-apply widget :good-word-lookup word)))
-         (tag (concat (propertize word 'face 'folio-dict-entry)
+         (tag (concat (propertize
+                       (folio-left-to-right-safe word)
+                       'face 'folio-dict-entry)
                       " "
                       (if (zerop frequency)
                           (propertize " -" 'help-echo

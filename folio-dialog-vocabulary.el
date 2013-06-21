@@ -142,7 +142,9 @@ WIDGET should be of the type `folio-widget-vocabulary-item'."
                         0))
          (gwl (when (widget-get widget :good-word-lookup)
                 (widget-apply widget :good-word-lookup word)))
-         (tag (concat (propertize word 'face 'folio-dict-entry)
+         (tag (concat (propertize
+                       (folio-left-to-right-safe word)
+                       'face 'folio-dict-entry)
                       " "
                       (if (zerop frequency)
                           (propertize " -" 'help-echo
