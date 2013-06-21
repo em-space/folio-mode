@@ -258,7 +258,8 @@ KEY and EXCEPT have the same meanings like in
      (folio-spellcheck-get-all :buffer))))
 
 (defalias 'folio-spellcheck-next-buffer-p 'folio-spellcheck-next-buffer
-  "Return non-nil if there is at least one buffer suitable for spell-checking.")
+  "Return non-nil if there is at least one buffer suitable for
+spell-checking.")
 
 (defsubst folio-spellcheck-engine-list ()
   "Return a list of supported spell-checker engines."
