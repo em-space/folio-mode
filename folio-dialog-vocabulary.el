@@ -352,16 +352,7 @@ Return the children of WIDGET."
   :format "%v"
   :value `,(caar folio-widget-vocabulary-qfilter-alist)
   :values 'folio-widget-vocabulary-qfilter-values
-  :choices 'folio-widget-vocabulary-qfilter-choices
   :button-face custom-button)
-
-(defun folio-widget-vocabulary-qfilter-choices (widget)
-  (mapcar (lambda (x)
-            (widget-convert 'const
-                            :value-face 'folio-widget-field
-                            :format "%v"
-                            :value x))
-          (widget-apply widget :values)))
 
 (defun folio-widget-vocabulary-qfilter-values (widget)
   (let* ((form (folio-dialog-form-get 'vocabulary-qfilters))

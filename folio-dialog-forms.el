@@ -264,9 +264,18 @@ This currently always is the table of contents."
   :value-create 'folio-menu-choice-value-create
   :default-get 'folio-menu-choice-default-get
   :mouse-down-action 'folio-menu-choice-mouse-down-action
+  :choices 'folio-menu-choices
   :action 'folio-menu-choice-action
   :match 'folio-menu-choice-match
   :match-inline 'folio-menu-choice-match-inline)
+
+(defun folio-menu-choices (widget)
+  (mapcar (lambda (x)
+            (widget-convert 'const
+                            :value-face 'folio-widget-field
+                            :format "%v"
+                            :value x))
+          (widget-apply widget :values)))
 
 (defun folio-menu-choice-match (widget value)
   (let ((choices (widget-apply widget :choices))
