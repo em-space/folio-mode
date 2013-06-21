@@ -335,6 +335,43 @@ Return the children of WIDGET."
   (folio-widget-repeat-scroll-down
    'folio-widget-vocabulary (point)))
 
+(defconst folio-widget-vocabulary-sfilter-alist
+  (let ((init '("<any>" . nil)))
+    (cons init
+          (sort folio-script-alist
+                (lambda (x y)
+                  (folio-uca-lessp (car x) (car y))))))
+  "")
+
+(define-widget 'folio-widget-vocabulary-script-filter 'folio-menu-choice
+  "A widget for setting a predefined script filter."
+  :format "%v"
+  :value `,(caar folio-widget-vocabulary-sfilter-alist)
+  :values 'folio-widget-vocabulary-sfilter-values
+  :notify 'folio-widget-vocabulary-sfilter-notify
+  :button-face custom-button)
+
+(defun folio-widget-vocabulary-sfilter-values (widget)
+  (let* ((form (folio-dialog-form-get 'vocabulary-script-filter))
+         (selected (when form
+                     (widget-get form :choice)))
+         available)
+    (mapc (lambda (x)
+            (unless (member (car x) selected)
+              (push (car x) available)))
+          folio-widget-vocabulary-sfilter-alist)
+    (setq available (nreverse available))
+    (unless (member (caar folio-widget-vocabulary-sfilter-alist)
+                    available)
+      (push (caar folio-widget-vocabulary-sfilter-alist)
+            available))
+    available))
+
+(defun folio-widget-vocabulary-sfilter-notify (widget child
+                                                      &optional event)
+  "Handle notifications for the quick filter widget."
+  (folio-schedule-timer 'vocabulary-filter))
+
 (defconst folio-widget-vocabulary-qfilter-alist
   '(("<none>" . nil)
     ("Upper Case" . upper-case)
@@ -398,6 +435,11 @@ exotic or erroneous characters.
 Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Donec hendrerit tempor tellus. Donec pretium posuere tellus. Proin quam nisl, tincidunt et, mattis eget, convallis nec, purus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nulla posuere. Donec vitae dolor. Nullam tristique diam non turpis. Cras placerat accumsan nulla. Nullam rutrum. Nam vestibulum accumsan nisl.")
 
   (widget-insert "\n\n\n")
+  (folio-dialog-form 'vocabulary-script-filter
+                     (widget-create '(folio-widget-vocabulary-script-filter
+                                      :tag "Script"
+                                      :format "%t:  %[ %v %]")))
+  (widget-insert "\n\n\n")
   (folio-dialog-form 'vocabulary-quick-filters
                      (widget-create 'folio-widget-vocabulary-qfilters
                                     `(folio-widget-vocabulary-qfilter
@@ -429,28 +471,36 @@ Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Donec hendrerit tempor
 
 (defun folio-widget-vocabulary-filter-apply ()
   "Update the vocabulary widget to the current filter settings."
-  (let ((qwidget (folio-dialog-form-get 'vocabulary-quick-filters))
+  (let ((swidget (folio-dialog-form-get 'vocabulary-script-filter))
+        (qwidget (folio-dialog-form-get 'vocabulary-quick-filters))
         (rwidget (folio-dialog-form-get 'vocabulary-regexp-filter)))
-    (when (and qwidget rwidget) ;; unlikely race-condition
-      (let* ((old-qvalue (widget-get qwidget :filter-value))
+    (when (and swidget qwidget rwidget) ;; unlikely race-condition
+      (let* ((old-svalue (widget-get swidget :filter-value))
+             (old-qvalue (widget-get qwidget :filter-value))
              (old-rvalue (widget-get rwidget :filter-value))
              (rvalue (widget-value rwidget))
-             new-qvalue new-rvalue)
-        (setq new-qvalue
-              (delq nil
-                    (mapcar (lambda (x)
-                              (cdr (assoc x
-                                          folio-widget-vocabulary-qfilter-alist)))
-                            (widget-value qwidget))))
+             new-svalue new-qvalue new-rvalue)
+        (setq new-svalue
+              (cdr (assoc (widget-value swidget)
+                          folio-widget-vocabulary-sfilter-alist))
+              new-qvalue (delq nil
+                               (mapcar (lambda (x)
+                                         (cdr (assoc x folio-widget-vocabulary-qfilter-alist)))
+                                       (widget-value qwidget))))
         (when (stringp rvalue)
           (setq new-rvalue (folio-chomp rvalue)))
         (when (and (folio-regexp-valid-p new-rvalue)
-                   (or (not (equal old-rvalue new-rvalue))
+                   (or (not (equal old-svalue new-svalue))
+                       (not (equal old-rvalue new-rvalue))
                        (not (equal old-qvalue new-qvalue))))
-          (let ((filtered (folio-widget-vocabulary-value
-                           new-rvalue new-qvalue)))
+          (let* ((folio-vocabulary-script new-svalue)
+                 (filtered (folio-widget-vocabulary-value
+                            new-rvalue (if new-svalue
+                                           (cons 'script new-qvalue)
+                                         new-qvalue))))
             (widget-value-set
              (folio-dialog-form-get 'vocabulary) filtered))
+          (widget-put qwidget :filter-value new-qvalue)
           (widget-put qwidget :filter-value new-qvalue)
           (widget-put rwidget :filter-value new-rvalue)
           (widget-setup))))))
