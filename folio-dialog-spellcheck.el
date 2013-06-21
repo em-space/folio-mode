@@ -422,6 +422,43 @@ children of WIDGET."
   (interactive)
   (folio-widget-repeat-scroll-down 'folio-widget-dict (point)))
 
+(defun folio-widget-primary-dictionary-values (widget)
+  (let* ((form (folio-dialog-form-get 'primary-dictionary))
+         (selected (when form
+                     (list (widget-get form :value))))
+         (dicts (sort (folio-with-parent-buffer
+                        (folio-dictionary-list)) 'string-lessp))
+         available)
+    (mapc (lambda (x)
+            (unless (member x selected)
+              (push x available)))
+          dicts)
+    (setq available (nreverse available))
+    available))
+
+(defun folio-widget-primary-dictionary-notify (widget &rest ignore)
+  (let ((value (widget-value widget)))
+    (folio-with-parent-buffer
+      (folio-change-dictionary value)))
+  (let ((secondary (folio-dialog-form-get
+                    'secondary-dictionary)))
+    (widget-value-set secondary
+                      (or (remove (widget-value widget)
+                                  (widget-value secondary))
+                          (list "<none>")))
+    (widget-setup)))
+
+(defun folio-widget-secondary-dictionary-values (_widget)
+  (cons "<none>"
+        (sort (folio-with-parent-buffer
+                (folio-dictionary-choices-list)) #'string-lessp)))
+
+(defun folio-widget-secondary-dictionary-notify (widget &rest ignore)
+  (folio-with-parent-buffer
+    (folio-change-dictionary
+     (folio-primary-dictionary)
+     (remove "<none>" (widget-value widget)))))
+
 (defun folio-dialog-spellcheck-page ()
   "Create the spell-checking page for the Folio mode project buffer."
   (widget-create 'const
@@ -444,30 +481,12 @@ Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Donec hendrerit tempor
                     :tag "Primary dictionary"
                     :format "%[ %t   %] %v"
                     :button-face 'custom-button
-                    :notify (lambda (widget &rest ignore)
-                              (let ((value (widget-value widget)))
-                                (folio-with-parent-buffer
-                                  (folio-change-dictionary value)))
-                              (let ((secondary (folio-dialog-form-get
-                                                'secondary-dictionary)))
-                                (widget-value-set secondary
-                                                  (or (remove (widget-value widget)
-                                                              (widget-value secondary))
-                                                      (list "<none>")))
-                                (widget-setup)))
                     :offset 14
                     :value-face 'folio-widget-field
                     :value (or (folio-with-parent-buffer
                                  (folio-primary-dictionary))
                                (car (folio-dictionary-list)))
-                    :values dicts
-                    :choices (lambda (widget)
-                               (mapcar (lambda (x)
-                                         (widget-convert 'const
-                                                         :value-face 'folio-widget-field
-                                                         :format "%v"
-                                                         :value x))
-                                       (widget-get widget :values)))))
+                    :values 'folio-widget-primary-dictionary-values))
 
     (insert-char ?\s 6)
     (widget-create 'push-button
@@ -494,24 +513,13 @@ Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Donec hendrerit tempor
                                       :append-button-args '(:button-face custom-button)
                                       :format "%v"
                                       :value '("<none>")
-                                      :notify (lambda (widget &rest ignore)
-                                                (folio-with-parent-buffer
-                                                  (folio-change-dictionary
-                                                   (folio-primary-dictionary)
-                                                   (remove "<none>" (widget-value widget)))))
-                                      `(folio-menu-choice
+                                      :notify 'folio-widget-secondary-dictionary-notify
+                                      '(folio-menu-choice
                                         :tag "Secondary dictionary"
                                         :format "%[ %t %] %v"
                                         :value "<none>"
-                                        :values ,(cons "<none>" dicts)
                                         :button-face custom-button
-                                        :choices (lambda (widget)
-                                                   (let ((values
-                                                          (cons "<none>"
-                                                                (folio-dictionary-choices-list))))
-                                                     (mapcar (lambda (x)
-                                                               (widget-convert 'const :value x))
-                                                             values))))))
+                                        :values folio-widget-secondary-dictionary-values)))
 
     (widget-insert "\n\n              Accept `good words' ")
     (folio-dialog-form
