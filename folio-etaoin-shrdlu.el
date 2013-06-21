@@ -474,7 +474,8 @@ characters with diacritical marks."
     (title-case . folio-vocabulary-filter-title-case)
     (numeric . folio-vocabulary-filter-numeric)
     (alpha-numeric . folio-vocabulary-filter-alpha-numeric)
-    (diacritics . folio-vocabulary-filter-diacritics))
+    (diacritics . folio-vocabulary-filter-diacritics)
+    (script . folio-vocabulary-filter-script))
   "Alist mapping filter name to filter function.")
 
 (defun folio-vocabulary-apply-filters (filters k v)
