@@ -471,9 +471,12 @@ possible values of KEY and SUB-KEY see
 
 (defconst folio-script-alist
   (let ((alist nil)
-        (rlist '((linear-b . "Linear B")
+        (rlist '((linear-b
+                  . "Linear B")
                  (cuneiform-numbers-and-punctuation
-                  . "Cuneiform Numbers and Punctuation"))))
+                  . "Cuneiform Numbers and Punctuation")
+                 (olt-italic ;; XXX emacs bug
+                  . "Old Italic"))))
     (mapc (lambda (x)
             (unless (assq x rlist)
               (setq alist (cons (cons
