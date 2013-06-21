@@ -385,7 +385,6 @@ Return the children of WIDGET."
 (defun folio-widget-vocabulary-qfilters-notify (widget child
                                                        &optional event)
   "Handle notifications for the quick filter widget."
-  (widget-put widget :choices (widget-value widget))
   (folio-schedule-timer 'vocabulary-filter))
 
 (defun folio-dialog-vocabulary-page ()
