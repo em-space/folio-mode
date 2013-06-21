@@ -338,7 +338,7 @@ Return the children of WIDGET."
 (defconst folio-widget-vocabulary-sfilter-alist
   (let ((init '("<any>" . nil)))
     (cons init
-          (sort folio-script-alist
+          (sort (copy-sequence folio-script-alist)
                 (lambda (x y)
                   (folio-uca-lessp (car x) (car y))))))
   "*List of script names for the script filter menu choice.")
