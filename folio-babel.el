@@ -486,7 +486,7 @@ possible values of KEY and SUB-KEY see
             (push (cons (cdr x) (car x)) alist)) rlist)
 
     alist)
-  "Alist mapping script name to the script symbol used by
+  "Alist mapping script name to the script name symbol used by
 `char-script-table'.")
 
 
