@@ -496,6 +496,12 @@ possible values of KEY and SUB-KEY see
 ;;;; Bidirectional input
 
 ;;;###autoload
+(defsubst folio-left-to-right-safe (str)
+  "Return string STR padded with left-to-right markers on either
+end."
+  (concat (string ?\u200E) str (string ?\u200E)))
+
+;;;###autoload
 (defun folio-left-to-right-mark ()
   "Insert an implicit left-to-right marker."
   (interactive)
