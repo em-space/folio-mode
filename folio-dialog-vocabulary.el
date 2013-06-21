@@ -318,10 +318,7 @@ Return the children of WIDGET."
       (save-selected-window
         (switch-to-buffer-other-window folio-parent-buffer)
         (run-hook-with-args
-         'folio-word-occurrence-functions (cadr event)))
-      ;; (re-)focus the child up-stack that originally produced the
-      ;; event
-      (widget-apply widget :focus child))
+         'folio-word-occurrence-functions (cadr event))))
      (t nil)))
    (t
     (widget-default-notify widget child event))))
