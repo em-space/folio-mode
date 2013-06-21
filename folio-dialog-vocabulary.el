@@ -355,7 +355,7 @@ Return the children of WIDGET."
   :button-face custom-button)
 
 (defun folio-widget-vocabulary-qfilter-values (widget)
-  (let* ((form (folio-dialog-form-get 'vocabulary-qfilters))
+  (let* ((form (folio-dialog-form-get 'vocabulary-quick-filters))
          (selected (when form
                      (widget-get form :choices)))
          available)
