@@ -341,7 +341,7 @@ Return the children of WIDGET."
           (sort folio-script-alist
                 (lambda (x y)
                   (folio-uca-lessp (car x) (car y))))))
-  "")
+  "*List of script names for the script filter menu choice.")
 
 (define-widget 'folio-widget-vocabulary-script-filter 'folio-menu-choice
   "A widget for setting a predefined script filter."
