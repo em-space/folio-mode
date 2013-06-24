@@ -206,20 +206,23 @@ Return values are ignored.")
 
 ;;XXXXX       (folio-lookup-dictionary word folio-vocabulary)))
 
-(defun folio-vocabluary-update-entry (entry count &optional dict sort-key)
+(defun folio-vocabluary-update-entry (entry count
+                                            &optional dict sort-key)
   "Update the vocabulary entry ENTRY with the word count COUNT.
 If DICT is non-nil update the dictionary data with DICT, too.
 DICT should be a cons of current spell-checker language and the
-list of suggestions.  If DICT is the symbol 'dict-reset instead
-reset the dictionary entry to nil."
-  (let ((entry (or entry (make-vector 3 nil))))
+list of suggestions.  DICT also can be a symbol marking the entry
+for inclusion into the session local, project local, or global
+dictionary.  The respective symbol names then should be session,
+project or global."
+  (let ((entry (or entry (make-vector 4 nil))))
     (aset entry 0 count)
     (when dict
-      (if (eq dict 'dict-reset)
-          (aset entry 1 nil)
+      (if (symbolp dict)
+          (aset entry 2 dict)
         (aset entry 1 (append (aref entry 1) (list dict)))))
     (when sort-key
-      (aset entry 2 sort-key))
+      (aset entry 3 sort-key))
     entry))
 
 (defsubst folio-vocabulary-entry-count (entry)
@@ -236,7 +239,7 @@ level functions most certainly want to make use of
 
 (defsubst folio-vocabulary-entry-sort-key (entry)
   "Return the sort-key for the vocabulary entry ENTRY."
-  (when entry (aref entry 2)))
+  (when entry (aref entry 3)))
 
 (defsubst folio-vocabulary-sort-key (word)
   (folio-vocabulary-entry-sort-key
@@ -297,22 +300,17 @@ COMMAND is one of the symbols accept-session, save-local, or
 save-global.  WORD identifies the dictionary entry."
   ;; XXX TODO undo-history
   (let* ((dict-alist '((accept-session
-                        . (folio-vocabulary-session
-                           "accepted this session"))
+                        . (session "accepted this session"))
                        (save-local
-                        . (folio-vocabulary-project
-                           "saved to project dictionary"))
+                        . (local "saved to project dictionary"))
                        (save-global
-                        . (folio-vocabulary-global
-                           "saved to global dictionary"))))
-         (entry (folio-lookup-dictionary word folio-vocabulary))
+                        . (global "saved to global dictionary"))))
+         (entry (folio-get-dictionary-entry word folio-vocabulary))
          (select (assq command dict-alist))
          (dict (cadr select)))
-    (unless (symbol-value dict)
-      (set dict (folio-make-vocabulary)))
-    (puthash word entry (symbol-value dict))
-    (folio-vocabluary-update-entry ;; XXXXX
-     entry (folio-vocabulary-entry-count entry) 'dict-reset)
+    ;; XXXXX update folio-dictionary by flagging the entry
+    (folio-vocabluary-update-entry
+     entry (folio-vocabulary-entry-count entry) dict)
     (message "`%s' %s" word (caddr select))))
 
 (defun folio-vocabulary-filter-misspellings (k v)
@@ -946,7 +944,7 @@ is reset when read."
 (defun folio-vocabulary-process-word (word pos doublon)
   "Process WORD at POS before updating the vocabulary table.
 DOUBLON if non-nil marks WORD as a doublon."
-  (let* ((entry (folio-vocabulary-get-entry word))
+  (let* ((entry (gethash word folio-next-vocabulary))
          (count (folio-vocabulary-entry-count entry))
          (dict (when (zerop count)
                  (let ((poss (progn
