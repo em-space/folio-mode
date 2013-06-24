@@ -231,6 +231,10 @@ level functions most certainly want to make use of
 `folio-vocabulary-dict-list'."
   (when entry (aref entry 1)))
 
+(defsubst folio-vocabulary-entry-misspelled-p (entry)
+  "Return non-nil if ENTRY is that of a misspelled word."
+  (and entry (null (aref entry 2)) (aref entry 1)))
+
 (defsubst folio-vocabulary-entry-sort-key (entry)
   "Return the sort-key for the vocabulary entry ENTRY."
   (when entry (aref entry 3)))
@@ -261,7 +265,7 @@ Higher level functions most certainly want to make use of
     (when folio-vocabulary
       (folio-map-dictionary
        (lambda (k v)
-         (when (folio-vocabulary-entry-dict-data v)
+         (when (folio-vocabulary-entry-misspelled-p v)
            (setq count (1+ count))))
        folio-vocabulary))
     count))
@@ -286,7 +290,6 @@ The value of a table entry is an absolute occurrence count."
                           :no-values t)
     alphabet))
 
-
 (defun folio-maintain-dictionary (command word)
   "Maintain dictionaries by applying COMMAND.
 
@@ -310,7 +313,7 @@ save-global.  WORD identifies the dictionary entry."
 (defun folio-vocabulary-filter-misspellings (k v)
   "Return t if the vocabulary entry K, V is marked misspelled.
 Also see `folio-vocabulary-apply-filters'."
-  (when (folio-vocabulary-entry-dict-data v) t))
+  (and (folio-vocabulary-entry-misspelled-p v) t))
 
 (defun folio-vocabulary-filter-good-words (k v)
   "Return t if the word for vocabulary entry K, V is not also in
@@ -647,7 +650,7 @@ If POS is non-nil return WORD with `point' updated to the next
 buffer location of WORD, or nil if WORD is not found.  If
 DICT-ENTRY is non-nil return that instead."
   (let ((entry (folio-lookup-dictionary word folio-vocabulary)))
-    (when (folio-vocabulary-entry-dict-data entry)
+    (when (folio-vocabulary-entry-misspelled-p entry)
       (if pos
           (progn
             (goto-char pos)
@@ -953,7 +956,8 @@ DOUBLON if non-nil marks WORD as a doublon."
     (when dict
       (setq props (plist-put props 'folio-misspelled t)))
     (when (or doublon (and entry
-                           (folio-vocabulary-entry-dict-data entry)
+                           (folio-vocabulary-entry-misspelled-p
+                            entry)
                            (not (zerop count))))
       (setq props (plist-put props 'folio-doublon t))
       ;; Propertize sibling ...
