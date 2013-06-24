@@ -200,12 +200,6 @@ Return values are ignored.")
                            'equal)
                    :size folio-dictionary-size))
 
-(defun folio-vocabulary-get-entry (word)
-  "Return the vocabulary entry for WORD."
-  (gethash word folio-next-vocabulary))
-
-;;XXXXX       (folio-lookup-dictionary word folio-vocabulary)))
-
 (defun folio-vocabluary-update-entry (entry count
                                             &optional dict sort-key)
   "Update the vocabulary entry ENTRY with the word count COUNT.
@@ -380,8 +374,8 @@ character with a numeric value."
 (defun folio-vocabulary-filter-title-case (k v)
   "Return non-nil if the vocabulary entry K, V contains
 characters in title case.  Title case characters are in ligatures
-containing uppercase followed by lowercase letters (e.g.,  ,  ,
- , and  ) or Greek script."
+containing uppercase followed by lowercase letters (e.g., ǅ, ǈ,
+ǋ, and ǲ) or Greek script."
   (let ((i 1)
         (j (length k))
         c titlecasep)
