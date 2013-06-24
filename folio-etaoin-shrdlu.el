@@ -245,10 +245,8 @@ level functions most certainly want to make use of
 
 (defun folio-vocabulary-word-count (&optional word)
   "Return the number of unique words in the vocabulary.
-If WORD is non-nil return its frequency count instead.
-Higher level functions most certainly want to make use of
-`folio-vocabulary-word-count', `folio-vocabulary-miss-count' and
-`folio-vocabulary-dict-list'."
+If WORD is non-nil return its frequency count instead.  See also
+`folio-vocabulary-miss-count'."
   (if folio-vocabulary
       (if word
           (folio-vocabulary-entry-count
@@ -258,9 +256,7 @@ Higher level functions most certainly want to make use of
 
 (defun folio-vocabulary-miss-count ()
   "Return the number of misspelled words in the vocabulary.
-Higher level functions most certainly want to make use of
-`folio-vocabulary-word-count', `folio-vocabulary-miss-count' and
-`folio-vocabulary-dict-list'."
+See also `folio-vocabulary-word-count'."
   (let ((count 0))
     (when folio-vocabulary
       (folio-map-dictionary
@@ -269,13 +265,6 @@ Higher level functions most certainly want to make use of
            (setq count (1+ count))))
        folio-vocabulary))
     count))
-
-(defun folio-vocabulary-dict-list (word)
-  "Return the dictionary data for the word WORD.
-This is an alist with the dictionary language as a BCP 47 tag in
-the car and spellchecker suggestions in the cdr."
-  (folio-vocabulary-entry-dict-data
-   (cdar (folio-lookup-dictionary word folio-vocabulary))))
 
 (defun folio-vocabulary-alphabet ()
   "Return the alphabet for the vocabulary as a char table.
@@ -305,10 +294,8 @@ save-global.  WORD identifies the dictionary entry."
          (entry (folio-get-dictionary-entry word folio-vocabulary))
          (select (assq command dict-alist))
          (dict (cadr select)))
-    ;; XXXXX update folio-dictionary by flagging the entry
     (folio-vocabluary-update-entry
-     entry (folio-vocabulary-entry-count entry) dict)
-    (message "`%s' %s" word (caddr select))))
+     entry (folio-vocabulary-entry-count entry) dict)))
 
 (defun folio-vocabulary-filter-misspellings (k v)
   "Return t if the vocabulary entry K, V is marked misspelled.
