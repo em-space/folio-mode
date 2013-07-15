@@ -169,9 +169,9 @@
 
 (defun folio-faces-default ()
   "Setup buffer-specific faces for Folio mode.
-In particular remap the default face to allow for face
-definitions in the text buffer that are more suitable for
-spotting misspelled words and scannos."
+Specifically remap the default face to allow for face definitions
+in the text buffer that are more suitable for spotting misspelled
+words and scannos."
   (interactive)
   (make-local-variable 'face-remapping-alist)
   (assq-delete-all 'default face-remapping-alist)
