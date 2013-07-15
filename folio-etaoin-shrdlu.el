@@ -223,12 +223,12 @@ project or global."
   "Return the word count for the vocabulary entry ENTRY."
   (if entry (aref entry 0) 0))
 
-(defsubst folio-vocabulary-entry-dict-data (entry)
-  "Return the dictionary data for the vocabulary entry ENTRY.
+(defsubst folio-vocabulary-entry-spellchecker-data (entry)
+  "Return the spellchecker data for the vocabulary entry ENTRY.
 This defun is meant for de-structuring the entry only.  Higher
 level functions most certainly want to make use of
 `folio-vocabulary-word-count', `folio-vocabulary-miss-count' and
-`folio-vocabulary-dict-list'."
+`folio-vocabulary-spellchecker-data'."
   (when entry (aref entry 1)))
 
 (defsubst folio-vocabulary-entry-misspelled-p (entry)
@@ -242,6 +242,12 @@ level functions most certainly want to make use of
 (defsubst folio-vocabulary-sort-key (word)
   (folio-vocabulary-entry-sort-key
    (folio-lookup-dictionary word folio-vocabulary)))
+
+(defun folio-vocabulary-spellchecker-data (word)
+  "Return the spellchecker data for WORD."
+  (folio-vocabulary-entry-spellchecker-data
+   (cdar (folio-lookup-dictionary
+          word folio-vocabulary))))
 
 (defun folio-vocabulary-word-count (&optional word)
   "Return the number of unique words in the vocabulary.
@@ -1117,7 +1123,6 @@ pending input is observed."
                   (save-excursion
                     (folio-font-lock-fontify-region beg end))
                   (force-mode-line-update))))))))))
-
 
 ;;;###autoload
 (defun folio-next-misspelling (&optional type skip-doublon)
