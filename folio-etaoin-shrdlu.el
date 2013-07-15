@@ -680,9 +680,11 @@ DICT-ENTRY is non-nil return that instead."
 Move point to the new position possibly wrapping around.  Return
 that position if another occurrence of WORD has been found, or
 nil otherwise.  This is the hook function run from
-`folio-word-occurrence-functions', or `folio-word-substitution-functions'."
+`folio-word-occurrence-functions', or
+`folio-word-substitution-functions'."
   (interactive "sWord: ")
-  (let ((buffer (get-buffer (or buffer-or-name (current-buffer))))
+  (let ((buffer (get-buffer (or buffer-or-name
+                                (current-buffer))))
         (case-fold-search t)
         (word (regexp-opt (list word) 'words))
         (old-pos (point))
