@@ -100,7 +100,7 @@ for both apostrophe and single quotation mark."
   "Initial pre-allocation size of an in-memory dictionary.
 A textbook of 500 pages has about 150000 words, 10% of which
 maybe are unique."
-  :tag "Dictionary size"
+  :tag "Default dictionary size"
   :group 'folio-technical
   :type 'number)
 
@@ -113,7 +113,7 @@ maybe are unique."
 (defcustom folio-vocabulary-build-delay 0.3
   "Time in seconds to wait before resuming vocabulary build and spell-check."
   :group 'folio-spellcheck
-  :tag "Vocabulary Build Delay"
+  :tag "Vocabulary build delay"
   :type 'number)
 
 (defcustom folio-vocabulary-build-pause 0.1
@@ -129,14 +129,14 @@ maybe are unique."
 
 (defvar folio-vocabulary nil
   "Hash table storing the buffer local vocabulary.
-This might include word frequency counts and suggestions from a
-spell checker.")
+The value may include word frequency counts and suggestions from
+a spell checker.")
 (make-variable-buffer-local 'folio-vocabulary)
 
 (defvar folio-next-vocabulary nil
   "Hash table storing the buffer local vocabulary.
-This might include word frequency counts and suggestions from a
-spell checker.")
+The value may include word frequency counts and suggestions from
+a spell checker.")
 (make-variable-buffer-local 'folio-next-vocabulary)
 
 (defvar folio-vocabulary-session nil
@@ -672,6 +672,7 @@ DICT-ENTRY is non-nil return that instead."
       t))))
 
 (defun folio-word-marker-hide ()
+  "Hide the word marker."
   (when folio-word-marker
     (delete-overlay folio-word-marker)))
 
