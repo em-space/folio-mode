@@ -90,9 +90,10 @@ out any word that is in the `good word' list."
     words))
 
 (defun folio-widget-dict-lookup (_widget word)
-  "Adapt `folio-vocabulary-dict-list' for use with widgets."
+  "Adapt `folio-vocabulary-spellchecker-data' for use with
+widgets."
   (folio-with-parent-buffer
-    (folio-vocabulary-dict-list word)))
+    (folio-vocabulary-spellchecker-data word)))
 
 (defun folio-widget-dict-frequency-lookup (_widget word)
   "Adapt `folio-vocabulary-word-count' for use with widgets."
