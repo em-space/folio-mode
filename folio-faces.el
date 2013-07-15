@@ -158,6 +158,7 @@
   "Face for a dictionary heading in corresponding views."
   :group 'folio-faces)
 
+;;;###autoload
 (defface folio-widget-field
   '((((class color)
       (background dark))
@@ -168,6 +169,7 @@
   :group 'folio-faces)
 
 (defun folio-faces-default ()
+;;;###autoload
 (defun folio-faces-set-default ()
   "Setup buffer-specific faces for Folio mode.
 Specifically remap the default face to allow for face definitions
