@@ -26,6 +26,8 @@
 
 ;;; Code:
 
+(require 'face-remap)
+
 (defgroup folio-faces nil
   "Customize faces used in Folio mode."
   :tag "Faces"
@@ -168,7 +170,9 @@
   "Face for input fields."
   :group 'folio-faces)
 
-(defun folio-faces-default ()
+;;;###autoload
+(defvar folio-faces-remap-cookie nil)
+
 ;;;###autoload
 (defun folio-faces-set-default ()
   "Setup buffer-specific faces for Folio mode.
@@ -176,11 +180,10 @@ Specifically remap the default face to allow for face definitions
 in the text buffer that are more suitable for spotting misspelled
 words and scannos."
   (interactive)
-  (make-local-variable 'face-remapping-alist)
-  (assq-delete-all 'default face-remapping-alist)
-  (add-to-list 'face-remapping-alist (cons 'default 'folio-mode-default))
-  (redraw-display))
-
+  (if folio-faces-remap-cookie
+      (face-remap-remove-relative folio-faces-remap-cookie)
+    (set (make-local-variable 'folio-faces-remap-cookie)
+         (face-remap-add-relative 'default 'folio-mode-default))))
 
 
 (provide 'folio-faces)
