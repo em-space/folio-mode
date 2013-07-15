@@ -168,6 +168,7 @@
   :group 'folio-faces)
 
 (defun folio-faces-default ()
+(defun folio-faces-set-default ()
   "Setup buffer-specific faces for Folio mode.
 Specifically remap the default face to allow for face definitions
 in the text buffer that are more suitable for spotting misspelled
