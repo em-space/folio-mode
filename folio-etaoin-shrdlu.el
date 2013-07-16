@@ -683,6 +683,17 @@ DICT-ENTRY is non-nil return that instead."
   (when folio-word-marker
     (delete-overlay folio-word-marker)))
 
+(defcustom folio-sync-current-word nil
+  "If non-nil synchronize the various project buffer views with the
+currently selected word."
+  :tag "Whether to synchronize dictionary and vocabulary views"
+  :type '(choice
+          (const :tag "Don't synchronize" nil)
+          (const :tag "Synchronize all" 'all)
+          (const :tag "Synchronize with vocabulary view" 'vocabulary)
+          (const :tag "Synchronize with dictionary view" 'dictionary))
+  :group 'folio-spellcheck)
+
 (defun folio-vocabulary-current-word (scope)
   "Return the current word in the context or scope SCOPE.
 SCOPE should be a symbol like 'dictionary' or 'vocabulary'."
