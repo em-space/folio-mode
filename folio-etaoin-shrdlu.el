@@ -1079,8 +1079,11 @@ Collation Algorithm."
                   (folio-vocabulary-entry-sort-key (cdr y)))))
          (table-data (sort (folio-hash-table-to-alist
                             folio-next-vocabulary) lessp)))
+    ;; Slot 0 caches characters from the vocabulary with diacritical
+    ;; marks; slot 1 maintains currently selected words from the
+    ;; vocabulary for the various views.
     (setq folio-vocabulary
-          (folio-make-dictionary table-data :extra-slots 1))))
+          (folio-make-dictionary table-data :extra-slots 2))))
 
 (defun folio-vocabulary-build-progress (buffer progress)
   "Provide visual feedback for spell-checking and/or vocabulary build."
