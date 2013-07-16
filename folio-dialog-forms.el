@@ -506,18 +506,34 @@ an invalid value."
   "Value create the widget WIDGET."
   (widget-put widget :value-pos (copy-marker (point)))
   (set-marker-insertion-type (widget-get widget :value-pos) t)
-  (let* ((keys (delq nil (widget-get widget :value)))
-         (i 0)
-         (j (min (length keys)
+  (let* ((value (widget-get widget :value))
+         (keys (if (listp (car value)) (car value) value))
+         (current-key (when (listp (car value)) (cdr value)))
+         (current-index 0)
+         last-key i j children)
+    ;; If the car of the widget's value is a list of items assume it's
+    ;; cdr to be the item currently selected and put this at position
+    ;; two, leaving a one-item context at position one.
+    (when current-key
+      (setq last-key (car keys))
+      (while (not (equal (car keys) current-key))
+        (setq last-key (car keys)
+              keys (cdr keys)
+              current-index (1+ current-index)))
+      (unless (equal last-key (car keys))
+        (setq keys (cons last-key keys))
+        (setq current-index (1+ current-index))))
+    (setq i 0
+          j (min (length keys)
                  (+ i (or (widget-get widget :num-entries) 10))))
-         children)
     (while (< i j)
       (push (widget-editable-list-entry-create
              widget (nth i keys) t) children)
       (setq i (1+ i)))
     (if children
         (progn
-          (widget-put widget :entry-index (max (1- i) 0))
+          (widget-put widget :entry-index
+                      (max (1- (+ i current-index)) 0))
           (widget-put widget :children (nreverse children))
           (widget-apply widget :focus))
       (widget-create-child-and-convert
@@ -661,7 +677,8 @@ ARG is non-nil scroll up instead."
         (let ((index (widget-get widget :entry-index))
               (children (widget-get widget :children)))
           (when children
-            (let ((keys (widget-get widget :value)))
+            (let* ((value (widget-get widget :value))
+                   (keys (if (listp (car value)) (car value) value)))
               (if arg
                   (let ((new-index (min (1+ index)
                                         (1- (length keys)))))
