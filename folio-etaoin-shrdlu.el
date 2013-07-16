@@ -683,6 +683,22 @@ DICT-ENTRY is non-nil return that instead."
   (when folio-word-marker
     (delete-overlay folio-word-marker)))
 
+(defun folio-vocabulary-current-word (scope)
+  "Return the current word in the context or scope SCOPE.
+SCOPE should be a symbol like 'dictionary' or 'vocabulary'."
+  (cdr (assq scope (folio-dictionary-extra-slot
+                    folio-vocabulary 1))))
+
+(defun folio-vocabulary-set-current-word (word scope)
+  "Set the current WORD in the context or scope SCOPE.
+SCOPE should be a symbol like 'dictionary' or 'vocabulary'."
+  (let ((current-word
+         (assq-delete-all scope (folio-dictionary-extra-slot
+                                 folio-vocabulary 1))))
+    (folio-dictionary-set-extra-slot
+     folio-vocabulary 1 (push (cons scope word)
+                              current-word))))
+
 (defun folio-locate-word (word &optional buffer-or-name)
   "Search for WORD in current buffer.
 Move point to the new position possibly wrapping around.  Return
