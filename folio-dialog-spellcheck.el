@@ -22,7 +22,7 @@
 
 ;;; Commentary:
 
-;; Define the Folio project buffer page spell-checking.
+;; Define the spell-checking page of the Folio project buffer.
 
 ;;; Code:
 
