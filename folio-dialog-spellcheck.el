@@ -70,24 +70,54 @@
     map)
   "Keymap for the dictionary widget.")
 
+(defun folio-widget-dict-current-word (words)
+  "Adapt `folio-vocabulary-current-word' for use with the
+dictionary view.  WORDS are the keys the widget currently is
+maintaining."
+  (let ((scope (cond
+                ((memq (eval folio-sync-current-word)
+                       '(all vocabulary)) 'vocabulary)
+                ((eq (eval folio-sync-current-word) 'dictionary)
+                 'dictionary)
+                (t 'dictionary)))
+        current-word)
+    (setq current-word (folio-with-parent-buffer
+                         (folio-vocabulary-current-word scope)))
+    (unless (member current-word words)
+      (setq current-word (folio-with-parent-buffer
+                           (folio-vocabulary-current-word
+                            'dictionary))))
+
+      current-word))
+
+(defun folio-widget-dict-set-current-word (word)
+  "Adapt `folio-vocabulary-set-current-word' for use with the
+dictionary widget.  WORD is the key currently in focus."
+  (folio-with-parent-buffer
+   (folio-vocabulary-set-current-word word 'dictionary)))
+
 (defun folio-widget-dict-value (&optional regexp)
   "Return the value for the dictionary widget.
 If the regexp REGEXP is non-nil filter out any words in the
 vocabulary not matching.  If the GWL widget is toggled on filter
 out any word that is in the `good word' list."
-  (let* ((filters (append '(misspellings)
-                          (when (widget-value-value-get
-                                 (folio-dialog-form-get 'dict-gwl))
-                            '(good-words))))
-         (words (folio-with-parent-buffer
-                  (folio-vocabulary-list 'lexicographic filters))))
+  (let ((filters (append '(misspellings)
+                         (when (widget-value-value-get
+                                (folio-dialog-form-get 'dict-gwl))
+                           '(good-words))))
+        current-word words)
+    (setq words (folio-with-parent-buffer
+                  (folio-vocabulary-list 'lexicographic filters))
+          current-word (folio-widget-dict-current-word words))
     (when (and (stringp regexp)
                (not (string-equal regexp "")))
       (setq words
             (folio-filter-list
              words (lambda (x)
                      (string-match-p regexp x)))))
-    words))
+    (if current-word
+        (cons words current-word)
+      words)))
 
 (defun folio-widget-dict-lookup (_widget word)
   "Adapt `folio-vocabulary-spellchecker-data' for use with
@@ -262,8 +292,10 @@ The widget maintains a misspelled word and its frequency count."
   "Value create the widget WIDGET.
 WIDGET must be of type `folio-widget-dict-entry-item'."
   (let* ((word (widget-get widget :value))
-         (focused (widget-get (widget-get widget :parent) :focus-entry))
-         (frequency (or (widget-apply widget :frequency-lookup word) 0))
+         (focused (widget-get (widget-get
+                               widget :parent) :focus-entry))
+         (frequency (or (widget-apply
+                         widget :frequency-lookup word) 0))
          (gwl (when (widget-get widget :good-word-lookup)
                 (widget-apply widget :good-word-lookup word)))
          (tag (concat (propertize
@@ -372,6 +404,9 @@ children of WIDGET."
     (widget-apply widget :action))
   ;; Position cursor at the beginning of the node item.
   (when arg
+    (let ((current-word (widget-get (widget-get widget :node)
+                                    :dict-value)))
+      (folio-widget-dict-set-current-word current-word))
     (goto-char (widget-get
                 (car (widget-get widget :children)) :from))))
 
@@ -404,7 +439,6 @@ children of WIDGET."
       (folio-with-parent-buffer
         (run-hook-with-args 'folio-word-substitution-functions
                             (caadr event) (cdadr event))))
-
      ((eq (car-safe event) 'dict-apply)
       (widget-apply widget :delete-at child)
       (folio-with-parent-buffer

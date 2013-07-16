@@ -79,6 +79,24 @@
     map)
   "Keymap for the vocabulary widget.")
 
+(defun folio-widget-vocabulary-current-word ()
+  "Retrieve the current/previously selected word for the vocabulary view."
+  (let ((scope (cond ((memq (eval folio-sync-current-word)
+                            '(all dictionary))
+                      'dictionary)
+                     ((eq (eval folio-sync-current-word)
+                          'vocabulary)
+                      'vocabulary)
+                     (t 'vocabulary))))
+  (folio-with-parent-buffer
+    (folio-vocabulary-current-word scope))))
+
+(defun folio-widget-vocabulary-set-current-word (word)
+  "Adapt `folio-vocabulary-set-current-word' for use with the
+vocabulary widget.  WORD is the key currently in focus."
+  (folio-with-parent-buffer
+   (folio-vocabulary-set-current-word word 'vocabulary)))
+
 (defun folio-widget-vocabulary-value (&optional regexp filters)
   "Return the value for the vocabulary widget.
 If the regexp REGEXP is non-nil filter out any words in the
@@ -87,8 +105,12 @@ out any word that is in the `good word' list."
   (when (and (stringp regexp)
              (not (string-equal regexp "")))
     (setq filters (cons regexp filters)))
-  (folio-with-parent-buffer
-    (folio-vocabulary-list 'lexicographic filters)))
+  (let ((words (folio-with-parent-buffer
+                 (folio-vocabulary-list 'lexicographic filters)))
+        (current-word (folio-widget-vocabulary-current-word)))
+    (if (and current-word (member current-word words))
+        (cons words current-word)
+      words)))
 
 (defun folio-widget-vocabulary-frequency-lookup (_widget word)
   "Adapt `folio-vocabulary-word-count' for use with widgets."
@@ -298,6 +320,9 @@ Return the children of WIDGET."
     (widget-apply widget :action))
   ;; Position cursor at the beginning of the node item.
   (when arg
+    (let ((current-word (widget-get (widget-get widget :node)
+                                    :vocabulary-value)))
+      (folio-widget-vocabulary-set-current-word current-word))
     (goto-char (widget-get
                 (car (widget-get widget :children)) :from))))
 
