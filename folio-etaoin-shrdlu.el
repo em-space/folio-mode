@@ -111,7 +111,8 @@ maybe are unique."
   :type 'boolean)
 
 (defcustom folio-vocabulary-build-delay 0.3
-  "Time in seconds to wait before resuming vocabulary build and spell-check."
+  "Time in seconds to wait before resuming vocabulary build and
+spell-check."
   :group 'folio-spellcheck
   :tag "Vocabulary build delay"
   :type 'number)
