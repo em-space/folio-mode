@@ -587,7 +587,7 @@ marker should be paired by U+202C as with
                 (setq match (1+ match)))) words)
       ;; Normalize the match count by the number of words investigated
       ;; and the relative length of the regexp, i.e. the number of
-      ;; constituents of that regexo.  The +1 is just for sanity
+      ;; constituents of that regexp.  The +1 is just for sanity
       ;; should one of the lists be empty; the exact value doesn't
       ;; matter either: it is a normalization after all.
       (/ (float match) (1+ len) (1+ (length words))))))
