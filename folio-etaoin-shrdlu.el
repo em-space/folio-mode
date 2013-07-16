@@ -1069,6 +1069,10 @@ pending input is observed."
 (make-variable-buffer-local 'folio-vocabulary-progress-last-update)
 
 (defun folio-vocabulary-build-dictionary ()
+  "Construct a dictionary data structure.
+The dictionary is constructed from the hash-table
+`folio-next-vocabulary' with the keys sorted by the Unicode
+Collation Algorithm."
   (let* ((lessp (lambda (x y)
                  (folio-uca-lessp
                   (folio-vocabulary-entry-sort-key (cdr x))
@@ -1079,7 +1083,7 @@ pending input is observed."
           (folio-make-dictionary table-data :extra-slots 1))))
 
 (defun folio-vocabulary-build-progress (buffer progress)
-  ""
+  "Provide visual feedback for spell-checking and/or vocabulary build."
   (with-current-buffer buffer
     (when (or (eq progress 'done)
               (null folio-vocabulary-progress-indicator)
