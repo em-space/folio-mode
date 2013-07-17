@@ -488,7 +488,7 @@ This variable is intended for internal use.")
     ;; XXX save hash document hash
     (with-temp-buffer
       (insert
-       ";; -*- mode: emacs-lisp; coding: emacs-mule; -*-\n"
+       ";; -*- mode: emacs-lisp; coding: utf-8; -*-\n"
        ";;\n;; Emacs folio-mode Project File\n"
        ";;\n;; =======================================================\n"
        ";; NOT FOR EDITING. YOU'LL RISK LOOSING ALL PROJECT STATE.\n"
@@ -531,7 +531,7 @@ This variable is intended for internal use.")
             (replace-match (current-time-string)))
 
           (let ((file-precious-flag t)
-                (coding-system-for-write 'emacs-mule))
+                (coding-system-for-write 'utf-8))
             (write-region (point-min) (point-max) save-file nil
                           (unless (called-interactively-p 'any) 'quiet))))))))
 
