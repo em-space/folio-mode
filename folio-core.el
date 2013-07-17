@@ -168,6 +168,41 @@ page at point."
           (message (mapconcat #'identity (nreverse names) ", "))
         (nreverse names)))))
 
+(defun folio-save-proofers ()
+  "Marshaller function for page markers as cached by the
+buffer-local `folio-proofer-from-page' variable at run-time for
+use with `folio-save-hook' (which see)."
+  (when folio-proofer-from-page
+    (let (names proofers)
+      (maphash (lambda (k v)
+                 (setq names (cons (cons v k) names)))
+               (aref folio-proofer-from-page 0))
+      (mapc (lambda (x)
+              (push x proofers))
+            (aref folio-proofer-from-page 1))
+      (cons names proofers))))
+
+(defun folio-restore-proofers (proofers)
+  "Demarshaller function for page proof-reader names as cached by
+the `folio-proofer-from-page' variable for use with
+`folio-restore-hook'.  The inverse operation is defined by
+`folio-save-proofers'."
+  (let ((names (make-hash-table :test 'equal)))
+    (mapc (lambda (x)
+            (puthash (cdr x) (car x) names)) (car proofers))
+    (setq folio-proofer-from-page (make-vector 2 nil))
+    (aset folio-proofer-from-page 0 names)
+    (aset folio-proofer-from-page 1 (vconcat
+                                     (nreverse (cdr proofers))))
+    (add-to-list 'folio-save-list 'folio-proofer-from-page)))
+
+;; register proof-reader names as project state variable with
+;; persistence
+(put 'folio-proofer-from-page
+     'folio-save-value 'folio-save-proofers)
+(put 'folio-proofer-from-page
+     'folio-restore-value 'folio-restore-proofers)
+
 (defun folio-page-label-at-page (&optional page)
   "Return the page label (folio number) for PAGE.
 PAGE is the technical page number.  If omitted assume the current
