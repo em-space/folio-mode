@@ -30,7 +30,7 @@
 (require 'folio-atoms)
 
 (defconst folio-footnote-signs '(?* ?† ?‡ ?§ ?‖ ?¶)
-  "Typographical devices used to point to footnotes.
+  "Typographical devices for footnotes.
 In traditional order of application these are the asterisk,
 U+002A, the dagger or obelisk, U+2020, the double dagger or
 diesis, U+2021, the section sign, U+00A7, the double vertical
@@ -45,14 +45,14 @@ region).")
 
 (defvar folio-auto-style-function nil
   "Mode-specific function to return a style for transforming a
-`thing-at-point', or nil if there is none. The return value must
+`thing-at-point', or nil if there is none.  The return value must
 be a symbol \(not a region).")
 (make-local-variable 'folio-auto-style-function)
 
 (defconst folio-dash '("-" "‐" "--" "–" "----" "—")
   "*List of dash-like glyphs.
-This variable lists dash-like glyphs in particular hyphen, minus,
-en-dash, em-dash glyphs and their equivalents.")
+This variable lists dash-like glyphs in particular hyphen-minus,
+minus, en-dash, em-dash glyphs and their equivalents.")
 
 (put 'folio-dash 'desc '("HYPHEN-MINUS" "HYPHEN U+2010" "EN DASH \
 equivalent" "EN DASH U+2013" "EM DASH equivalent" "EM DASH \
