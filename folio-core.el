@@ -59,7 +59,7 @@ is also referred to as the technical page number.")
 (make-variable-buffer-local 'folio-page-from-label)
 
 (defvar folio-proofer-from-page nil
-  "Caches proofer and foofer names for each page.")
+  "Caches proof-reader names for each page.")
 (make-variable-buffer-local 'folio-proofer-from-page)
 
 (defvar folio-text-author nil
@@ -146,6 +146,27 @@ label rule has changed."
 ;; register page labels as project state variable with persistence
 (put 'folio-page-label-rule
      'folio-restore-value 'folio-restore-page-labels)
+
+(defalias 'folio-what-proofer 'folio-proofers-at-page)
+
+(defun folio-proofers-at-page (&optional page)
+  "Return the proof-reader names for PAGE.
+PAGE is the technical page number.  If omitted assume the current
+page at point."
+  (interactive "nPage number: ")
+  (let ((page (max 0 (1- (or page (folio-page-at-point)))))
+        names proofers)
+    (unless (or (null folio-proofer-from-page)
+                (> page (length (aref folio-proofer-from-page 1))))
+      (mapc (lambda (x)
+              (push (gethash x
+                             (aref folio-proofer-from-page 0))
+                    names)) (string-to-list
+                             (aref (aref folio-proofer-from-page 1)
+                                   page)))
+      (if (folio-called-interactively-p 'any)
+          (message (mapconcat #'identity (nreverse names) ", "))
+        (nreverse names)))))
 
 (defun folio-page-label-at-page (&optional page)
   "Return the page label (folio number) for PAGE.
