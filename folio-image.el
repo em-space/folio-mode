@@ -241,9 +241,7 @@ currently displayed image, or of the image SPEC otherwise."
 
 (defun folio-transform-image (&optional spec)
   "Transform current buffer image."
-  (let* ((image (or spec (image-get-display-property))) ;; XXX remove
-         (args (folio-transform-image-args spec)))
-    ;; (message "XXX ---- args %s type %s" args (folio-image-prop :type image))
+  (let ((args (folio-transform-image-args spec)))
     (when args
       (let* ((program folio-imagemagick-convert-program)
              (coding-system-for-read 'no-conversion)
@@ -454,8 +452,6 @@ return value is that of `call-process'."
               (error "This version of Emacs does not \
 appear to support PNG images"))
             (switch-to-buffer-other-window "*Page Scan*")
-            ;; (insert-file-contents dot-png t nil nil t)
-;            (insert-image (create-image dot-png 'png))
             (let ((inhibit-read-only t))
               (erase-buffer)
               (goto-char (point-min))
