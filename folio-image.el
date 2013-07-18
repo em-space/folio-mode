@@ -363,6 +363,9 @@ extension such as `047.png'."
 
     ;; XXX C-+ zoom in
     ;; XXX C-- zoom out
+    ;; XXX Emacs MacPort: gesture events <magnify-up> <magnify-down>
+    ;;(when (fboundp 'mac-magnify-text-scale)
+    ;;  (define-key map [remap mac-magnify-text-scale] 'folio-image-zoom))
 
     ;; Remap `forward-char', `backward-char' to left/right panning.
     (define-key map [remap right] 'folio-image-forward-hscroll)
@@ -456,6 +459,7 @@ appear to support PNG images"))
               (erase-buffer)
               (goto-char (point-min))
               (insert-image (folio-create-image 'png dot-png))
+              ;; XXX actually apply the 'default' transformation
               (folio-image-fit-to-width)
               (set-buffer-modified-p nil))))))))
 
