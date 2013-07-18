@@ -95,6 +95,39 @@ the proofer names for the current page can be queried."
       (folio-restore-page-scans page-scans))))
 
 
+;;;; semantic elements, definition and movement
+
+(defconst folio-word "Word"
+  "Semantic element of a word.")
+
+(defun folio-forward-word (&optional arg)
+  "Move point forward ARG words or backward if ARG is negative.
+This function is like the builtin `forward-word' except for
+hyphenated words where the second half of the word is located on
+the next or previous page.  I.e. different from `forward-word'
+movement considers the hyphen and optionally the asterisk for a
+hyphenated word at the end of a line or the leading asterisk for
+a hyphenated word at the beginning of a line part of the word."
+  (interactive "^p")
+  (when (forward-word arg)
+    (cond
+     ((> (or arg 1) 0)
+      (when (and (eq (char-after (point)) ?-)
+                 (memq (char-after (1+ (point))) '(?* ?\n)))
+        (forward-char 2)))
+     (t
+      (when (and (eq (char-before (point)) ?*)
+                 (= (point) (1+ (line-beginning-position))))
+        (backward-char 1))))
+    t))
+
+(defun folio-backward-word (&optional arg)
+  "Move point backward ARG words or forward if ARG is negative.
+See also `folio-forward-word'."
+  (interactive "^p")
+  (folio-forward-word (- (or arg 1))))
+
+(put 'folio-word 'forward-op 'folio-forward-word)
 (provide 'folio-segmentation)
 
 ;;; folio-segmentation.el ends here
