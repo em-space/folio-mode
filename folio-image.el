@@ -462,6 +462,7 @@ appear to support PNG images"))
             (set-buffer-modified-p nil)
             (folio-image-mode)))))))
 
+;;;###autoload
 (defun folio-sync-page-scan (&optional point)
   "Synchronize page scan with POINT."
   (interactive)
