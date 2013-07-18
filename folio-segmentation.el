@@ -161,6 +161,9 @@ occurrence count of an un-hyphenated variant."
           (single-key-description help-char)
           " for help) "))
 
+;; XXX TODO integrate 'folio-stemmer.el'
+;; XXX make dictionary prefix search available
+;; XXX use the current vocabulary folio-dictionary for assistance
 (defun folio-join-words (&optional mode)
   "Join the two hyphenated words at point.
 
