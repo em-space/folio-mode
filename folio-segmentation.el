@@ -32,6 +32,7 @@
 (require 'folio-atoms)
 (require 'folio-babel)
 (require 'folio-core)
+(require 'folio-things)
 
 ; XXX:TODO query custom value, hook into before-save
 
@@ -140,10 +141,10 @@ See also `folio-forward-word'."
 
 \(Type `q' to exit the Help command.)
 
-j           Join the two halfs of the word.
-k or -      Keep the hyphen.
-t or *      Tag the hypen with an asterisk for a later check.
-C-g         Abort the command."))
+j         Join the two halfs of the word.
+k or -    Keep the hyphen.
+t or *    Tag the hypen with an asterisk for a later check.
+C-g       Abort the command."))
 
 (defun folio-join-words-prompt (lhs rhs count diff)
   "Return the prompt for `folio-join-words'.
@@ -281,6 +282,227 @@ prefix argument; when called from Lisp, MODE defaults to ask."
               (error "Unrecognized argument"))))
         t)
       nil)))
+
+(defun folio-insert-section-break (section)
+  "At current line insert the section break SECTION.
+
+SECTION normally is a string consisting of one, two or four
+new-line characters.
+
+Before actually inserting SECTION remove any blank lines before
+and after point."
+  (while (and (not (bobp))
+              (eq (char-after (line-beginning-position -2)) ?\n))
+    (forward-line -1))
+  (while (eq (char-after (point)) ?\n)
+    (delete-char 1))
+  (insert section))
+
+(defun folio-join-pages-mark (&optional clear)
+  "Create a marker for a page boundary at the current line.
+
+The current line should be non-empty, i.e. contain more than a
+new-line character.  If called with a non-nil argument CLEAR only
+remove any existing marker.  Return the marker in the form of an
+evaporating overlay."
+  (remove-overlays (point-min) (point-max) 'folio-page-join t)
+  (unless clear
+    (let* ((beg (line-beginning-position))
+           (end (line-end-position 1))
+           (width (- end beg))
+           (len (max (- (min fill-column
+                             (window-body-width))
+                        width
+                        6)
+                     0))
+           (after-string (propertize (make-string len ?\ )
+                                     'face 'folio-highlight-page-join))
+           (overlay (make-overlay beg end nil 'font-advance)))
+      (dolist (prop `((face . folio-highlight-page-join)
+                      (after-string . ,after-string)
+                      (evaporate . t)
+                      (folio-page-join . t)
+                      (help-echo "Page boundary")))
+        (overlay-put overlay (car prop) (cdr prop)))
+      overlay)))
+
+(defun folio-join-pages-help-form ()
+  "Return the help form for `folio-join-pages'."
+  (concat "You have typed "
+          (single-key-description help-char)
+          ", the help character.
+
+\(Type `q' to exit the Help command.)
+
+j      Join pages without section break.
+p      Separate pages by paragraph break.
+s      Separate pages by section break.
+c      Separate pages by chapter break.
+C-g    Abort the command."))
+
+(defun folio-join-pages-prompt ()
+  "Prompt and execute a page join."
+  ;; XXX support recursive edit
+  (recenter)
+  (let ((mark (folio-join-pages-mark))
+        resume)
+    (unwind-protect
+        (progn
+          (end-of-line 2)
+          (let* ((choices '(?j ?p ?s ?c ?r))
+                 (prompt (concat "Join pages? ("
+                                 (single-key-description help-char)
+                                 " for help) "))
+                 (help-form `(folio-join-pages-help-form))
+                 (choice (read-char-choice prompt choices)))
+            (setq resume (cond
+                          ((eq choice ?j)
+                           t)
+                          ((eq choice ?p)
+                           (folio-insert-section-break "\n")
+                           (message "Paragraph"))
+                          ((eq choice ?s)
+                           (folio-insert-section-break "\n\n")
+                           (message "Section"))
+                          ((eq choice ?c)
+                           (folio-insert-section-break "\n\n\n\n")
+                           (message "Chapter"))
+                          ((eq choice ?r) ;; XXX sync page scan
+                           t)
+                          (t
+                           (error "Invalid choice"))))))
+      (delete-overlay mark))
+    resume))
+
+(defun folio-join-pages (&optional start end)
+  "Remove page separators in buffer or region."
+  (interactive (progn
+                 (barf-if-buffer-read-only)
+                 (if (use-region-p)
+                     (list (region-beginning) (region-end))
+                   (list nil nil))))
+  (save-match-data
+    (let ((end-marker (copy-marker (or end (point-max))))
+          (start (or start (point)))
+          (separator-pp (concat
+                         "^-----File: "
+                         "\\(?:[pi]_\\)?[0-9]+[^-]+-+"
+                         "\\(?:\\\\[^\\\n]+\\)+\\\\-+$")))
+      (goto-char start)
+      (delete-trailing-whitespace start end-marker)
+      (while (re-search-forward separator-pp end-marker t)
+        (message "Joining page %d" (folio-page-at-point))
+        (let ((change (prepare-change-group)))
+          (unwind-protect
+              (progn
+                (activate-change-group change)
+                (delete-region (match-beginning 0) (match-end 0))
+                ;; newlines preceeding the separator safely can be
+                ;; removed; this simplifies joining
+                (while (eq (char-before (point)) ?\n)
+                  (delete-char -1))
+                (let* ((pos (point))
+                       (post (prog2
+                                 (forward-char 1)
+                                 (folio-looking-at-thing-p
+                                  '(folio-word
+                                    folio-nowrap folio-sidenote paragraph folio-blockquote
+                                    folio-section folio-chapter
+                                    folio-footnote))
+                               (forward-char -1)))
+                       post-skip)
+                  (when (eq post 'paragraph)
+                    (forward-line 2)
+                    (cond
+                     ((folio-looking-at-thing-p 'folio-sidenote)
+                      (setq post 'folio-sidenote
+                            post-skip (point)))
+                     ((folio-looking-at-thing-p 'folio-illustration)
+                      (setq post 'folio-illustration
+                            post-skip (point))))
+                    (goto-char pos))
+                  (when (cond
+                         ((eq post 'folio-word)
+                          ;; unless joining of two word halfs was
+                          ;; successful, or the post word starts lower
+                          ;; case, query: there may be punctuation
+                          ;; missing at end of line or page, or a
+                          ;; paragraph break
+                          (or (eq (char-before pos) ?,)
+                              (folio-join-words 'ask)
+                              (folio-lower-case-char-at-p (1+ pos))
+                              (folio-join-pages-prompt)))
+                         ((or (eq post 'folio-nowrap)
+                              (eq post 'folio-blockquote))
+                          ;; two no-wraps or block-quotes directly
+                          ;; either side of the page boundary safely
+                          ;; can be merged by deleting their marker
+                          ;; end and begin lines; otherwise prompt for
+                          ;; a missing paragraph break or some such
+                          (if (folio-looking-back-at-thing-p post)
+                              (progn
+                                (delete-region (line-beginning-position)
+                                               (line-beginning-position 3))
+                                (forward-char -1)
+                                (folio-join-words 'ask)
+                                t)
+                            (folio-join-pages-prompt)))
+                         ((eq post 'paragraph)
+                          ;; a paragraph break followed by a double
+                          ;; quotation mark although not necessarily
+                          ;; indicating direct speech is assumed to be
+                          ;; reasonably safe for auto-joining: query
+                          ;; for anything else
+                          (or (looking-at-p "\n\n\"")
+                              (folio-join-pages-prompt)))
+                         ((or (eq post 'folio-sidenote)
+                              (eq post 'folio-illustration))
+                          ;; attempt joining words split across pages
+                          ;; and separated by one or more side-notes,
+                          ;; illustrations, or blank lines only; a
+                          ;; split word in this case however is
+                          ;; retained tagged; any missing paragraph
+                          ;; break however is considered an issue of
+                          ;; illustration or sidenote fixup
+                          (when (and (eq (char-before pos) ?*)
+                                     (folio-looking-back-at-thing-p
+                                      'folio-word))
+                            (let (word)
+                              (while (or (eq (char-after (point)) ?\n)
+                                         (folio-looking-at-thing-p
+                                          'folio-sidenote)
+                                         (folio-looking-at-thing-p
+                                          'folio-illustration))
+                                (forward-line 1))
+                              (when (folio-looking-at-thing-p
+                                     'folio-word)
+                                (when (eq (char-after (point)) ?*)
+                                  (delete-char 1))
+                                (skip-syntax-forward "^ ")
+                                ;; may be a single word, or two or
+                                ;; more words joined by hyphens or
+                                ;; dashes, with or without trailing
+                                ;; punctuation actually
+                                (setq word (buffer-substring
+                                            (line-beginning-position)
+                                            (point)))
+                                (delete-region (line-beginning-position)
+                                               (point))
+                                (while (eq (char-after (point)) ?\ )
+                                  (delete-char 1)))
+                              (goto-char pos)
+                              (when word
+                                (insert word)
+                                (goto-char pos)
+                                (folio-join-words 'frequency))))
+                          t)
+                         (t
+                          ;; XXX continued footnote in pre
+                          (folio-join-pages-prompt)))
+                    (accept-change-group change)
+                    (setq change nil))))
+            (when change
+              (cancel-change-group change))))))))
 
 
 
