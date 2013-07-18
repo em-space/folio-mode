@@ -455,12 +455,13 @@ return value is that of `call-process'."
 appear to support PNG images"))
             (switch-to-buffer-other-window "*Page Scan*")
             ;; (insert-file-contents dot-png t nil nil t)
-            (erase-buffer)
-            (goto-char (point-min))
-            (insert-image (folio-rescale-image dot-png 'png))
 ;            (insert-image (create-image dot-png 'png))
-            (set-buffer-modified-p nil)
-            (folio-image-mode)))))))
+            (let ((inhibit-read-only t))
+              (erase-buffer)
+              (goto-char (point-min))
+              (insert-image (folio-create-image 'png dot-png))
+              (folio-image-fit-to-width)
+              (set-buffer-modified-p nil))))))))
 
 ;;;###autoload
 (defun folio-sync-page-scan (&optional point)
