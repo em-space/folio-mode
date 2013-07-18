@@ -463,7 +463,7 @@ appear to support PNG images"))
             (folio-image-mode)))))))
 
 (defun folio-sync-page-scan (&optional point)
-  "XXX"
+  "Synchronize page scan with POINT."
   (interactive)
   (let ((scan (folio-page-scan-at-point point)))
     (or (and scan (folio-show-page-scan scan) t) nil)))
