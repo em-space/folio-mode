@@ -71,7 +71,7 @@ This regexp is used if `folio-spellcheck-doublons' is nil.")
 
 (defcustom folio-spellcheck-doublons t
   "If non-nil also check for doublons (doubloons) when
-spellchecking.  This is the default."
+spell-checking.  This is the default."
   :tag "Check for doublons"
   :group 'folio-spellcheck
   :type 'boolean
@@ -205,7 +205,7 @@ Return values are ignored.")
                                             &optional dict sort-key)
   "Update the vocabulary entry ENTRY with the word count COUNT.
 If DICT is non-nil update the dictionary data with DICT, too.
-DICT should be a cons of current spell-checker language and the
+DICT should be a cons of current spellchecker language and the
 list of suggestions.  DICT also can be a symbol marking the entry
 for inclusion into the session local, project local, or global
 dictionary.  The respective symbol names then should be session,
@@ -1319,7 +1319,7 @@ otherwise remove the keywords."
 
 ;;;###autoload
 (defun folio-spellcheck-mode-enable ()
-  "Turn on Folio spellcheck mode."
+  "Turn on Folio spell-checking."
   (folio-spellcheck-font-lock)
   (folio-spellcheck-add-local-hooks (current-buffer))
   (if (folio-spellcheck-init-dictionaries)
@@ -1333,7 +1333,7 @@ otherwise remove the keywords."
 
 ;;;###autoload
 (defun folio-spellcheck-mode-disable ()
-  "Turn off Folio spellcheck mode."
+  "Turn off Folio spell-checking."
   (folio-vocabulary-build-interrupt (current-buffer))
   (folio-spellcheck-remove-local-hooks (current-buffer))
   (save-excursion
@@ -1368,7 +1368,7 @@ otherwise remove the keywords."
 
 ;;;###autoload
 (defvar folio-spellcheck-mode-map (folio-spellcheck-make-mode-map)
-  "Minor mode key-map for Folio spellcheck mode.")
+  "Minor mode key-map for Folio spell-check mode.")
 
 ;;;###autoload
 (add-to-list 'minor-mode-map-alist
@@ -1401,12 +1401,13 @@ Return a string appropriately propertized for display in the mode-line."
 
 ;;;###autoload
 (define-minor-mode folio-spellcheck-mode
-  "Toggle Folio spellchecking.
+  "Toggle Folio spell-checking.
+
 With a prefix argument ARG, enable the mode if ARG is positive,
 and disable it otherwise.  If called from Lisp, enable the mode
 if ARG is omitted or nil.
 
-Folio spellcheck mode is a buffer-local minor mode.  It is most
+Folio spell-check mode is a buffer-local minor mode.  It is most
 useful in combination with a Folio major mode but not generally
 restricted to it."
   :lighter (:eval (folio-spellcheck-mode-lighter))
@@ -1418,7 +1419,7 @@ restricted to it."
             (when (fboundp 'turn-off-flyspell)
               (turn-off-flyspell))
             (folio-spellcheck-mode-enable))
-        (error (message "Error enabling Folio spellcheck mode:\n%s"
+        (error (message "Error enabling Folio spell-check mode:\n%s"
                         (cdr err)))
         (folio-spellcheck-mode -1))
     (folio-spellcheck-mode-disable)
@@ -1429,13 +1430,13 @@ restricted to it."
 
 ;;;###autoload
 (defun turn-on-folio-spellchecking ()
-  "Unconditionally turn on Folio spellcheck mode."
+  "Unconditionally turn on Folio spell-check mode."
   (interactive)
   (folio-spellcheck-mode 1))
 
 ;;;###autoload
 (defun turn-off-folio-spellchecking ()
-  "Unconditionally turn off Folio spellcheck mode."
+  "Unconditionally turn off Folio spell-check mode."
   (interactive)
   (folio-spellcheck-mode -1))
 
