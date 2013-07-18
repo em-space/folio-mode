@@ -1388,17 +1388,16 @@ Return a string appropriately propertized for display in the mode-line."
                                       lang 'name)))
       (setq label (propertize
                    "--" 'help-echo "No dictionary set")))
-    (propertize
-     (concat " [" label "]")
-     'face (cond
-            ((null lang)
-             'folio-spellcheck-inactive)
-            ((< (point) pos)
-             'folio-spellcheck-done)
-            ((folio-vocabulary-build-active-p)
-             'folio-spellcheck-active)
-            (t
-             'folio-spellcheck-inactive)))))
+    (propertize (concat "[" label "]")
+                'face (cond
+                       ((null lang)
+                        'folio-spellcheck-inactive)
+                       ((< (point) pos)
+                        'folio-spellcheck-done)
+                       ((folio-vocabulary-build-active-p)
+                        'folio-spellcheck-active)
+                       (t
+                        'folio-spellcheck-inactive)))))
 
 ;;;###autoload
 (define-minor-mode folio-spellcheck-mode
