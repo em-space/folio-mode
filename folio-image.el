@@ -37,8 +37,8 @@
 
 (defgroup folio-image nil
   "Settings for the handling of images."
-  :tag "Image handling"
   :group 'folio
+  :tag "Folio Image handling"
   :version "24.1")
 
 (defcustom folio-page-scan-directory-default "pngs"
@@ -46,7 +46,7 @@
 This must be a relative path to the project directory, but can be
 a symbolic link, also.  The option sets the default; a project
 local value can be set in the project setup."
-  :tag "Folio Default directory for page scans"
+  :tag "Default directory for page scans"
   :type 'string
   :group 'folio-image)
 
@@ -60,7 +60,7 @@ If set this variable overrides `folio-page-scan-directory-default'.")
 This must be a relative path to the project directory, but can be a
 symbolic link, also.  The option sets the default; a project
 local value can be set in the project setup."
-  :tag "Folio Default directory for book images"
+  :tag "Default directory for book images"
   :type 'string
   :group 'folio-image)
 
