@@ -44,7 +44,7 @@
 (defcustom folio-page-scan-directory-default "pngs"
   "Name of the directory containing the page scan images.
 This must be a relative path to the project directory, but can be
-a symbolic link, also.  The option sets the default; a project
+a symbolic link, also.  This option sets the default; a project
 local value can be set in the project setup."
   :tag "Default directory for page scans"
   :type 'string
@@ -70,8 +70,7 @@ If set this variable overrides `folio-image-directory-default'.")
 (make-variable-buffer-local 'folio-image-directory)
 
 (defcustom folio-page-scan-external-viewer-p t
-  "Whether to use an external image viewer.
-If enabled an external image viewer is used to display page
+  "If enabled an external image viewer is used to display page
 scans.  Otherwise page scans are displayed in an Emacs buffer
 which may or may not work, depending on the Emacs version and
 what image support actually is compiled in."
