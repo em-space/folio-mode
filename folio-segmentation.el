@@ -282,6 +282,43 @@ The return value is t if THING is found, or nil otherwise."
       (when verbose
         (message "No %s found" (downcase (symbol-value thing)))))
     (if bound (if arg-+ve (nreverse pos) pos) count)))
+
+(defconst folio-blank-page "Blank Page"
+  "Semantic element of a blank page.")
+
+(put 'folio-blank-page 'form '("\\[Blank\s+Page" "\\]"))
+(put 'folio-blank-page 'forward-op 'folio-forward-blank-page)
+
+(defun folio-forward-blank-page (&optional arg)
+  "Move forward to the end of a blank page.
+With prefix argument ARG, move ARG times; a negative argument ARG
+= -N means move backward N blank pages.  When moving backward
+point is at the beginning of a blank page.  Return the number of
+pending moves.  Point only is moved if a blank page actually was
+found."
+  (interactive "^p")
+  (let ((interactively (called-interactively-p 'interactive))
+        count)
+    (setq count (folio-forward-note-thing
+                 'folio-blank-page arg (not interactively)))
+    (when interactively
+      (recenter))
+    count))
+
+(defun folio-backward-blank-page (&optional arg)
+  "Move backward to the beginning of a blank page.
+With argument ARG, move ARG times; a negative argument ARG = -N
+means move forward N blank pages.  For additional information see
+the related command `folio-forward-blank-page'."
+  (interactive "^p")
+  (let ((interactively (called-interactively-p 'interactive))
+        count)
+    (setq count (folio-forward-note-thing
+                 'folio-blank-page (- (or arg 1)) interactively))
+    (when interactively
+      (recenter))
+    count))
+
 (defun folio-join-words-help-form ()
   "Return the help form for `folio-join-words'."
   (concat "You have typed "
