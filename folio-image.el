@@ -74,7 +74,7 @@ If set this variable overrides `folio-image-directory-default'.")
 scans.  Otherwise page scans are displayed in an Emacs buffer
 which may or may not work, depending on the Emacs version and
 what image support actually is compiled in."
-  :tag "Folio Whether to use an external image viewer"
+  :tag "Whether to use an external image viewer"
   :type 'boolean
   :group 'folio-image
   :group 'folio-external)
@@ -82,14 +82,14 @@ what image support actually is compiled in."
 (defcustom folio-image-viewer nil
   "Location of an external image viewer program.
 This should be capable of displaying PNG and JPEG images."
-  :tag "Folio External image viewer program"
+  :tag "External image viewer program"
   :type '(file :must-match t)
   :group 'folio-image
   :group 'folio-external)
 
 (defcustom folio-image-viewer-args nil
   "Arguments to pass to the external image viewer program."
-  :tag "Folio External image viewer program arguments"
+  :tag "External image viewer program arguments"
   :type 'string
   :group 'folio-image
   :group 'folio-external)
@@ -103,7 +103,7 @@ the current page or cursor location.  Enabling this option for
 image display using an external viewer may have issues outside of
 the control of Emacs, for instance with respect to performance,
 or loss of window focus."
-  :tag "Folio Whether the page scan follows point"
+  :tag "Whether the page scan follows point"
   :type 'boolean
   :group 'folio-image)
 
