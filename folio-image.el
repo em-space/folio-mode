@@ -394,6 +394,9 @@ extension such as `047.png'."
 (define-derived-mode folio-image-mode image-mode "Folio"
   "A major mode for displaying page scan images."
   (use-local-map folio-image-mode-map))
+(defun folio-image-mode-p ()
+  "Return non-nil if the current buffer is in `folio-image-mode'."
+  (derived-mode-p 'folio-image-mode))
 
 ;;;###autoload
 (defun folio-show-page-scan-external (file-name)
