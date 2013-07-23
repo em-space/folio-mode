@@ -96,7 +96,7 @@ This should be capable of displaying PNG and JPEG images."
 
 ;; XXX:TODO folio-image-viewer-args-alist --- map image type to args (png . "-foo png")
 
-(defcustom folio-page-scan-follow-point-p nil
+(defcustom folio-page-scan-follows-point-p nil
   "Whether to let page scans follow cursor movements.
 If enabled the page scan display is maintained synchroneous to
 the current page or cursor location.  Enabling this option for
