@@ -346,6 +346,49 @@ the related command `folio-forward-footnote'."
     (when interactively
       (recenter))))
 
+(defconst folio-sidenote "Side-note"
+  "Typographic element of a side-note.
+`folio-sidenote' can be operated on by using `thing-at-point' and
+related functions, and additionally `folio-mark-thing-at-point',
+`folio-kill-thing-at-point', and `folio-move-thing-at-point' (see
+which.)")
+
+(put 'folio-sidenote 'form '("\\*?\\[Sidenote:?" "\\]" t))
+(put 'folio-sidenote 'forward-op 'folio-forward-sidenote)
+
+
+(defun folio-forward-sidenote (&optional arg)
+  "Move forward to the end of a sidenote.
+With prefix argument ARG, move ARG times; a negative argument ARG
+= -N means move backward N sidenotes.  When moving backward point
+is at the beginning of a sidenote.  Return the number of pending
+moves.  Point only is moved if a sidenote actually was found."
+  (interactive "^p")
+  (let ((interactively (called-interactively-p 'interactive))
+        count)
+    (setq count (folio-forward-note-thing
+                 'folio-sidenote arg interactively))
+    (when interactively
+      (recenter))
+    count))
+
+(defun folio-backward-sidenote (&optional arg)
+  "Move backward to the beginning of a sidenote.
+With argument ARG, move ARG times; a negative argument ARG = -N
+means move forward N sidenote.  For additional information see
+the related command `folio-forward-sidenote'."
+  (interactive "^p")
+  (let ((interactively (called-interactively-p 'interactive))
+        count)
+    (setq count (folio-forward-note-thing
+                 'folio-sidenote (if (markerp arg)
+                                     arg
+                                   (- (or arg 1)))
+                 interactively))
+    (when interactively
+      (recenter))
+    count))
+
 (defconst folio-blank-page "Blank Page"
   "Semantic element of a blank page.")
 
