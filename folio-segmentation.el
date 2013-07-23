@@ -133,6 +133,46 @@ See also `folio-forward-word'."
 
 (put 'folio-word 'forward-op 'folio-forward-word)
 
+
+;;;; Things
+
+(defvar folio-thing-at-point-syntax-table
+  (let ((table (make-syntax-table nil)))
+
+    ;; nowrap
+    (modify-syntax-entry ?/ ". 14" table)
+    (modify-syntax-entry ?* ". 23" table)
+
+    ;; nowrap front matter
+    (modify-syntax-entry ?/ ". 14b" table)
+    (modify-syntax-entry ?F "w 23b" table)
+
+    ;; nowrap poetry
+    (modify-syntax-entry ?/ ". 14c" table)
+    (modify-syntax-entry ?P "w 23c" table)
+
+    ;; blockquote, may be nested
+    (modify-syntax-entry ?/ ". 14n" table)
+    (modify-syntax-entry ?# ". 23n" table)
+
+    ;; note-like thing: proofer's, footnote, side note, but also
+    ;; illustration, blank page, etc.
+    (modify-syntax-entry ?\[ "(]" table)
+    (modify-syntax-entry ?\] ")[" table)
+
+    ;; ignore parentheses and braces
+    (modify-syntax-entry ?\( "w" table)
+    (modify-syntax-entry ?\) "w" table)
+
+    (modify-syntax-entry ?{ "w" table)
+    (modify-syntax-entry ?} "w" table)
+
+    ;; optional expression prefix
+    ;; (modify-syntax-entry ?* "'" table)
+
+    table)
+
+"Syntax table for thing-at-point things in `folio-mode'.")
 (defun folio-join-words-help-form ()
   "Return the help form for `folio-join-words'."
   (concat "You have typed "
