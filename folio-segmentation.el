@@ -173,6 +173,115 @@ See also `folio-forward-word'."
     table)
 
 "Syntax table for thing-at-point things in `folio-mode'.")
+
+(defun folio-forward-note-thing (thing arg &optional verbose)
+  "Move point to the next position that is the end of a syntactically
+note-like thing.
+
+THING is any of `folio-footnote', `folio-sidenote',
+`folio-proofer-note', `folio-illustration', `folio-greek',
+`folio-hebrew' \(which see), or more generally a symbol
+describing a typographic element in square brackets syntax,
+optionally prefix- or postfix-flagged with '*'.
+
+Different from other `thing-at-point' move functions, point is
+not changed if no THING to move over is found.
+
+With XXX prefix argument ARG, move ARG times forward if positive, or
+move backwards ARG times if negative.
+
+The return value is t if THING is found, or nil otherwise."
+  (let* ((bound (when (markerp arg) arg))
+         (arg-+ve (if bound
+                      (> arg (point))
+                    (> arg 0)))
+         (count (if bound
+                    (buffer-size)
+                  (if arg-+ve arg (- arg))))
+         (form (get thing 'form))
+         (pp (car form))
+         (flagged (cl-caddr form))
+         (flagged-break (eq flagged 'break)) ;; XXX footnote-break
+         (continued nil) ;; XXX
+         (case-fold-search t)  ;; for rogue forms
+         pos)
+    (with-syntax-table folio-thing-at-point-syntax-table
+      (save-excursion
+        (let ((beg (point))
+              end)
+          (beginning-of-line)
+          (if arg-+ve
+              ;; Search forward.
+              (when (or (looking-at-p pp)
+                        (re-search-backward pp nil t))
+                (setq end (ignore-errors
+                            (scan-sexps (point) 1)))
+                (when (and end
+                           (> end beg)
+                           (if bound (>= end bound) t))
+                  (when (and flagged
+                             (eq (char-before beg) ?*))
+                    (setq beg (1- beg)))
+                  (goto-char end)
+                  (when (and continued (eq (char-after) ?*))
+                    (forward-char))
+                  (setq pos (cons (cons beg (point)) pos)
+                        count (1- count))))
+            ;; backward
+            (when (or (and (looking-at-p pp)
+                           (< (point) beg)
+                           (if bound
+                               (>= (point) bound)
+                             t))
+                      (and (re-search-backward pp bound t)
+                           (> (or (ignore-errors
+                                    (scan-sexps (point) 1)) 0)
+                              beg)))
+                  (setq end (scan-sexps (point) 1))
+                  (when (and continued (eq (char-after end) ?*))
+                    (setq end (1+ end)))
+                  (when (and flagged (eq (char-before) ?*))
+                    (backward-char))
+                  (setq pos (cons (cons (point) end) pos)
+                        count (1- count))))
+          (unless pos
+            (goto-char beg)))
+        (while (> count 0)
+          (if arg-+ve
+              ;; forward
+              (if (re-search-forward pp bound t)
+                  (let (beg end)
+                    (goto-char (match-beginning 0))
+                    (when (and flagged (eq (char-after) ?*))
+                      (forward-char))
+                    (setq beg (point)
+                          end (ignore-errors
+                                (scan-sexps (point) 1)))
+                    (if end
+                        (progn
+                          (goto-char end)
+                          (when (and continued (eq (char-after) ?*))
+                            (forward-char))
+                          (setq pos (cons (cons beg (point)) pos)
+                                count (1- count)))
+                      (setq count 0)))
+                (setq count 0))
+            ;; backward
+            (if (re-search-backward pp bound t)
+                (let ((end (ignore-errors
+                             (scan-sexps (point) 1))))
+                  (when (and continued (eq (char-after end) ?*))
+                    (setq end (1+ end)))
+                  (when (and flagged (eq (char-before) ?*))
+                    (backward-char))
+                  (setq pos (cons (cons (point) end) pos)
+                        count (1- count)))
+              (setq count 0))))))
+    (if pos
+        (goto-char (if arg-+ve (cdar pos) (caar pos)))
+      (when verbose
+        (message "No %s found" (downcase (symbol-value thing)))))
+    (if bound (if arg-+ve (nreverse pos) pos) count)))
 (defun folio-join-words-help-form ()
   "Return the help form for `folio-join-words'."
   (concat "You have typed "
