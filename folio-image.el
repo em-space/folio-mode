@@ -116,7 +116,7 @@ window they're in.  A value of 0.7 means that they are allowed to
 take up 70% of the width and height of the window.  If they are
 larger than this, and Emacs supports it, then the images will be
 rescaled down to fit these criteria."
-  :tag "Folio Image maximal proportion"
+  :tag "Image maximal proportion"
   :type 'float
   :group 'folio-image
   :version "24.1")
@@ -125,7 +125,7 @@ rescaled down to fit these criteria."
   "Name or full-path to the ImageMagick identify command.
 Set this to the appropriate file path and name if `identify' is
 not the desirable way to invoke this program."
-  :tag "Folio Name of the ImageMagick identify command"
+  :tag "Name of the ImageMagick identify command"
   :type 'file
   :group 'folio-image
   :group 'folio-external
@@ -140,7 +140,7 @@ Set this to the appropriate file path and name if `convert' is
 not the desirable way to invoke this program.  On Windows the
 full path should be used because of the system program of the
 same name."
-  :tag "Folio Name of the ImageMagick `convert' program"
+  :tag "Name of the ImageMagick `convert' program"
   :type 'file
   :group 'folio-image
   :group 'folio-external
