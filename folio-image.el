@@ -345,33 +345,6 @@ extension such as `047.png'."
   (interactive)
   (folio-image-backward-hscroll folio-image-hscroll-fast-amount))
 
-(defvar folio-image-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map image-mode-map)
-    ;; Get rid of the inappropriate `image-toggle-display'.
-    (define-key map (kbd "C-c C-c") 'undefined)
-
-    ;; Remap all mouse wheel events.
-    (define-key map [remap mwheel-scroll] 'folio-image-mwheel-scroll)
-    (define-key map [remap mac-mwheel-scroll] 'folio-image-mwheel-scroll)
-
-    (define-key map (kbd "r") 'folio-image-reload)
-
-    (define-key map (kbd "f") 'folio-image-fit-to-width)
-    (define-key map (kbd "F") 'folio-image-fit-to-height)
-
-    ;; XXX C-+ zoom in
-    ;; XXX C-- zoom out
-    ;; XXX Emacs MacPort: gesture events <magnify-up> <magnify-down>
-    ;;(when (fboundp 'mac-magnify-text-scale)
-    ;;  (define-key map [remap mac-magnify-text-scale] 'folio-image-zoom))
-
-    ;; Remap `forward-char', `backward-char' to left/right panning.
-    (define-key map [remap right] 'folio-image-forward-hscroll)
-    (define-key map [remap left] 'folio-image-backward-hscroll)
-    map)
-  "Mode keymap for `folio-image-mode'.")
-
 ;;;###autoload
 (defun folio-image-mwheel-scroll (event)
   "Handle mouse wheel events according to EVENT."
@@ -468,6 +441,35 @@ appear to support PNG images"))
   (interactive)
   (let ((scan (folio-page-scan-at-point point)))
     (or (and scan (folio-show-page-scan scan) t) nil)))
+
+(defvar folio-image-mode-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map image-mode-map)
+    ;; Get rid of the inappropriate `image-toggle-display'.
+    (define-key map (kbd "C-c C-c") 'undefined)
+
+    ;; Remap all mouse wheel events.
+    (define-key map [remap mwheel-scroll]
+      'folio-image-mwheel-scroll)
+    (define-key map [remap mac-mwheel-scroll]
+      'folio-image-mwheel-scroll)
+
+    (define-key map (kbd "r") 'folio-image-reload)
+
+    (define-key map (kbd "f") 'folio-image-fit-to-width)
+    (define-key map (kbd "F") 'folio-image-fit-to-height)
+
+    ;; XXX C-+ zoom in
+    ;; XXX C-- zoom out
+    ;; XXX Emacs MacPort: gesture events <magnify-up> <magnify-down>
+    ;;(when (fboundp 'mac-magnify-text-scale)
+    ;;  (define-key map [remap mac-magnify-text-scale] 'folio-image-zoom))
+
+    ;; Remap `forward-char', `backward-char' to left/right panning.
+    (define-key map [remap right] 'folio-image-forward-hscroll)
+    (define-key map [remap left] 'folio-image-backward-hscroll)
+    map)
+  "Mode keymap for `folio-image-mode'.")
 
 
 (provide 'folio-image)
