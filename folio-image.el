@@ -424,7 +424,7 @@ extension such as `047.png'."
 
 ;;;###autoload
 (defun folio-show-page-scan-external (file-name)
-  "Show the page scan with file name FILE-NAME using an external viewer.
+  "Given a page scan image file display it using an external viewer.
 FILE-NAME should be the complete path to the scan image.  The
 return value is that of `call-process'."
   (let ((args (mapconcat #'identity
