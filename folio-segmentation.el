@@ -313,6 +313,39 @@ see the related command `folio-forward-illustration'."
     (when interactively
       (recenter))))
 
+(defconst folio-footnote "Footnote"
+  "Semantic element of a footnote.
+`folio-footnote' can be operated on by using `thing-at-point' and
+related functions, and additionally `folio-mark-thing-at-point',
+`folio-kill-thing-at-point', and `folio-move-thing-at-point' (which
+see).")
+
+(put 'folio-footnote 'form '("\\*?\\[Footnote\\s-*" "\\]*?" 'break))
+(put 'folio-footnote 'forward-op 'folio-forward-footnote)
+
+(defun folio-forward-footnote (&optional arg)
+  "Move forward to the end of a footnote.
+With argument ARG, move ARG times; a negative argument ARG = -N
+means move backward N footnotes.  When moving backward point is
+at the beginning of a footnote.  Return the number of pending
+moves.  Point only is moved if a footnote actually was found."
+  (interactive "^p")
+  (let ((interactively (called-interactively-p 'interactive)))
+    (folio-forward-note-thing 'folio-footnote arg interactively)
+    (when interactively
+      (recenter))))
+
+(defun folio-backward-footnote (&optional arg)
+  "Move backward to the beginning of a footnote.
+With argument ARG, move ARG times; a negative argument ARG = -N
+means move forward N blockquotes.  For additional information see
+the related command `folio-forward-footnote'."
+  (interactive "^p")
+  (let ((interactively (called-interactively-p 'interactive)))
+    (folio-forward-note-thing 'folio-footnote (- (or arg 1)) interactively)
+    (when interactively
+      (recenter))))
+
 (defconst folio-blank-page "Blank Page"
   "Semantic element of a blank page.")
 
