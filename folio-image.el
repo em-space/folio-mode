@@ -30,6 +30,7 @@
 (require 'image-mode)
 
 (require 'folio-base)
+(require 'folio-compat)
 (require 'folio-core)
 
 ;; XXX:TODO add support for ezimage
@@ -41,6 +42,32 @@
   :tag "Folio Image handling"
   :version "24.1")
 
+(defcustom folio-page-scan-refresh-delay 0.2
+  "Time in seconds to delay refreshing of the current page scan."
+  :group 'folio-image
+  :tag "Page scan refresh delay"
+  :type 'number)
+
+(defvar folio-page-scan nil
+  "Full path to the page scan image currently displayed.")
+(make-variable-buffer-local 'folio-page-scan)
+
+(defvar folio-page-scan-last-config nil
+  "Time-stamp of the last window configuration or size change.")
+(make-local-variable 'folio-page-scan-last-config)
+
+(defvar folio-page-scan-last-cmd nil
+  "Time-stamp of the last command executed.")
+(make-local-variable 'folio-page-scan-last-cmd)
+
+(defvar folio-page-scan-tracking nil
+  "Buffer for which scroll events are being tracked.")
+(make-local-variable 'folio-page-scan-tracking)
+
+(defvar folio-page-scan-last-scroll nil
+  "Time-stamp of the window scroll event.")
+(make-local-variable 'folio-page-scan-last-scroll)
+
 (defcustom folio-page-scan-directory-default "pngs"
   "Name of the directory containing the page scan images.
 This must be a relative path to the project directory, but can be
@@ -49,6 +76,9 @@ local value can be set in the project setup."
   :tag "Default directory for page scans"
   :type 'string
   :group 'folio-image)
+
+(defvar folio-page-scan-timer nil
+  "Idle timer run for updating the page scan display.")
 
 (defvar folio-page-scan-directory nil
   "Directory containing the page scan images.
@@ -94,7 +124,8 @@ This should be capable of displaying PNG and JPEG images."
   :group 'folio-image
   :group 'folio-external)
 
-;; XXX:TODO folio-image-viewer-args-alist --- map image type to args (png . "-foo png")
+;; XXX:TODO folio-image-viewer-args-alist --- map image type to args
+;; (png . "-foo png")
 
 (defcustom folio-page-scan-follows-point-p nil
   "Whether to let page scans follow cursor movements.
@@ -109,6 +140,32 @@ or loss of window focus."
 
 ;; XXX:TODO maintain timer, poll folio-image-at-point--redisplay on
 ;; change, with some lag
+
+(defun folio-toggle-page-scan-follows-point (&optional force-disable)
+  "Toggle whether the page scan follows point.
+If called interactively the customized value of
+`folio-page-scan-follows-point-p' is toggled for the current
+session only.  If called from Lisp a non-nil value for
+FORCE-DISABLE causes tracking of point to be disabled, again, for
+the current session only."
+  (interactive)
+  (let ((new-value (and (not force-disable)
+                        (not folio-page-scan-follows-point-p))))
+    (if new-value
+        (progn
+          (add-hook 'post-command-hook
+                    'folio-page-scan-post-command nil t)
+          (add-hook 'window-scroll-functions
+                    'folio-page-scan-after-scroll nil t))
+      (remove-hook 'post-command-hook
+                   'folio-page-scan-post-command t)
+      (remove-hook 'window-scroll-functions
+                   'folio-page-scan-after-scroll t))
+    (customize-set-variable
+     'folio-page-scan-follows-point-p new-value)
+    (customize-save-customized)
+    (message (concat "Page scan following point was "
+                     (if new-value "enabled" "disabled")))))
 
 (defcustom folio-max-image-proportion 0.9
   "Specifies how large pictures displayed are in relation to the
@@ -390,13 +447,121 @@ extension such as `047.png'."
         (folio-image-forward-hscroll-fast))
        (t (error "Bad binding in folio-image-mwheel-scroll"))))))
 
-;;;###autoload
-(define-derived-mode folio-image-mode image-mode "Folio"
-  "A major mode for displaying page scan images."
-  (use-local-map folio-image-mode-map))
+(defun folio-page-scan-update (buffer &optional force)
+  "Update the page scan display for BUFFER.
+If FORCE is non-nil refresh the display even if the current scan
+already is displayed to allow for changes in window
+configuration, size, etc."
+  (when (buffer-live-p buffer) ;; avoid race
+    (with-current-buffer buffer
+      (when (folio-mode-p)
+        (let ((scan (folio-find-page-scan
+                     (folio-page-scan-at-point (point)))))
+          (when (or force (not (equal scan folio-page-scan)))
+            (folio-show-page-scan scan)))
+        (setq folio-page-scan-tracking nil
+              folio-page-scan-last-cmd nil
+              folio-page-scan-last-scroll nil
+              folio-page-scan-last-config nil)))))
+
+(defun folio-page-scan-post-command ()
+  "Post command hook function for updating the page scan display."
+  (if folio-page-scan-follows-point-p
+      (if (zerop (or folio-page-scan-refresh-delay 0))
+          (folio-page-scan-update (current-buffer))
+        (when folio-page-scan-timer
+          (cancel-timer folio-page-scan-timer))
+        (setq folio-page-scan-last-cmd (current-time)
+              folio-page-scan-timer
+              (run-with-idle-timer folio-page-scan-refresh-delay nil
+                                   'folio-page-scan-post-command-fired)))
+    (setq folio-page-scan-last-cmd nil)
+    (remove-hook
+     'post-command-hook 'folio-page-scan-post-command t)))
+
+(defun folio-page-scan-post-command-fired ()
+  "Timer function for asynchronously updating the page scan view
+in `post-command' with a time lag as specified by
+`folio-page-scan-refresh-delay'."
+  (unless (or (null folio-page-scan-last-cmd)
+              (zerop (or folio-page-scan-refresh-delay 0)))
+    (let ((now (current-time))
+          (later (timer-relative-time folio-page-scan-last-cmd
+                                      folio-page-scan-refresh-delay)))
+      (when (time-less-p later now)
+        (folio-page-scan-update (current-buffer))))))
+
+(defun folio-page-scan-after-scroll (win start)
+  "After scroll hook function for updating the page scan display."
+  (if folio-page-scan-follows-point-p
+      (if (zerop (or folio-page-scan-refresh-delay 0))
+          (folio-page-scan-update (window-buffer win))
+        (when folio-page-scan-timer
+          (cancel-timer folio-page-scan-timer))
+        (setq folio-page-scan-tracking (window-buffer win)
+              folio-page-scan-last-scroll (current-time)
+              folio-page-scan-timer
+              (run-with-idle-timer folio-page-scan-refresh-delay nil
+                                   'folio-page-scan-after-scroll-fired)))
+    (setq folio-page-scan-last-scroll nil)
+    (remove-hook
+     'window-scroll-functions 'folio-page-scan-after-scroll t)))
+
+(defun folio-page-scan-after-scroll-fired ()
+  "Timer function for asynchronously updating the page scan view
+in `after-scroll' with a time lag as specified by
+`folio-page-scan-refresh-delay'."
+  (when (and folio-page-scan-last-scroll
+             folio-page-scan-follows-point-p)
+    (let ((now (current-time))
+          (later (timer-relative-time folio-page-scan-last-scroll
+                                      folio-page-scan-refresh-delay)))
+      (when (and folio-page-scan-tracking (time-less-p later now))
+        (folio-page-scan-update folio-page-scan-tracking)))))
+
 (defun folio-image-mode-p ()
   "Return non-nil if the current buffer is in `folio-image-mode'."
   (derived-mode-p 'folio-image-mode))
+
+(defun folio-page-scan-after-config ()
+  "After scroll hook function for updating the page scan display."
+  (let (buffer)
+    (walk-windows (lambda (x)
+                    (unless buffer
+                      (with-current-buffer (window-buffer x)
+                        (when (folio-image-mode-p)
+                          ;; there should be only one window for
+                          ;; displaying page scans
+                          (setq buffer folio-parent-buffer)))))
+                  nil 'visible)
+    (if buffer
+        (if (zerop (or folio-page-scan-refresh-delay 0))
+            (folio-page-scan-update buffer)
+          (when folio-page-scan-timer
+            (cancel-timer folio-page-scan-timer))
+          (setq folio-page-scan-tracking buffer
+                folio-page-scan-last-config (current-time)
+                folio-page-scan-timer
+                (run-with-idle-timer folio-page-scan-refresh-delay nil
+                                     'folio-page-scan-after-config-fired)))
+      (setq folio-page-scan-last-config nil)
+      (unless folio-page-scan-follows-point-p
+        (remove-hook 'window-size-change-functions
+                     'folio-page-scan-after-size)
+        (remove-hook 'window-configuration-change-hook
+                     'folio-page-scan-after-config t)))))
+
+(defun folio-page-scan-after-config-fired ()
+  "Timer function for asynchronously updating the page scan view
+in `after-config' with a time lag as specified by
+`folio-page-scan-refresh-delay'."
+  (setq folio-page-scan-last-config nil)
+  (when folio-page-scan-follows-point-p
+    (folio-page-scan-update folio-page-scan-tracking 'force-update)))
+
+(defun folio-page-scan-after-size (_frame)
+  "After resize hook function for refreshing the page scan display."
+  (folio-page-scan-after-config))
 
 ;;;###autoload
 (defun folio-show-page-scan-external (file-name)
@@ -415,34 +580,42 @@ return value is that of `call-process'."
 ;;;###autoload
 (defun folio-show-page-scan (file-name)
   "Show the page scan with file name FILE-NAME."
-  (let ((dot-png (folio-find-page-scan file-name)))
-    (unwind-protect
-        (save-selected-window
-          (cond
-           (nil ;;folio-page-scan-external-viewer-p
-            (unless folio-image-viewer
-              (error "No external image viewer configured"))
-            (unless (= 0 (folio-show-page-scan-external dot-png))
-              (error "Failure calling external image viewer")))
-           ((fboundp 'image-mode)
-            (unless (and (image-type-available-p 'png)
-                         (display-images-p))
-              (error "This version of Emacs does not \
+  (unwind-protect
+      (save-selected-window
+        (cond
+         (nil ;;folio-page-scan-external-viewer-p
+          (unless folio-image-viewer
+            (error "No external image viewer configured"))
+          (unless (= 0 (folio-show-page-scan-external file-name))
+            (error "Failure calling external image viewer")))
+         ((fboundp 'image-mode)
+          (unless (and (image-type-available-p 'png)
+                       (display-images-p))
+            (error "This version of Emacs does not \
 appear to support PNG images"))
-            (switch-to-buffer-other-window "*Page Scan*")
+          (let* ((parent (when (folio-mode-p)
+                           (current-buffer)))
+                 (buffer-name "*Page Scan*")
+                 (buffer (get-buffer-create buffer-name)))
+            (pop-to-buffer buffer nil 'norecord)
             (let ((inhibit-read-only t))
               (erase-buffer)
               (goto-char (point-min))
-              (insert-image (folio-create-image 'png dot-png))
+              (insert-image (folio-create-image 'png file-name))
               ;; XXX actually apply the 'default' transformation
               (folio-image-fit-to-width)
-              (set-buffer-modified-p nil))))))))
+              (when parent
+                (folio-set-parent-buffer parent))
+              (set-buffer-modified-p nil))))))
+    (setq folio-page-scan file-name)))
 
 ;;;###autoload
 (defun folio-sync-page-scan (&optional point)
-  "Synchronize page scan with POINT."
+  "Synchronize page scan with POINT position.
+Return t if the display is up-to-date, or nil otherwise."
   (interactive)
-  (let ((scan (folio-page-scan-at-point point)))
+  (let ((scan (folio-find-page-scan
+               (folio-page-scan-at-point point))))
     (or (and scan (folio-show-page-scan scan) t) nil)))
 
 (defvar folio-image-mode-map
@@ -473,6 +646,27 @@ appear to support PNG images"))
     (define-key map [remap left] 'folio-image-backward-hscroll)
     map)
   "Mode keymap for `folio-image-mode'.")
+
+(defun folio-image-mode-teardown ()
+  (remove-hook 'window-size-change-functions
+               'folio-page-scan-after-size)
+  (remove-hook 'window-configuration-change-hook
+               'folio-page-scan-after-config t)
+  ;; (folio-toggle-page-scan-follows-point 'disable)
+  )
+
+;;;###autoload
+(define-derived-mode folio-image-mode image-mode "Folio-Image"
+  "A major mode for displaying page scan images."
+  (use-local-map folio-image-mode-map)
+  (add-hook 'window-size-change-functions
+            'folio-page-scan-after-size) ;; global
+  (add-hook 'window-configuration-change-hook
+            'folio-page-scan-after-config nil t)
+  (add-hook 'change-major-mode-hook
+            'folio-image-mode-teardown nil t)
+  (add-hook 'kill-buffer-hook
+            'folio-image-mode-teardown nil t))
 
 
 (provide 'folio-image)
