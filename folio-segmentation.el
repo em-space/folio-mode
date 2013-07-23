@@ -283,6 +283,36 @@ The return value is t if THING is found, or nil otherwise."
         (message "No %s found" (downcase (symbol-value thing)))))
     (if bound (if arg-+ve (nreverse pos) pos) count)))
 
+(defconst folio-illustration "Illustration"
+  "An illustration, optionally with caption.")
+
+(put 'folio-illustration 'form '("\\[Illustration:?" "\\]"))
+(put 'folio-illustration 'forward-op 'folio-forward-illustration)
+
+(defun folio-forward-illustration (&optional arg)
+  "Move forward to the end of an illustration.
+With prefix argument ARG, move ARG times; a negative argument ARG
+= -N means move backward N illustration.  When moving backward
+point is at the beginning of an illustration.  Return the number
+of pending moves.  Point only is moved if an illustration
+actually was found."
+  (interactive "^p")
+  (let ((interactively (called-interactively-p 'interactive)))
+    (folio-forward-note-thing 'folio-illustration arg interactively)
+    (when interactively
+      (recenter))))
+
+(defun folio-backward-illustration (&optional arg)
+  "Move backward to the beginning of an illustration.
+With argument ARG, move ARG times; a negative argument ARG = -N
+means move forward N illustrations.  For additional information
+see the related command `folio-forward-illustration'."
+  (interactive "^p")
+  (let ((interactively (called-interactively-p 'interactive)))
+    (folio-forward-note-thing 'folio-illustration (- (or arg 1)) interactively)
+    (when interactively
+      (recenter))))
+
 (defconst folio-blank-page "Blank Page"
   "Semantic element of a blank page.")
 
