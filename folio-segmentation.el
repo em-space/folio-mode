@@ -496,6 +496,45 @@ not changed if no THING to move over is found."
             (end-of-line)
           (beginning-of-line))))
     count))
+
+(defconst folio-blockquote "Block Quotation"
+  "Semantic element of a block quotation or extract.
+`folio-blockquote' can be operated on by using `thing-at-point'
+and related functions, and additionally
+`folio-mark-thing-at-point', `folio-kill-thing-at-point', and
+`folio-move-thing-at-point' (see which.)")
+
+(put 'folio-blockquote 'form '("^/#" "^#/"))
+(put 'folio-blockquote 'forward-op 'folio-forward-blockquote)
+
+(defun folio-forward-blockquote (&optional arg)
+  "Move forward to the end of a block quotation or extract.
+With argument ARG, move ARG times; a negative argument ARG = -N
+means move backward N block-quotes.  When moving backward point
+is at the beginning of a block-quote.  Return the number of
+pending moves.  Point only is moved if a block-quote actually was
+found.  Parsing is non-strict, i.e. for a successful move the
+quote's end marker need not even exist, or, with nested
+block-quotes the outer quote's end-marker effectively may close an
+inner quote missing it's end-marker.  In order to descend into
+nested block-quotes both forward and backward moves must be
+used."
+  (interactive "^p")
+  (let ((interactively (called-interactively-p 'interactive)))
+    (folio-forward-wrap-thing 'folio-blockquote arg interactively)
+    (when interactively
+      (recenter))))
+
+(defun folio-backward-blockquote (&optional arg)
+  "Move backward to the beginning of a block quotation or extract.
+With argument ARG, move ARG times; a negative argument ARG = -N
+means move forward N block-quotes.  For additional information see
+the related command `folio-forward-blockquote'."
+  (interactive "^p")
+  (let ((interactively (called-interactively-p 'interactive)))
+    (folio-forward-wrap-thing 'folio-blockquote (- (or arg 1)) interactively)
+    (when interactively
+      (recenter))))
 (defun folio-join-words-help-form ()
   "Return the help form for `folio-join-words'."
   (concat "You have typed "
