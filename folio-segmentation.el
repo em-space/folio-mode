@@ -539,6 +539,47 @@ see the related command `folio-forward-blockquote'."
      'folio-blockquote (- (or arg 1)) called-interactively)
     (when called-interactively
       (recenter))))
+
+(defconst folio-nowrap "No-Wrap"
+  "Structural element of a \"no-wrap\" text section.
+XXX requires special treatment with respect to the preservation
+of line breaks, indentation, and spacing.  `folio-sidenote' can
+be operated on by using `thing-at-point' and related functions,
+and additionally `folio-mark-thing-at-point',
+`folio-kill-thing-at-point', and `folio-move-thing-at-point' (see
+which.)")
+
+(put 'folio-nowrap 'form '("^/\\*" "^\\*/"))
+(put 'folio-nowrap 'forward-op 'folio-forward-nowrap)
+
+(defun folio-forward-nowrap (&optional arg)
+  "Move forward to the end of a \"no-wrap\" section.
+With prefix argument ARG, move ARG times; a negative argument ARG
+= -N means move backward N times.  When moving backward point is
+at the beginning of a \"no-wrap\" section.  Return the number of
+pending moves.  Point only is moved if a \"no-wrap\" actually was
+found."
+  (interactive "^p")
+  (let ((called-interactively
+         (called-interactively-p 'interactive)))
+    (folio-forward-wrap-thing
+     'folio-nowrap arg called-interactively)
+    (when called-interactively
+      (recenter))))
+
+(defun folio-backward-nowrap (&optional arg)
+  "Move backward to the start of a \"no-wrap\" section.
+With argument ARG, move ARG times; a negative argument ARG = -N
+means move forward N times.  When moving forward point is at the
+end of a \"no-wrap\" section.  Return the number of pending
+moves.  Point only is moved if a \"no-wrap\" section actually was
+found."
+  (interactive "^p")
+  (let ((called-interactively
+         (called-interactively-p 'interactive)))
+    (folio-forward-wrap-thing
+     'folio-nowrap (- (or arg 1)) called-interactively)
+    (when called-interactively
       (recenter))))
 (defun folio-join-words-help-form ()
   "Return the help form for `folio-join-words'."
