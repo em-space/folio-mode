@@ -520,9 +520,11 @@ inner quote missing it's end-marker.  In order to descend into
 nested block-quotes both forward and backward moves must be
 used."
   (interactive "^p")
-  (let ((interactively (called-interactively-p 'interactive)))
-    (folio-forward-wrap-thing 'folio-blockquote arg interactively)
-    (when interactively
+  (let ((called-interactively
+         (called-interactively-p 'interactive)))
+    (folio-forward-wrap-thing
+     'folio-blockquote arg called-interactively)
+    (when called-interactively
       (recenter))))
 
 (defun folio-backward-blockquote (&optional arg)
@@ -531,9 +533,12 @@ With argument ARG, move ARG times; a negative argument ARG = -N
 means move forward N block-quotes.  For additional information see
 the related command `folio-forward-blockquote'."
   (interactive "^p")
-  (let ((interactively (called-interactively-p 'interactive)))
-    (folio-forward-wrap-thing 'folio-blockquote (- (or arg 1)) interactively)
-    (when interactively
+  (let ((called-interactively
+         (called-interactively-p 'interactive)))
+    (folio-forward-wrap-thing
+     'folio-blockquote (- (or arg 1)) called-interactively)
+    (when called-interactively
+      (recenter))))
       (recenter))))
 (defun folio-join-words-help-form ()
   "Return the help form for `folio-join-words'."
