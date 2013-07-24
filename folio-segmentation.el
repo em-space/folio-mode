@@ -622,6 +622,49 @@ Point only is moved if a \"poetry\" section actually was found."
      'folio-poetry (- (or arg 1)) called-interactively)
     (when called-interactively
       (recenter))))
+
+(defconst folio-frontmatter "Front-matter"
+  "Structural element of a \"front-matter\" text section.
+XXX requires special treatment with respect to the preservation
+of line breaks, indentation, and spacing.  `folio-sidenote' can
+be operated on by using `thing-at-point' and related functions,
+and additionally `folio-mark-thing-at-point',
+`folio-kill-thing-at-point', and `folio-move-thing-at-point' (see
+which.)")
+
+(put 'folio-frontmatter 'form '("^/F" "^F/"))
+(put 'folio-frontmatter
+     'forward-op 'folio-forward-frontmatter)
+
+(defun folio-forward-frontmatter (&optional arg)
+  "Move forward to the end of a \"front-matter\" section.
+With prefix argument ARG, move ARG times; a negative argument ARG
+= -N means move backward N times.  When moving backward point is
+at the beginning of a \"front-matter\" section.  Return the
+number of pending moves.  Point only is moved if a
+\"front-matter\" section actually was found."
+  (interactive "^p")
+  (let ((called-interactively
+         (called-interactively-p 'interactive)))
+    (folio-forward-wrap-thing
+     'folio-frontmatter arg called-interactively)
+    (when called-interactively
+      (recenter))))
+
+(defun folio-backward-frontmatter (&optional arg)
+  "Move backward to the start of a \"front-matter\" section.
+With argument ARG, move ARG times; a negative argument ARG = -N
+means move forward N times.  When moving forward point is at the
+end of a \"front-matter\" section.  Return the number of pending moves.
+Point only is moved if a \"front-matter\" section actually was found."
+  (interactive "^p")
+  (let ((called-interactively
+         (called-interactively-p 'interactive)))
+    (folio-forward-wrap-thing
+     'folio-frontmatter (- (or arg 1)) called-interactively)
+    (when called-interactively
+      (recenter))))
+
 (defun folio-join-words-help-form ()
   "Return the help form for `folio-join-words'."
   (concat "You have typed "
