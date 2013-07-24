@@ -418,29 +418,28 @@ extension such as `047.png'."
     ;; whether selected or not (which is a good thing).
     (with-selected-window window
       (cond
-       ((eq button mouse-wheel-up-event)
+       ((eq button mouse-wheel-down-event)
         (cond
-         ((null modifiers)
+         ((null modifiers) ;; vscroll
           (if folio-inverted-scrolling
               (image-next-line 1)
             (image-previous-line 1)))
-         ((equal modifiers '(shift))
+         ((equal modifiers '(shift)) ;; hscroll
           (folio-image-backward-hscroll-fast))
          (t
           (ignore))))
-       ((eq button mouse-wheel-down-event)
+       ((eq button mouse-wheel-up-event)
         (cond
-         ((null modifiers)
+         ((null modifiers) ;; vscroll
           (if folio-inverted-scrolling
               (image-previous-line 1)
             (image-next-line 1)))
-         ((equal modifiers '(shift))
+         ((equal modifiers '(shift)) ;; hscroll
           (folio-image-forward-hscroll-fast))
          (t
           (ignore))))
-       ;; To be verified: the wheel-left and wheel-right events
-       ;; apparently are not produced on the author's development
-       ;; platform.
+       ;; To be verified: the wheel-left and wheel-right events aren't
+       ;; used on OS X 10.8.4 dev-platform.
        ((eq button 'wheel-left)
         (folio-image-backward-hscroll-fast))
        ((eq button 'wheel-right)
