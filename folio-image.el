@@ -557,10 +557,12 @@ in `after-config' with a time lag as specified by
 `folio-page-scan-refresh-delay'."
   (setq folio-page-scan-last-config nil)
   (when folio-page-scan-follows-point-p
-    (folio-page-scan-update folio-page-scan-tracking 'force-update)))
+    (folio-page-scan-update
+     folio-page-scan-tracking 'force-update)))
 
 (defun folio-page-scan-after-size (_frame)
-  "After resize hook function for refreshing the page scan display."
+  "After resize hook function for refreshing the page scan
+display."
   (folio-page-scan-after-config))
 
 ;;;###autoload
