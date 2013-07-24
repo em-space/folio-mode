@@ -356,7 +356,6 @@ which.)")
 (put 'folio-sidenote 'form '("\\*?\\[Sidenote:?" "\\]" t))
 (put 'folio-sidenote 'forward-op 'folio-forward-sidenote)
 
-
 (defun folio-forward-sidenote (&optional arg)
   "Move forward to the end of a sidenote.
 With prefix argument ARG, move ARG times; a negative argument ARG
@@ -425,6 +424,78 @@ the related command `folio-forward-blank-page'."
       (recenter))
     count))
 
+(defvar folio-wrap-thing-syntax-table
+  (let ((table (make-syntax-table)))
+
+    ;; no-wrap
+    (modify-syntax-entry ?/ ". 14" table)
+    (modify-syntax-entry ?* ". 23" table)
+
+    ;; no-wrap front matter
+    (modify-syntax-entry ?/ ". 14b" table)
+    (modify-syntax-entry ?F "w 23b" table)
+
+    ;; no-wrap poetry
+    (modify-syntax-entry ?/ ". 14c" table)
+    (modify-syntax-entry ?P "w 23c" table)
+
+    ;; blockquote, may be nested
+    (modify-syntax-entry ?/ ". 14n" table)
+    (modify-syntax-entry ?# ". 23n" table)
+
+    table)
+  "Syntax table for `folio-forward-wrap-thing'.")
+
+(defun folio-forward-wrap-thing (thing arg &optional verb)
+  "Move point to the next position that is the end of a syntactically wrap-like thing.
+
+THING is any of `folio-blockquote', `folio-nowrap',
+`folio-frontmatter', `folio-poetry' \(which see), or more
+generally a symbol describing a typographic element in
+slash-symbol syntax.
+
+Different from other `thing-at-point' move functions, point is
+not changed if no THING to move over is found."
+  (let* ((arg-+ve (> arg 0))
+         (count (if arg-+ve arg (- arg)))
+         (pp (car (get thing 'form)))
+         pos)
+    (with-syntax-table folio-thing-at-point-syntax-table
+      (save-excursion
+        ;; if within syntactic comment move to its beginning or to its
+        ;; end if direction is forward
+        (let ((state (syntax-ppss)))
+          (when (nth 4 state)
+            (goto-char (nth 8 state))
+            (unless arg-+ve
+              (when (looking-at-p pp)
+                (setq pos (point) count (1- count))))))
+        ;; the parse predicate describes the syntax of the opening; it
+        ;; is a regexp in the car of the form attribute of THING
+        (when (> count 0)
+          (let ((at-end (if arg-+ve
+                            (function eobp)
+                          (function bobp))))
+            (while (and (> count 0) (not (funcall at-end)))
+              (if (if arg-+ve
+                      (if (looking-at-p pp)
+                          (forward-comment 1)
+                        (when (re-search-forward pp nil t)
+                          (beginning-of-line)
+                          (forward-comment 1)))
+                    (re-search-backward pp nil t))
+                  (setq pos (point) count (1- count))
+                (setq count 0)
+                (when (and (null pos) verb)
+                  (message "No %s found"
+                           (downcase
+                            (symbol-value thing)))))))))
+      (when pos
+        (goto-char pos)
+        (if arg-+ve
+            (end-of-line)
+          (beginning-of-line))))
+    count))
 (defun folio-join-words-help-form ()
   "Return the help form for `folio-join-words'."
   (concat "You have typed "
