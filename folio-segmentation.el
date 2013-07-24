@@ -515,8 +515,8 @@ is at the beginning of a block-quote.  Return the number of
 pending moves.  Point only is moved if a block-quote actually was
 found.  Parsing is non-strict, i.e. for a successful move the
 quote's end marker need not even exist, or, with nested
-block-quotes the outer quote's end-marker effectively may close an
-inner quote missing it's end-marker.  In order to descend into
+block-quotes the outer quote's end-marker effectively may close
+an inner quote missing it's end-marker.  In order to descend into
 nested block-quotes both forward and backward moves must be
 used."
   (interactive "^p")
@@ -530,8 +530,8 @@ used."
 (defun folio-backward-blockquote (&optional arg)
   "Move backward to the beginning of a block quotation or extract.
 With argument ARG, move ARG times; a negative argument ARG = -N
-means move forward N block-quotes.  For additional information see
-the related command `folio-forward-blockquote'."
+means move forward N block-quotes.  For additional information
+see the related command `folio-forward-blockquote'."
   (interactive "^p")
   (let ((called-interactively
          (called-interactively-p 'interactive)))
