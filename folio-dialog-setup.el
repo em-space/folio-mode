@@ -110,7 +110,7 @@ normally is of the form `projectID<hexadecimal number>'."
                  :notify (lambda (widget &rest ignore)
                            (let ((dir (widget-value widget)))
                              (folio-with-parent-buffer
-                               (make-directory dir default-directory)
+                               ;; XXX (make-directory dir default-directory)
                                (setq folio-page-scan-directory dir)))))
   (widget-insert "\n\n")
   (widget-create 'string
@@ -122,7 +122,7 @@ normally is of the form `projectID<hexadecimal number>'."
                  :notify (lambda (widget &rest ignore)
                            (let ((dir (widget-value widget)))
                              (folio-with-parent-buffer
-                               (make-directory dir default-directory)
+                               ;; XXX (make-directory dir default-directory)
                                (setq folio-image-directory dir))))))
 
 
