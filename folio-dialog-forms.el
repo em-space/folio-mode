@@ -172,6 +172,7 @@ Return a next, top and previous page tuple as a list."
                        (car page)) 'face 'info-title-2))
       (widget-insert "\n\n")
       (funcall (cadr page))
+      (widget-setup)
       ;; If there is an anchor jump or otherwise move to
       ;; start of buffer.
       (if (and anchor
@@ -179,8 +180,7 @@ Return a next, top and previous page tuple as a list."
                      (assoc-default
                       anchor folio-dialog-form-anchor-alist)))
           (goto-char anchor)
-        (goto-char (point-min)))
-      (widget-setup))
+        (goto-char (point-min))))
     (use-local-map folio-dialog-form-mode-map)))
 
 ;;;###autoload
