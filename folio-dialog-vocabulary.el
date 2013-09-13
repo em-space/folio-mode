@@ -378,7 +378,7 @@ Return the children of WIDGET."
   :value `,(caar folio-widget-vocabulary-sfilter-alist)
   :values 'folio-widget-vocabulary-sfilter-values
   :notify 'folio-widget-vocabulary-sfilter-notify
-  :button-face custom-button)
+  :button-face 'custom-button)
 
 (defun folio-widget-vocabulary-sfilter-values (widget)
   (let* ((form (folio-dialog-form-get 'vocabulary-script-filter))
@@ -415,7 +415,7 @@ Return the children of WIDGET."
   :format "%v"
   :value `,(caar folio-widget-vocabulary-qfilter-alist)
   :values 'folio-widget-vocabulary-qfilter-values
-  :button-face custom-button)
+  :button-face 'custom-button)
 
 (defun folio-widget-vocabulary-qfilter-values (widget)
   (let* ((form (folio-dialog-form-get 'vocabulary-quick-filters))
