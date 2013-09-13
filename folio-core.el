@@ -424,12 +424,17 @@ See also `folio-page-location', and `folio-page-scan-separators'."
               (aset page-labels page (format "%d" label))
               (setq page (1+ page))
               (setq label (1+ label))))
-           ((eq label-style 'folio-roman-numeral)
+           ((eq label-style 'folio-roman-numeral-minuscule)
             (while (< page page-upper)
               (aset page-labels page
                     (downcase (folio-arabic-to-roman label)))
               (setq page (1+ page))
               (setq label (1+ label))))
+           ((eq label-style 'folio-roman-numeral-majuscule)
+            (aset page-labels page
+                  (folio-arabic-to-roman label))
+            (setq page (1+ page))
+            (setq label (1+ label)))
            (t
             (error "Unsupported page label style `%s'"
                    label-style))))
