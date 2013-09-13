@@ -28,7 +28,9 @@
 
 (require 'tree-widget)
 
+(require 'folio-base)
 (require 'folio-dialog-forms)
+(require 'folio-etaoin-shrdlu)
 (require 'folio-time)
 
 (defcustom folio-vocabulary-filter-delay 0.24

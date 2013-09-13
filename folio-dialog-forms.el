@@ -31,6 +31,8 @@
 (require 'info) ;; defface required at run-time
 (require 'wid-edit)
 
+(require 'folio-atoms)
+
 (defvar folio-dialog-form-page-list nil
   "*List of dialog pages.
 The `Top' page is defined by the car of this list.")

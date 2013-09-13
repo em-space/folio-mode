@@ -32,10 +32,12 @@
 
 (require 'folio-atoms)
 (require 'folio-babel)
+(require 'folio-base)
 (require 'folio-dialog-forms)
 (require 'folio-etaoin-shrdlu)
 (require 'folio-faces)
 (require 'folio-image)
+(require 'folio-spellcheck)
 (require 'folio-time)
 (require 'folio-uca)
 

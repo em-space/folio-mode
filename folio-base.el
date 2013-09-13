@@ -30,6 +30,7 @@
 ;;; Code:
 
 (require 'folio-atoms)
+(require 'folio-time)
 
 (defgroup folio nil
   "Support for producing e-books at Distributed Proofreaders."

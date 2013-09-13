@@ -29,6 +29,7 @@
 (require 'wid-edit)
 
 (require 'folio-base)
+(require 'folio-dialog-forms)
 (require 'folio-dublin-core)
 (require 'folio-faces)
 (require 'folio-image)
