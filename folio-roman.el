@@ -58,6 +58,11 @@
 (defconst folio-roman-numeral "Roman"
   "Symbol definition for uses of roman numerals.")
 
+(defvaralias 'folio-roman-numeral-majuscule 'folio-roman-numeral)
+
+(defconst folio-roman-numeral-minuscule "roman"
+  "Symbol definition for uses of roman numerals (minuscule).")
+
 (defconst folio-roman-arabic-numerals-alist
   '((1000 . (?M))
     (900 . (?C ?M))
