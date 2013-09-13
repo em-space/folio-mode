@@ -32,30 +32,31 @@
   (defvar folio-word-break-table nil
     "Character table associating code points with word break properties."))
 
-(defun folio-word-break-parse-table-data (table)
-  "Parse the Unicode `WordBreakProperty.txt' file in the format as
+(eval-and-compile
+  (defun folio-word-break-parse-table-data (table)
+    "Parse the Unicode `WordBreakProperty.txt' file in the format as
 specified by http://www.unicode.org/reports/tr44/.
 Store the result in the global variable
 `folio-word-break-table'."
-  (let ((property
-         "^\\([0-9A-F]+\\)\\(?:\\.\\.\\([0-9A-F]+\\)\\)?\
+    (let ((property
+           "^\\([0-9A-F]+\\)\\(?:\\.\\.\\([0-9A-F]+\\)\\)?\
 \\s-+;\\s-+\\(\\w+\\)\\s-+#"))
-    (goto-char (point-min))
-    (while (re-search-forward property nil t)
-      (let ((chars (if (match-string 2)
-                       (cons (string-to-number (match-string 1) 16)
-                             (string-to-number (match-string 2) 16))
-                     (string-to-number (match-string 1) 16)))
-            (value (intern (match-string 3))))
-        (set-char-table-range table chars value)))))
+      (goto-char (point-min))
+      (while (re-search-forward property nil t)
+        (let ((chars (if (match-string 2)
+                         (cons (string-to-number (match-string 1) 16)
+                               (string-to-number (match-string 2) 16))
+                       (string-to-number (match-string 1) 16)))
+              (value (intern (match-string 3))))
+          (set-char-table-range table chars value)))))
 
-(defun folio-word-break-load-table (&optional file)
-  (let ((table (make-char-table 'word-break-table)))
-    (with-temp-buffer
-      (insert-file-contents-literally
-       (or file (file-truename "data/aux-word-break-property.txt")))
-      (folio-word-break-parse-table-data table))
-    table))
+  (defun folio-word-break-load-table (&optional file)
+    (let ((table (make-char-table 'word-break-table)))
+      (with-temp-buffer
+        (insert-file-contents-literally
+         (or file (file-truename "data/aux-word-break-property.txt")))
+        (folio-word-break-parse-table-data table))
+      table)))
 
 (setq folio-word-break-table
       (eval-when-compile (folio-word-break-load-table)))
