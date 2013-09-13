@@ -265,6 +265,26 @@ spell-checking.")
   "Return a list of supported spell-checker engines."
   (delq nil (mapcar #'cdr folio-spellcheck-engine-alist)))
 
+(defun folio-dictionary-list ()
+  "Return a list of valid dictionaries.
+Members are canonical BCP 47 language tags, independent of any
+particular spell-checker engine.  The first two letters of a
+member constitute the ISO-639-1 language code."
+  (let ((engines (folio-spellcheck-engine-list))
+        engine dicts)
+    (while (setq engine (pop engines))
+      (let ((dict-list (funcall
+                        (intern-soft
+                         (format "folio-%s-dictionaries"
+                                 (symbol-name engine))))))
+        (mapc (lambda (x)
+                (let ((lang (folio-dictionary-language
+                             x engine)))
+                  (if (and lang (not (member lang dicts)))
+                      (setq dicts (cons lang dicts)))))
+              dict-list)))
+    (sort dicts #'string-lessp)))
+
 (defun folio-dictionary-choices-list ()
   "Return a list of dictionaries not in `folio-dictionaries'."
   (let ((dicts (sort (folio-dictionary-list) 'string-lessp)))
@@ -512,46 +532,6 @@ value is the dictionary name of ENGINE for language LANG."
       (car (member (folio-language-dictionary lang engine)
                    (funcall dicts))))))
 
-(defun folio-spellchecker (lang)
-  "Return a cons of spell-checker engine and dictionary for language LANG.
-This value is determined by selecting the preferred engine from
-`folio-spellcheck-language-engine-alist' falling back to the
-first spell-checker from `folio-spellcheck-engine-list' supporting
-LANG."
-  (let* ((preferred (folio-spellcheck-preferred-engine lang))
-         (engines (delq nil
-                        (cons preferred
-                              (delq preferred
-                                    (cl-copy-list ;; XXX copy?
-                                     (folio-spellcheck-engine-list))))))
-         engine dict)
-    (while (setq preferred (pop engines))
-      (when (setq dict (folio-spellchecker-language-available-p
-                        lang preferred))
-        (setq engine preferred engines nil)))
-    (when engine
-      (cons engine dict))))
-
-(defun folio-dictionary-list ()
-  "Return a list of valid dictionaries.
-Members are canonical BCP 47 language tags, independent of any
-particular spell-checker engine.  The first two letters of a
-member constitute the ISO-639-1 language code."
-  (let ((engines (folio-spellcheck-engine-list))
-        engine dicts)
-    (while (setq engine (pop engines))
-      (let ((dict-list (funcall
-                        (intern-soft
-                         (format "folio-%s-dictionaries"
-                                 (symbol-name engine))))))
-        (mapc (lambda (x)
-                (let ((lang (folio-dictionary-language
-                             x engine)))
-                  (if (and lang (not (member lang dicts)))
-                      (setq dicts (cons lang dicts)))))
-              dict-list)))
-    (sort dicts #'string-lessp)))
-
 (defcustom folio-spellcheck-language-engine-alist nil
   "*List associating a language code to a spell-checker engine.
 `Default' means no particular spell-checker engine is preferred
@@ -581,6 +561,26 @@ should not be empty."
   "Return the preferred spell-checker for LANG.
 If none is defined return nil."
   (cdr (assoc lang folio-spellcheck-language-engine-alist)))
+
+(defun folio-spellchecker (lang)
+  "Return a cons of spell-checker engine and dictionary for language LANG.
+This value is determined by selecting the preferred engine from
+`folio-spellcheck-language-engine-alist' falling back to the
+first spell-checker from `folio-spellcheck-engine-list' supporting
+LANG."
+  (let* ((preferred (folio-spellcheck-preferred-engine lang))
+         (engines (delq nil
+                        (cons preferred
+                              (delq preferred
+                                    (cl-copy-list ;; XXX copy?
+                                     (folio-spellcheck-engine-list))))))
+         engine dict)
+    (while (setq preferred (pop engines))
+      (when (setq dict (folio-spellchecker-language-available-p
+                        lang preferred))
+        (setq engine preferred engines nil)))
+    (when engine
+      (cons engine dict))))
 
 ;; XXX language options: max number of run-together words; apostrophe
 ;; as word constituent
