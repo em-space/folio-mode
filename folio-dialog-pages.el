@@ -189,6 +189,27 @@
     ("ROMAN" . folio-roman-numeral)
     ("ROMAN" . folio-roman-numeral-majuscule)))
 
+(defun folio-widget-page-rules-changed (widget)
+  "Signal an update to the page label rule."
+  (let ((page-count (folio-with-parent-buffer
+                      (folio-count-pages)))
+        (value (widget-value widget))
+        rule)
+    (mapc (lambda (x)
+            (push (list (nth 0 x)
+                        (nth 2 x)
+                        (cdr (assoc (nth 3 x)
+                                    folio-widget-page-label-alist)))
+                  rule)) value)
+    (folio-with-parent-buffer
+      (condition-case-unless-debug err
+          (progn
+            (run-hook-with-args
+             'folio-page-label-changed-functions
+             (cons page-count (nreverse rule)))
+            (message "Page labels updated"))
+        (error (message "Invalid page label definition"))))))
+
 (defun folio-widget-page-rules-notify (widget child &optional event)
   ;; (message "XXXX rules-notify child %s event %s value %s"
   ;; (car child) event (widget-value child))
