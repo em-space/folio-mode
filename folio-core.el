@@ -62,6 +62,10 @@ is also referred to as the technical page number.")
   "Caches proof-reader names for each page.")
 (make-variable-buffer-local 'folio-proofer-from-page)
 
+(defvar folio-page-label-changed-functions nil
+  "Abnormal hook run when page labels have changed.
+The argument if non-nil is a page label rule.")
+
 (defvar folio-text-author nil
   "The e-text author in UTF-8 plain text.
 The variable normally is set from the author element of
