@@ -183,6 +183,12 @@
   :notify 'folio-widget-page-rules-notify
   :args '(folio-widget-page-rule))
 
+(defconst folio-widget-page-label-alist
+  '(("arabic" . folio-arabic-numeral)
+    ("roman" . folio-roman-numeral-minuscule)
+    ("ROMAN" . folio-roman-numeral)
+    ("ROMAN" . folio-roman-numeral-majuscule)))
+
 (defun folio-widget-page-rules-notify (widget child &optional event)
   ;; (message "XXXX rules-notify child %s event %s value %s"
   ;; (car child) event (widget-value child))
@@ -221,6 +227,47 @@
         (widget-default-notify widget child event)))
      (t
       (widget-default-notify widget child event)))))
+(defun folio-dialog-pages-widget-value ()
+  "Determine the pages widget value."
+  (let ((rule (cdr folio-page-label-rule))
+        pages)
+    (if rule
+        (mapc (lambda (x)
+                (let ((page (nth 0 x))
+                      (label (nth 1 x))
+                      (style
+                       (car (rassq (nth 2 x)
+                                     folio-widget-page-label-alist)))
+                        entry)
+                    (cond
+                     ((null label)
+                      (setq entry (list page nil nil nil)))
+                     ((numberp label)
+                      (setq entry
+                            (list page
+                                  (format "%d" label)
+                                  label
+                                  style))))
+                    (setq pages (cons entry pages)))) rule)
+        (save-excursion
+          (save-restriction
+            (widen)
+            (goto-char (point-min))
+            (let ((blanks (folio-forward-blank-page
+                           (point-max-marker))))
+              (unless (memq 1 blanks)
+                (setq pages '((1 "1" 1 "arabic"))))
+              (mapc (lambda (x)
+                      (let* ((page (folio-page-at-point (car x)))
+                             (next (unless (memq (1+ page) blanks)
+                                     (1+ page))))
+                        (if pages
+                            (push `(,page nil nil nil) pages)
+                          (setq pages `((,page nil nil nil))))
+                        (when next
+                          (push `(,next "1" 1 "arabic") pages))))
+                    blanks)))))
+      (nreverse pages)))
 
 (defun folio-dialog-pages-page ()
   "Create the dialog for page setup."
