@@ -137,7 +137,7 @@
      (widget-create-child-and-convert
       widget 'const :tag " " :format "%t") buttons)
     (folio-widget-insert "\n")
-    (folio-widget-indent 47)
+    (folio-widget-indent 48)
     (unless (null (nth 2 value))
       (push
        (widget-create-child-and-convert
