@@ -1300,7 +1300,7 @@ otherwise remove the keywords."
           (remove-hook (car hook) (cdr hook) t)
         (add-hook (car hook) (cdr hook) nil t)))))
 
-(defsubst folio-spellcheck-remove-local-hooks (buffer)
+(defun folio-spellcheck-remove-local-hooks (buffer)
   "Deregister local mode hooks."
   (folio-spellcheck-add-local-hooks buffer 'remove))
 
