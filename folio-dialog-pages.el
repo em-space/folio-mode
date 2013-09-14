@@ -211,8 +211,7 @@
         (error (message "Invalid page label definition"))))))
 
 (defun folio-widget-page-rules-notify (widget child &optional event)
-  ;; (message "XXXX rules-notify child %s event %s value %s"
-  ;; (car child) event (widget-value child))
+  "Handle notification event EVENT from child widget CHILD."
   (let ((value (widget-value child))
         (event-type (car-safe event)))
     (cond
