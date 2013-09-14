@@ -295,9 +295,7 @@
 (defun folio-dialog-pages-page ()
   "Create the dialog for page setup."
   ;; XXX Outline
-
   ;; XXX Join pages
-  ;; XXX page labels
 
   (widget-insert "\n\n")
   (widget-create 'const
@@ -310,33 +308,12 @@
 Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Donec hendrerit tempor tellus. Donec pretium posuere tellus. Proin quam nisl, tincidunt et, mattis eget, convallis nec, purus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nulla posuere. Donec vitae dolor. Nullam tristique diam non turpis. Cras placerat accumsan nulla. Nullam rutrum. Nam vestibulum accumsan nisl.")
 
   (widget-insert "\n\n\n")
+  (folio-dialog-form
+   'pages (widget-create 'folio-widget-page-rules
+                         :value (folio-with-parent-buffer
+                                  (folio-dialog-pages-widget-value))))
+  (widget-setup))
 
-  (let (pages)
-    (folio-with-parent-buffer
-      (save-excursion
-        (save-restriction
-          (widen)
-          (goto-char (point-min))
-          (let ((blanks (folio-forward-blank-page
-                         (point-max-marker))))
-            ;; (message "XXX blanks %s" blanks)
-            (unless (memq 1 blanks)
-              (setq pages '((1 "1" 1 "arabic"))))
-            (mapc (lambda (x)
-                    (let* ((page (folio-page-at-point (car x)))
-                           (next (unless (memq (1+ page) blanks)
-                                   (1+ page))))
-                      (if pages
-                          (push `(,page nil nil nil) pages)
-                        (setq pages `((,page nil nil nil))))
-                      (when next
-                        (push `(,next "1" 1 "arabic") pages))))
-                  blanks)))))
-    ;; (nreverse pages)
-    ;; (message "XXX ==== %s--%s" pages (caar pages))
-
-    (widget-create 'folio-widget-page-rules
-                   :value (reverse pages))))
 
 
 (provide 'folio-dialog-pages)
