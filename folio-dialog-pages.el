@@ -123,6 +123,7 @@
         :format "%t"
         :help-echo "No page number or label."
         nil)
+      ;; XXX TODO `Number Format' as in 'A-12' where '12' is read as both the numeric value of the page label
       `(folio-widget-integer
         :tag "Numeral"
         :help-echo "Page number."
