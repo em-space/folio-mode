@@ -539,6 +539,22 @@ used to go to blank pages."
 ;;       (insert-file-contents file)
 ;;       (folio-page-scan-separators (current-buffer)))))
 
+
+(defun folio-core-add-local-hooks (buffer &optional remove)
+  "Register or deregister local mode hooks.
+
+Add hooks local to BUFFER or remove hooks if REMOVE is non-nil."
+  (with-current-buffer buffer
+    (dolist (hook '((folio-page-label-changed-functions
+                     . folio-restore-page-labels)))
+      (if remove
+          (remove-hook (car hook) (cdr hook) t)
+        (add-hook (car hook) (cdr hook) nil t)))))
+
+(defun folio-core-remove-local-hooks (buffer)
+  "Deregister local mode hooks."
+  (folio-core-add-local-hooks buffer 'remove))
+
 ;;;###autoload
 (defun folio-core-setup ()
   "Initialize the core of a Folio mode."
