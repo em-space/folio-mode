@@ -157,17 +157,17 @@
           :tag "Arabic"
           :help-echo "Arabic numerals."
           :format "%[%t%]"
-          "arabic")
+          folio-arabic-numeral)
         '(choice-item
           :tag "roman "
           :help-echo "Roman numerals (minuscule)."
           :format "%[%t%]"
-          "roman")
+          folio-roman-numeral-minuscule)
         '(choice-item
           :tag "ROMAN "
           :format "%[%t%]"
           :help-echo "Roman numerals (majuscule)."
-          "ROMAN")) children))
+          folio-roman-numeral-majuscule)) children))
     (widget-put widget :children (nreverse children))
     (widget-put widget :buttons buttons)
     children))
@@ -183,12 +183,6 @@
   :notify 'folio-widget-page-rules-notify
   :args '(folio-widget-page-rule))
 
-(defconst folio-widget-page-label-alist
-  '(("arabic" . folio-arabic-numeral)
-    ("roman" . folio-roman-numeral-minuscule)
-    ("ROMAN" . folio-roman-numeral)
-    ("ROMAN" . folio-roman-numeral-majuscule)))
-
 (defun folio-widget-page-rules-changed (widget)
   "Signal an update to the page label rule."
   (let ((page-count (folio-with-parent-buffer
@@ -196,11 +190,8 @@
         (value (widget-value widget))
         rule)
     (mapc (lambda (x)
-            (push (list (nth 0 x)
-                        (nth 2 x)
-                        (cdr (assoc (nth 3 x)
-                                    folio-widget-page-label-alist)))
-                  rule)) value)
+            (push (list (nth 0 x) (nth 2 x) (nth 3 x)) rule))
+          value)
     (folio-with-parent-buffer
       (condition-case-unless-debug err
           (progn
@@ -227,9 +218,9 @@
       (let* ((style (nth 3 value))
              (number (nth 2 value))
              (label (cond
-                     ((string-equal style "arabic")
+                     ((eq style 'folio-arabic-numeral)
                       (format "%s" number))
-                     ((string-equal style "roman")
+                     ((eq style 'folio-roman-numeral-minuscule)
                       (downcase (folio-arabic-to-roman number)))
                      (t
                       (folio-arabic-to-roman number)))))
@@ -242,7 +233,7 @@
             (widget-value-set
              child `(,(or (nth 0 value) 1) nil nil nil))
           (widget-value-set
-           child `(,(or (nth 0 value) 0) "1" 1 "arabic")))
+           child `(,(or (nth 0 value) 0) "1" 1 folio-arabic-numeral)))
         (widget-setup)
         (widget-default-notify widget child event)))
      (t
@@ -257,10 +248,8 @@
         (mapc (lambda (x)
                 (let ((page (nth 0 x))
                       (label (nth 1 x))
-                      (style
-                       (car (rassq (nth 2 x)
-                                     folio-widget-page-label-alist)))
-                        entry)
+                      (style (nth 2 x))
+                      entry)
                     (cond
                      ((null label)
                       (setq entry (list page nil nil nil)))
@@ -278,7 +267,7 @@
             (let ((blanks (folio-forward-blank-page
                            (point-max-marker))))
               (unless (memq 1 blanks)
-                (setq pages '((1 "1" 1 "arabic"))))
+                (setq pages '((1 "1" 1 folio-arabic-numeral))))
               (mapc (lambda (x)
                       (let* ((page (folio-page-at-point (car x)))
                              (next (unless (memq (1+ page) blanks)
@@ -287,7 +276,8 @@
                             (push `(,page nil nil nil) pages)
                           (setq pages `((,page nil nil nil))))
                         (when next
-                          (push `(,next "1" 1 "arabic") pages))))
+                          (push `(,next "1" 1 folio-arabic-numeral)
+                                pages))))
                     blanks)))))
       (nreverse pages)))
 
