@@ -559,12 +559,14 @@ Add hooks local to BUFFER or remove hooks if REMOVE is non-nil."
 (defun folio-core-setup ()
   "Initialize the core of a Folio mode."
   (when folio-show-header-line
-    (folio-header-enable)))
+    (folio-header-enable))
+  (folio-core-add-local-hooks (current-buffer)))
 
 ;;;###autoload
 (defun folio-core-teardown ()
   "Shutdown the core of a Folio mode."
-  (folio-header-enable -1))
+  (folio-header-enable -1)
+  (folio-core-remove-local-hooks (current-buffer)))
 
 
 ;;;###autoload
