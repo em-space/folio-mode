@@ -158,10 +158,11 @@ The inverse operation is defined by `folio-save-page-markers'."
               (setq label (1+ label))))
            ((memq label-style '(folio-roman-numeral
                                 folio-roman-numeral-majuscule))
-            (aset page-labels page
-                  (folio-arabic-to-roman label))
-            (setq page (1+ page))
-            (setq label (1+ label)))
+            (while (< page page-upper)
+              (aset page-labels page
+                    (folio-arabic-to-roman label))
+              (setq page (1+ page))
+              (setq label (1+ label))))
            (t
             (error "Unsupported page label style `%s'"
                    label-style))))
