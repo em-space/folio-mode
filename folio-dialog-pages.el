@@ -247,7 +247,9 @@
         (widget-setup)
         (widget-default-notify widget child event)))
      (t
-      (widget-default-notify widget child event)))))
+      (widget-default-notify widget child event))))
+  (folio-widget-page-rules-changed widget))
+
 (defun folio-dialog-pages-widget-value ()
   "Determine the pages widget value."
   (let ((rule (cdr folio-page-label-rule))
