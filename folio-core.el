@@ -126,6 +126,56 @@ The inverse operation is defined by `folio-save-page-markers'."
 (put 'folio-page-markers
      'folio-restore-value 'folio-restore-page-markers)
 
+(defun folio-page-label-rule-unfold (rule &optional num-pages)
+  "Evaluate the compact form of a page label RULE."
+  ;; as with (folio-page-label-rule-unfold
+  ;;    '(307 (4 1 folio-arabic-numeral nil)))
+  (let* ((num-pages (or num-pages (car rule)))
+         (rule (cdr (if (symbolp rule) (symbol-value rule) rule)))
+         (lower (pop rule))
+         (page-labels (make-vector num-pages nil)))
+    (while lower
+      (let* ((page (1- (car lower)))
+             (label (cadr lower))
+             (label-style (caddr lower))
+             (upper (car rule))
+             (page-upper (if upper
+                             (min (1- (car upper)) num-pages)
+                           num-pages)))
+        (cond
+         ((numberp label) ;; numeral
+          (cond
+           ((eq label-style 'folio-arabic-numeral)
+            (while (< page page-upper)
+              (aset page-labels page (format "%d" label))
+              (setq page (1+ page))
+              (setq label (1+ label))))
+           ((eq label-style 'folio-roman-numeral-minuscule)
+            (while (< page page-upper)
+              (aset page-labels page
+                    (downcase (folio-arabic-to-roman label)))
+              (setq page (1+ page))
+              (setq label (1+ label))))
+           ((memq label-style '(folio-roman-numeral
+                                folio-roman-numeral-majuscule))
+            (aset page-labels page
+                  (folio-arabic-to-roman label))
+            (setq page (1+ page))
+            (setq label (1+ label)))
+           (t
+            (error "Unsupported page label style `%s'"
+                   label-style))))
+         ((eq label nil) ;; blank
+          (aset page-labels page t)
+          (setq page (1- page-upper))
+          t)
+         (t
+          (error "Page label style neither \
+numeric nor constant string")))
+        (setq lower upper))
+      (pop rule))
+    page-labels))
+
 (defun folio-restore-page-labels (rule)
   "Demarshaller function for page labels as cached by the
 buffer-local variable `folio-label-from-page' at run-time for use
@@ -403,54 +453,6 @@ See also `folio-page-location', and `folio-page-scan-separators'."
           (when (called-interactively-p 'any)
             (message "Page %d" page))
           page))))))
-
-(defun folio-page-label-rule-unfold (rule &optional num-pages)
-  "Evaluate the compact form of a page label RULE."
-  ;; as with (folio-page-label-rule-unfold
-  ;;    '(307 (4 1 folio-arabic-numeral nil)))
-  (let* ((num-pages (or num-pages (car rule)))
-         (rule (cdr (if (symbolp rule) (symbol-value rule) rule)))
-         (lower (pop rule))
-         (page-labels (make-vector num-pages nil)))
-    (while lower
-      (let* ((page (1- (car lower)))
-             (label (cadr lower))
-             (label-style (caddr lower))
-             (upper (car rule))
-             (page-upper (if upper
-                             (min (1- (car upper)) num-pages)
-                           num-pages)))
-        (cond
-         ((numberp label)
-          (cond
-           ((eq label-style 'folio-arabic-numeral)
-            (while (< page page-upper)
-              (aset page-labels page (format "%d" label))
-              (setq page (1+ page))
-              (setq label (1+ label))))
-           ((eq label-style 'folio-roman-numeral-minuscule)
-            (while (< page page-upper)
-              (aset page-labels page
-                    (downcase (folio-arabic-to-roman label)))
-              (setq page (1+ page))
-              (setq label (1+ label))))
-           ((eq label-style 'folio-roman-numeral-majuscule)
-            (aset page-labels page
-                  (folio-arabic-to-roman label))
-            (setq page (1+ page))
-            (setq label (1+ label)))
-           (t
-            (error "Unsupported page label style `%s'"
-                   label-style))))
-         ((eq label nil)
-          (setq page (1- page-upper))
-          t)
-         (t
-          (error "Page label style neither \
-numeric nor constant string")))
-        (setq lower upper))
-      (pop rule))
-    page-labels))
 
 ;;;###autoload
 (defun folio-page-scan-at-point (&optional point)
