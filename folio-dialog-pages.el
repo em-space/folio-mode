@@ -49,7 +49,6 @@
 
 (defun folio-widget-page-rule-match (widget value)
   ;; Match if the value is the same.
-  ;; (message "XXX match value %s-%s" (widget-get widget :value) value)
   (equal (widget-get widget :value) value)
   (and (eq (length value) 4)
        (integerp (nth 0 value))))
