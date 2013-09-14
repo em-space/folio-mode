@@ -125,8 +125,8 @@
         :help-echo "No page number or label."
         nil)
       `(folio-widget-integer
-        :tag "Number"
-        :help-echo "Page label number."
+        :tag "Numeral"
+        :help-echo "Page number."
         :format "%t: %v"
         :value ,(or (nth 2 value) 1)
         :old-value ,(or (nth 2 value) 1)
