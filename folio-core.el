@@ -552,8 +552,9 @@ used to go to blank pages."
 
 
 ;;;###autoload
-(defun folio-toggle-nobreak-char-display ()
+(defun folio-toggle-nobreak-char-display (&optional _ignore)
   "Toggle highlighting of non-ASCII space and hyphen chars.
+
 If enabled, Emacs highlights non-ASCII chars which have the same
 appearance as an ASCII space or hyphen, using the `nobreak-space'
 or `escape-glyph' face respectively.
