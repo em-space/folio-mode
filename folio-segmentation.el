@@ -665,6 +665,42 @@ Point only is moved if a \"front-matter\" section actually was found."
     (when called-interactively
       (recenter))))
 
+(defun folio-forward-section-thing (thing &optional arg verb)
+  "Move forward by section of type THING.
+
+THING is the symbol of a structural element like `folio-section',
+`folio-chapter'.  With argument ARG, move ARG times; a negative
+argument ARG = -N means move backward N times.  If VERB is
+non-nil print a message if THING is not found."
+  (let* ((arg (or arg 1))
+         (arg-+ve (> arg 0))
+         (count (if arg-+ve arg (- arg)))
+         pos)
+    (save-excursion
+      (when (> count 0)
+        (let ((at-end (if arg-+ve (function eobp) (function bobp)))
+              (pp (car (get thing 'form))))
+          (save-match-data
+            (while (and (> count 0) (not (funcall at-end)))
+              (if (if arg-+ve
+                      (progn
+                        (when (and arg-+ve (looking-at pp))
+                          (goto-char (match-end 0)))
+                        (re-search-forward pp nil t))
+                    (re-search-backward pp nil t))
+                  (progn
+                    (goto-char (+ (match-beginning 0) 2))
+                    (setq pos (point) count (1- count)))
+                (if arg-+ve
+                    (setq pos (point-max))
+                  (setq pos (point-min)))
+                (setq count 0)))))))
+    (if (or (null pos) (eq pos (point)))
+        (when verb
+          (message "No %s found" (downcase (symbol-value thing))))
+      (goto-char pos))
+    count))
+
 (defun folio-join-words-help-form ()
   "Return the help form for `folio-join-words'."
   (concat "You have typed "
