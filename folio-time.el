@@ -228,7 +228,8 @@ with `folio-define-timer'."
   (folio-cancel-timer timer)
   (let ((the-timer (folio--timer-symbol-interned timer)))
     (set the-timer (apply 'run-with-idle-timer
-                          (folio-timer-eval timer :secs)
+                          (or (folio-timer-eval timer :secs)
+                              (error "Invalid scheduling time"))
                           (folio-timer-get timer :repeat)
                           'folio-timer-run-while-idle (list timer)))))
 
