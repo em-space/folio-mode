@@ -568,8 +568,8 @@ Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Donec hendrerit tempor
     (folio-dialog-form
      'dict-gwl (widget-create
                 'checkbox :value nil
-                :notify (lambda (&rest ignore)
-                          (folio-widget-dict-filter-apply))))
+                :notify (lambda (&rest _ignore)
+                          (folio-schedule-timer 'dict-filter))))
 
     (widget-insert "\n\n\n\n")
     ;; Pretty much like 'regexp but validated a little differently.
