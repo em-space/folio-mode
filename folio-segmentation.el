@@ -697,6 +697,46 @@ section actually was found."
     (when interactively
       (recenter))))
 
+(defconst folio-chapter "Chapter"
+  "Structural element of a chapter.")
+
+(put 'folio-chapter 'form '("[^\n]\n\n\n\n\n\\(?:.\\)"))
+(put 'folio-chapter 'forward-op 'folio-forward-chapter)
+
+(defun folio-forward-chapter (&optional arg)
+  "Move forward to the end of a chapter or part.
+
+With argument ARG, move ARG times; a negative argument ARG = -N
+means move backward N chapters.  When moving backward point is at
+the beginning of a chapter.  Return the number of pending moves.
+Point only is moved if a chapter actually was found."
+  (interactive "^p")
+  (let ((interactively (called-interactively-p 'interactive))
+        count)
+    (setq count (folio-forward-section-thing
+                 'folio-chapter arg interactively))
+    (when interactively
+      (recenter))
+    count))
+
+(defun folio-backward-chapter (&optional arg)
+  "Move backward to the beginning of a chapter or part.
+
+With argument ARG, move ARG times; a negative argument ARG = -N
+means move forward N chapters.  When moving forward point is at
+the end of a chapter.  Return the number of pending moves.
+Point only is moved if a chapter actually was found."
+  (interactive "^p")
+  (let ((interactively (called-interactively-p 'interactive))
+        count)
+    (setq count (folio-forward-section-thing
+                 'folio-chapter (if (markerp arg)
+                                    arg
+                                  (- (or arg 1))) interactively))
+    (when interactively
+      (recenter))
+    count))
+
 (defun folio-scan-page-separators (&optional buffer)
   "Scan page separators from text file.
 
