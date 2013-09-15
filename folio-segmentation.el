@@ -36,67 +36,6 @@
 
 ; XXX:TODO query custom value, hook into before-save
 
-(defun folio-scan-page-separators (&optional buffer)
-  "Scan page separators from text file.
-BUFFER is the buffer or buffer name to scan.  If omitted this
-defaults to the current buffer.
-
-Once page information is available the physical page number is shown in
-the header line, references to page scan images become available, and
-the proofer names for the current page can be queried."
-  (interactive)
-  (let ((buffer (get-buffer (or buffer (current-buffer))))
-        (page 0)
-        (proofer #x20)
-        page-markers page-scans proofer-names page-proofers)
-    (setq proofer-names (make-hash-table :test #'equal))
-    (with-current-buffer buffer
-      (save-excursion
-        (save-restriction
-          (widen)
-          (goto-char (point-max))
-          ;; should the format of the page separator change the code
-          ;; most like has to be updated too; the regex therefore
-          ;; neither is defined globally nor subject to customizing
-          (let ((separator-pp (concat
-                               "^-----File: "
-                               "\\(\\(?:[pi]_\\)?[0-9]+[^-]+\\)-+"
-                               "\\(\\(?:\\\\[^\\\n]+\\)+\\)\\\\-+$"))
-                proofers)
-            (while (not (bobp))
-              (when (looking-at separator-pp)
-                (setq page (+ 1 page)
-                      page-markers (cons (point) page-markers)
-                      page-scans (cons (match-string-no-properties 1)
-                                       page-scans)
-                      proofers (or (split-string
-                                    (match-string-no-properties 2)
-                                    "\\\\"
-                                    'omit-nulls) "<unknown>"))
-                ;; bit-compress proofer names by perfect hashing a
-                ;; name into a character code; the round number is
-                ;; implicitly encoded and only non-strict since it is
-                ;; assumed that either all rounds of a page have
-                ;; names assigned or none
-                (let (pos names)
-                  (mapc (lambda (x)
-                          (setq pos (gethash x proofer-names))
-                          (unless pos
-                            (puthash x proofer proofer-names)
-                            (setq pos proofer
-                                  proofer (1+ proofer)))
-                          (setq names (cons pos names))) proofers)
-                  (setq page-proofers
-                        (cons (concat (nreverse names))
-                              page-proofers))))
-              (forward-line -1)))))
-      ;; update the various buffer local tables
-      (folio-restore-proofers
-       (cons (folio-hash-table-to-alist proofer-names)
-             (nreverse page-proofers)))
-      (folio-restore-page-markers page-markers)
-      (folio-restore-page-scans page-scans))))
-
 
 ;;;; semantic elements, definition and movement
 
@@ -757,6 +696,69 @@ section actually was found."
      'folio-section (- (or arg 1)) interactively)
     (when interactively
       (recenter))))
+
+(defun folio-scan-page-separators (&optional buffer)
+  "Scan page separators from text file.
+
+BUFFER is the buffer or buffer name to scan.  If omitted this
+defaults to the current buffer.
+
+Once page information is available the physical page number is
+shown in the header line, references to page scan images become
+available, and the proofer names for the current page can be
+queried."
+  (interactive)
+  (let ((buffer (get-buffer (or buffer (current-buffer))))
+        (page 0)
+        (proofer #x20)
+        page-markers page-scans proofer-names page-proofers)
+    (setq proofer-names (make-hash-table :test #'equal))
+    (with-current-buffer buffer
+      (save-excursion
+        (save-restriction
+          (widen)
+          (goto-char (point-max))
+          ;; should the format of the page separator change the code
+          ;; most like has to be updated too; the regex therefore
+          ;; neither is defined globally nor subject to customizing
+          (let ((separator-pp (concat
+                               "^-----File: "
+                               "\\(\\(?:[pi]_\\)?[0-9]+[^-]+\\)-+"
+                               "\\(\\(?:\\\\[^\\\n]+\\)+\\)\\\\-+$"))
+                proofers)
+            (while (not (bobp))
+              (when (looking-at separator-pp)
+                (setq page (+ 1 page)
+                      page-markers (cons (point) page-markers)
+                      page-scans (cons (match-string-no-properties 1)
+                                       page-scans)
+                      proofers (or (split-string
+                                    (match-string-no-properties 2)
+                                    "\\\\"
+                                    'omit-nulls) "<unknown>"))
+                ;; bit-compress proofer names by perfect hashing a
+                ;; name into a character code; the round number is
+                ;; implicitly encoded and only non-strict since it is
+                ;; assumed that either all rounds of a page have
+                ;; names assigned or none
+                (let (pos names)
+                  (mapc (lambda (x)
+                          (setq pos (gethash x proofer-names))
+                          (unless pos
+                            (puthash x proofer proofer-names)
+                            (setq pos proofer
+                                  proofer (1+ proofer)))
+                          (setq names (cons pos names))) proofers)
+                  (setq page-proofers
+                        (cons (concat (nreverse names))
+                              page-proofers))))
+              (forward-line -1)))))
+      ;; update the various buffer local tables
+      (folio-restore-proofers
+       (cons (folio-hash-table-to-alist proofer-names)
+             (nreverse page-proofers)))
+      (folio-restore-page-markers page-markers)
+      (folio-restore-page-scans page-scans))))
 
 (defun folio-join-words-help-form ()
   "Return the help form for `folio-join-words'."
