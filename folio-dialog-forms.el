@@ -544,7 +544,7 @@ an invalid value."
     ;; two, leaving a one-item context at position one.
     (when current-key
       (setq last-key (car keys))
-      (while (not (equal (car keys) current-key))
+      (while (and keys (not (equal (car keys) current-key)))
         (setq last-key (car keys)
               keys (cdr keys)
               current-index (1+ current-index)))
