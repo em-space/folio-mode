@@ -87,7 +87,8 @@ the proofer names for the current page can be queried."
                                   proofer (1+ proofer)))
                           (setq names (cons pos names))) proofers)
                   (setq page-proofers
-                        (cons (concat (nreverse names)) page-proofers))))
+                        (cons (concat (nreverse names))
+                              page-proofers))))
               (forward-line -1)))))
       ;; update the various buffer local tables
       (folio-restore-proofers
@@ -291,6 +292,7 @@ The return value is t if THING is found, or nil otherwise."
 
 (defun folio-forward-illustration (&optional arg)
   "Move forward to the end of an illustration.
+
 With prefix argument ARG, move ARG times; a negative argument ARG
 = -N means move backward N illustration.  When moving backward
 point is at the beginning of an illustration.  Return the number
@@ -304,17 +306,20 @@ actually was found."
 
 (defun folio-backward-illustration (&optional arg)
   "Move backward to the beginning of an illustration.
+
 With argument ARG, move ARG times; a negative argument ARG = -N
 means move forward N illustrations.  For additional information
 see the related command `folio-forward-illustration'."
   (interactive "^p")
   (let ((interactively (called-interactively-p 'interactive)))
-    (folio-forward-note-thing 'folio-illustration (- (or arg 1)) interactively)
+    (folio-forward-note-thing
+     'folio-illustration (- (or arg 1)) interactively)
     (when interactively
       (recenter))))
 
 (defconst folio-footnote "Footnote"
   "Semantic element of a footnote.
+
 `folio-footnote' can be operated on by using `thing-at-point' and
 related functions, and additionally `folio-mark-thing-at-point',
 `folio-kill-thing-at-point', and `folio-move-thing-at-point' (which
@@ -325,6 +330,7 @@ see).")
 
 (defun folio-forward-footnote (&optional arg)
   "Move forward to the end of a footnote.
+
 With argument ARG, move ARG times; a negative argument ARG = -N
 means move backward N footnotes.  When moving backward point is
 at the beginning of a footnote.  Return the number of pending
@@ -337,17 +343,20 @@ moves.  Point only is moved if a footnote actually was found."
 
 (defun folio-backward-footnote (&optional arg)
   "Move backward to the beginning of a footnote.
+
 With argument ARG, move ARG times; a negative argument ARG = -N
 means move forward N blockquotes.  For additional information see
 the related command `folio-forward-footnote'."
   (interactive "^p")
   (let ((interactively (called-interactively-p 'interactive)))
-    (folio-forward-note-thing 'folio-footnote (- (or arg 1)) interactively)
+    (folio-forward-note-thing
+     'folio-footnote (- (or arg 1)) interactively)
     (when interactively
       (recenter))))
 
 (defconst folio-sidenote "Side-note"
   "Typographic element of a side-note.
+
 `folio-sidenote' can be operated on by using `thing-at-point' and
 related functions, and additionally `folio-mark-thing-at-point',
 `folio-kill-thing-at-point', and `folio-move-thing-at-point' (see
@@ -357,7 +366,8 @@ which.)")
 (put 'folio-sidenote 'forward-op 'folio-forward-sidenote)
 
 (defun folio-forward-sidenote (&optional arg)
-  "Move forward to the end of a sidenote.
+  "Move forward to the end of a side-note.
+
 With prefix argument ARG, move ARG times; a negative argument ARG
 = -N means move backward N sidenotes.  When moving backward point
 is at the beginning of a sidenote.  Return the number of pending
@@ -372,7 +382,8 @@ moves.  Point only is moved if a sidenote actually was found."
     count))
 
 (defun folio-backward-sidenote (&optional arg)
-  "Move backward to the beginning of a sidenote.
+  "Move backward to the beginning of a side-note.
+
 With argument ARG, move ARG times; a negative argument ARG = -N
 means move forward N sidenote.  For additional information see
 the related command `folio-forward-sidenote'."
@@ -447,7 +458,7 @@ the related command `folio-forward-blank-page'."
   "Syntax table for `folio-forward-wrap-thing'.")
 
 (defun folio-forward-wrap-thing (thing arg &optional verb)
-  "Move point to the next position that is the end of a syntactically wrap-like thing.
+  "Move forward to a section with re-wrap constraints.
 
 THING is any of `folio-blockquote', `folio-nowrap',
 `folio-frontmatter', `folio-poetry' \(which see), or more
@@ -499,6 +510,7 @@ not changed if no THING to move over is found."
 
 (defconst folio-blockquote "Block Quotation"
   "Semantic element of a block quotation or extract.
+
 `folio-blockquote' can be operated on by using `thing-at-point'
 and related functions, and additionally
 `folio-mark-thing-at-point', `folio-kill-thing-at-point', and
@@ -509,6 +521,7 @@ and related functions, and additionally
 
 (defun folio-forward-blockquote (&optional arg)
   "Move forward to the end of a block quotation or extract.
+
 With argument ARG, move ARG times; a negative argument ARG = -N
 means move backward N block-quotes.  When moving backward point
 is at the beginning of a block-quote.  Return the number of
@@ -529,6 +542,7 @@ used."
 
 (defun folio-backward-blockquote (&optional arg)
   "Move backward to the beginning of a block quotation or extract.
+
 With argument ARG, move ARG times; a negative argument ARG = -N
 means move forward N block-quotes.  For additional information
 see the related command `folio-forward-blockquote'."
@@ -542,6 +556,7 @@ see the related command `folio-forward-blockquote'."
 
 (defconst folio-nowrap "No-Wrap"
   "Structural element of a \"no-wrap\" text section.
+
 XXX requires special treatment with respect to the preservation
 of line breaks, indentation, and spacing.  `folio-sidenote' can
 be operated on by using `thing-at-point' and related functions,
@@ -554,6 +569,7 @@ which.)")
 
 (defun folio-forward-nowrap (&optional arg)
   "Move forward to the end of a \"no-wrap\" section.
+
 With prefix argument ARG, move ARG times; a negative argument ARG
 = -N means move backward N times.  When moving backward point is
 at the beginning of a \"no-wrap\" section.  Return the number of
@@ -569,6 +585,7 @@ found."
 
 (defun folio-backward-nowrap (&optional arg)
   "Move backward to the start of a \"no-wrap\" section.
+
 With argument ARG, move ARG times; a negative argument ARG = -N
 means move forward N times.  When moving forward point is at the
 end of a \"no-wrap\" section.  Return the number of pending
@@ -584,6 +601,7 @@ found."
 
 (defconst folio-poetry "Poetry"
   "Semantic element of a \"poetry\" text section.
+
 XXX requires special treatment with respect to the preservation
 of line breaks, indentation, and spacing.  `folio-sidenote' can
 be operated on by using `thing-at-point' and related functions,
@@ -596,6 +614,7 @@ which.)")
 
 (defun folio-forward-poetry (&optional arg)
   "Move forward to the end of a \"poetry\" section.
+
 With prefix argument ARG, move ARG times; a negative argument ARG
 = -N means move backward N times.  When moving backward point is
 at the beginning of a \"poetry\" section.  Return the number of
@@ -611,6 +630,7 @@ actually was found."
 
 (defun folio-backward-poetry (&optional arg)
   "Move backward to the start of a \"poetry\" section.
+
 With argument ARG, move ARG times; a negative argument ARG = -N
 means move forward N times.  When moving forward point is at the
 end of a \"poetry\" section.  Return the number of pending moves.
@@ -638,6 +658,7 @@ which.)")
 
 (defun folio-forward-frontmatter (&optional arg)
   "Move forward to the end of a \"front-matter\" section.
+
 With prefix argument ARG, move ARG times; a negative argument ARG
 = -N means move backward N times.  When moving backward point is
 at the beginning of a \"front-matter\" section.  Return the
@@ -653,6 +674,7 @@ number of pending moves.  Point only is moved if a
 
 (defun folio-backward-frontmatter (&optional arg)
   "Move backward to the start of a \"front-matter\" section.
+
 With argument ARG, move ARG times; a negative argument ARG = -N
 means move forward N times.  When moving forward point is at the
 end of a \"front-matter\" section.  Return the number of pending moves.
@@ -974,8 +996,12 @@ C-g    Abort the command."))
                                  (forward-char 1)
                                  (folio-looking-at-thing-p
                                   '(folio-word
-                                    folio-nowrap folio-sidenote paragraph folio-blockquote
-                                    folio-section folio-chapter
+                                    folio-nowrap
+                                    folio-sidenote
+                                    paragraph
+                                    folio-blockquote
+                                    folio-section
+                                    folio-chapter
                                     folio-footnote))
                                (forward-char -1)))
                        post-skip)
