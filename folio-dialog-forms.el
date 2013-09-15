@@ -406,6 +406,26 @@ This currently always is the table of contents."
       (widget-apply widget :notify widget event)))
   (run-hook-with-args 'widget-edit-functions widget))
 
+(defun folio-widget-near-point (&optional pos)
+  "Return the widget at or near point.
+
+If POS is nil use the value of the current point.  Return nil if
+no widget is found."
+  (let* ((pos (or pos (point)))
+         (widget (widget-at pos))
+         prev next)
+    (unless widget
+      (save-excursion
+        (widget-move -1)
+        (setq prev (point))
+        (goto-char pos)
+        (widget-move 1)
+        (setq next (point))
+        (setq widget (or (and (< (- pos prev) (- next pos))
+                              (widget-at prev))
+                         (widget-at next)))))
+    widget))
+
 (defun folio-widget-field-value-set (widget value)
   "Set an editable text field WIDGET to VALUE.
 This defun is like `widget-field-value-set' except that it
@@ -666,7 +686,7 @@ up if ARG > 0."
   "Scroll down the widget of type WIDGET-TYPE at buffer position POS.
 WIDGET-TYPE should be a scrollable widget like 'folio-repeat.  If
 ARG is non-nil scroll up instead."
-  (let ((widget (let ((widget (widget-at (or pos (point))))
+  (let ((widget (let ((widget (folio-widget-near-point pos))
                       found)
                   (while (and (setq widget
                                     (widget-get widget :parent))
