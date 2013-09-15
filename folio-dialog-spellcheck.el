@@ -336,6 +336,7 @@ WIDGET must be of type `folio-widget-dict-entry-item'."
 
 (define-widget 'folio-widget-dict-entry 'tree-widget
   "A dictionary entry for `folio-widget-dict'.
+
 The widget maintains a instance of `folio-widget-dict-entry-item'
 for displaying a misspelled word and one or more child nodes each
 again tree-widgets for suggestions of a spellchecker run."
@@ -351,6 +352,7 @@ again tree-widgets for suggestions of a spellchecker run."
 
 (defun folio-widget-dict-entry-value-create (widget)
   "Value create the widget WIDGET.
+
 Set up a node item which tag is the dictionary entry.  The
 widget :value should be a word from the text vocabulary."
   (let ((node (widget-get widget :node)))
@@ -381,6 +383,7 @@ widget :value should be a word from the text vocabulary."
 
 (defun folio-widget-dict-entry-expand (widget)
   "Expand the dictionary entry node widget WIDGET.
+
 The :dict-value property should be a word from the text's
 vocabulary.  The expansion creates child widgets of type
 `folio-widget-dict-node' for every dictionary language.  Return the
