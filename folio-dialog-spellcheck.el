@@ -98,15 +98,15 @@ dictionary widget.  WORD is the key currently in focus."
   (folio-with-parent-buffer
    (folio-vocabulary-set-current-word word 'dictionary)))
 
-(defun folio-widget-dict-value (&optional regexp)
+(defun folio-widget-dict-value
+  (&optional regexp additional-filters)
   "Return the value for the dictionary widget.
+
 If the regexp REGEXP is non-nil filter out any words in the
-vocabulary not matching.  If the GWL widget is toggled on filter
-out any word that is in the `good word' list."
-  (let ((filters (append '(misspellings)
-                         (when (widget-value-value-get
-                                (folio-dialog-form-get 'dict-gwl))
-                           '(good-words))))
+vocabulary not matching.  ADDITIONAL-FILTERS optionally is a list
+of additional filters to apply like 'good-words to filter out any
+word that is in the `good word' list."
+  (let ((filters (append '(misspellings) additional-filters))
         current-word words)
     (setq words (folio-with-parent-buffer
                   (folio-vocabulary-list 'lexicographic filters))
@@ -610,17 +610,27 @@ Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Donec hendrerit tempor
   :secs (lambda () folio-dict-filter-delay))
 
 (defun folio-widget-dict-filter-apply ()
-  "Update the dictionary widget to the current regexp filter."
-  (let ((widget (folio-dialog-form-get 'dict-filter)))
-    (when widget ;; unlikely race-condition
-      (let* ((old-value (widget-get widget :filter-value))
-             (value (widget-value widget))
-             (new-value (when (stringp value) (folio-chomp value))))
-        (when (folio-regexp-valid-p new-value)
-          (let ((filtered (folio-widget-dict-value new-value)))
+  "Update the dictionary widget to the current filter settings."
+  (let ((fwidget (folio-dialog-form-get 'dict-filter))
+        (gwidget (folio-dialog-form-get 'dict-gwl)))
+    (when (and fwidget gwidget) ;; unlikely race-condition
+      (let* ((old-fvalue (widget-get fwidget :filter-value))
+             (old-gvalue (widget-get gwidget :filter-value))
+             (fvalue (widget-value fwidget))
+             (new-gvalue (widget-value gwidget))
+             (new-fvalue (when (stringp fvalue)
+                           (folio-chomp fvalue))))
+        (when (and (folio-regexp-valid-p new-fvalue)
+                   (or (not (equal old-fvalue new-fvalue))
+                       (not (equal old-gvalue new-gvalue))))
+          (let* ((filters (when new-gvalue
+                            '(good-words)))
+                 (filtered (folio-widget-dict-value
+                            new-fvalue filters)))
             (widget-value-set
              (folio-dialog-form-get 'dictionary) filtered))
-          (widget-put widget :filter-value new-value)
+          (widget-put fwidget :filter-value new-fvalue)
+          (widget-put gwidget :filter-value new-gvalue)
           (widget-setup))))))
 
 (defun folio-widget-dict-filter-notify (widget child &optional event)
