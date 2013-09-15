@@ -82,7 +82,8 @@
   "Keymap for the vocabulary widget.")
 
 (defun folio-widget-vocabulary-current-word ()
-  "Retrieve the current/previously selected word for the vocabulary view."
+  "Retrieve the current/previously selected word for the
+vocabulary view."
   (let ((scope (cond ((memq (eval folio-sync-current-word)
                             '(all dictionary))
                       'dictionary)
@@ -101,6 +102,7 @@ vocabulary widget.  WORD is the key currently in focus."
 
 (defun folio-widget-vocabulary-value (&optional regexp filters)
   "Return the value for the vocabulary widget.
+
 If the regexp REGEXP is non-nil filter out any words in the
 vocabulary not matching.  If the GWL widget is toggled on filter
 out any word that is in the `good word' list."
@@ -236,6 +238,7 @@ property."
 
 (defun folio-widget-soundslike-node-expand (widget)
   "Expand the tree-node widget WIDGET.
+
 For words with spellings similar to the
 widget's :vocabulary-value assign child nodes of type
 `folio-widget-vocabulary-item'.  Return the child nodes of
@@ -372,7 +375,8 @@ Return the children of WIDGET."
                   (folio-uca-lessp (car x) (car y))))))
   "*List of script names for the script filter menu choice.")
 
-(define-widget 'folio-widget-vocabulary-script-filter 'folio-menu-choice
+(define-widget 'folio-widget-vocabulary-script-filter
+  'folio-menu-choice
   "A widget for setting a predefined script filter."
   :format "%v"
   :value `,(caar folio-widget-vocabulary-sfilter-alist)
@@ -396,8 +400,8 @@ Return the children of WIDGET."
             available))
     available))
 
-(defun folio-widget-vocabulary-sfilter-notify (widget child
-                                                      &optional event)
+(defun folio-widget-vocabulary-sfilter-notify
+  (widget child &optional event)
   "Handle notifications for the quick filter widget."
   (folio-schedule-timer 'vocabulary-filter))
 
@@ -445,8 +449,8 @@ Return the children of WIDGET."
   :notify 'folio-widget-vocabulary-qfilters-notify
   :args '(folio-widget-vocabulary-qfilter))
 
-(defun folio-widget-vocabulary-qfilters-notify (widget child
-                                                       &optional event)
+(defun folio-widget-vocabulary-qfilters-notify
+  (widget child &optional event)
   "Handle notifications for the quick filter widget."
   (folio-schedule-timer 'vocabulary-filter))
 
