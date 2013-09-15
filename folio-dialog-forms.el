@@ -336,28 +336,34 @@ This currently always is the table of contents."
   (widget-default-get
    (car (widget-apply widget :values))))
 
-(defun folio-menu-choice-mouse-down-action (widget &optional _event)
+(defcustom folio-prefer-popup-menus t
+  "Whether to always use popup menus in Folio-mode.
+
+If non-nil always prefer popup menus or otherwise read larger
+menus through the minibuffer depending on the setting of
+`widget-menu-max-size'."
+  :group 'folio-hud
+  :type '(choice (const :tag "Always use popup menus" t)
+                 (const :tag "Use Emacs defaults")))
+
+(defun folio-widget-choose (title items &optional event)
+  "Choose an item from a list.
+
+Redefine `widget-choose' to use a popup menu if
+`folio-prefer-popup-menu' is non-nil independent of the actual
+number of elements in ITEMS and the value of
+`widget-menu-max-size'."
+  (let ((widget-menu-max-size (if folio-prefer-popup-menus
+                                  most-positive-fixnum
+                                widget-menu-max-size)))
+    (widget-choose title items event)))
+
+(defun folio-menu-choice-mouse-down-action (widget &optional event)
   ;; Return non-nil if we need a menu.
-  (let ((args (widget-apply widget :values))
-        (old (widget-get widget :choice)))
-    (cond ((not (display-popup-menus-p))
-           ;; No place to pop up a menu.
-           nil)
-          ((< (length args) 2)
-           ;; Empty or singleton list, just return the value.
-           nil)
-          ((> (length args) widget-menu-max-size)
-           ;; Too long, prompt.
-           nil)
-          ((> (length args) 2)
-           ;; Reasonable sized list, use menu.
-           t)
-          ((and widget-choice-toggle (memq old args))
-           ;; We toggle.
-           nil)
-          (t
-           ;; Ask which of the two.
-           t))))
+  (let ((widget-menu-max-size (if folio-prefer-popup-menus
+                                  most-positive-fixnum
+                                widget-menu-max-size)))
+    (widget-choice-mouse-down-action widget event)))
 
 (defun folio-menu-choice-action (widget &optional event)
   ;; Make a choice.
@@ -395,7 +401,7 @@ This currently always is the table of contents."
                                      current)
                                choices)))
                  (setq this-explicit t)
-                 (widget-choose tag (reverse choices) event))))
+                 (folio-widget-choose tag (reverse choices) event))))
     (when current
       ;; If this was an explicit user choice, record the choice,
       ;; so that widget-choice-value-create will respect it.
