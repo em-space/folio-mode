@@ -723,6 +723,41 @@ non-nil print a message if THING is not found."
       (goto-char pos))
     count))
 
+(defconst folio-section "Section"
+  "Structural element of a text section.")
+
+(put 'folio-section 'form '("[^\n]\n\n\n."))
+(put 'folio-section 'forward-op 'folio-forward-section)
+
+(defun folio-forward-section (&optional arg)
+  "Move forward to the end of a section.
+
+With argument ARG, move ARG times possibly crossing chapter
+boundaries; a negative argument ARG = -N means move backward N
+sections.  When moving backward point is at the beginning of a
+section.  Return the number of pending moves.  Point only is
+moved if a section actually was found."
+  (interactive "^p")
+  (let ((interactively (called-interactively-p 'interactive)))
+    (folio-forward-section-thing 'folio-section arg interactively)
+    (when interactively
+      (recenter))))
+
+(defun folio-backward-section (&optional arg)
+  "Move backward to the beginning of a section.
+
+With argument ARG, move ARG times possibly crossing chapter
+boundaries; a negative argument ARG = -N means move forward N
+sections.  When moving forward point is at the end of a section.
+Return the number of pending moves.  Point only is moved if a
+section actually was found."
+  (interactive "^p")
+  (let ((interactively (called-interactively-p 'interactive)))
+    (folio-forward-section-thing
+     'folio-section (- (or arg 1)) interactively)
+    (when interactively
+      (recenter))))
+
 (defun folio-join-words-help-form ()
   "Return the help form for `folio-join-words'."
   (concat "You have typed "
