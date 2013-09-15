@@ -281,11 +281,22 @@
                     blanks)))))
       (nreverse pages)))
 
+(defun folio-widget-page-join-apply ()
+  "Timer function for joining pages."
+  (save-selected-window
+    (switch-to-buffer-other-window folio-parent-buffer)
+    (folio-join-pages)))
+
+(folio-define-timer 'join-pages
+    "Timer for joining pages."
+  :function 'folio-widget-page-join-apply
+  :repeat nil
+  :buffer-local t
+  :secs 0)
+
 (defun folio-dialog-pages-page ()
   "Create the dialog for page setup."
   ;; XXX Outline
-  ;; XXX Join pages
-
   (widget-insert "\n\n")
   (widget-create 'const
                  :value ""
@@ -301,6 +312,16 @@ Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Donec hendrerit tempor
    'pages (widget-create 'folio-widget-page-rules
                          :value (folio-with-parent-buffer
                                   (folio-dialog-pages-widget-value))))
+  (insert-char ?\s 45)
+  (widget-create 'push-button
+                 :format "%[%t%]"
+                 :tag (format "%15s " "Join pages")
+                 :button-face 'custom-button
+                 :notify (lambda (&rest _ignore)
+                           (unless (folio-timer-running-p 'join-pages)
+                             (folio-schedule-timer 'join-pages)))
+                 :help-echo (lambda (_widget)
+                              "Push to remove page separators."))
   (widget-setup))
 
 
