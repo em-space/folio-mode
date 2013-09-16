@@ -62,7 +62,7 @@
      (widget-create-child-and-convert
       widget 'folio-widget-integer
       :tag "Folio"
-      :help-echo "Folio (page)."
+      :help-echo "Folio and printed page number."
       :format "%t: %v"
       :value (or (nth 0 value) 1)
       :value-face 'folio-widget-field
@@ -73,8 +73,8 @@
     (push
      (widget-create-child-and-convert
       widget 'folio-widget-const
-      :tag ""
-      :help-echo "Folio (page) label."
+      :tag " "
+      :help-echo "Printed page number."
       :format "%[%v%]"
       :size 6
       :button-prefix ""
@@ -98,7 +98,7 @@
      (widget-create-child-and-convert
       widget 'choice
       :tag "Type"
-      :help-echo "Choose label type."
+      :help-echo "Choose numbering style."
       :format "  %[ %t %]: %v"
       :button-face 'custom-button
       :button-prefix ""
@@ -119,9 +119,9 @@
                        (t
                         (widget-default-notify widget child event)))))))
       '(const
-        :tag "Blank"
+        :tag "Blind"
         :format "%t"
-        :help-echo "No page number or label."
+        :help-echo "Blind page without printed page number."
         nil)
       ;; XXX TODO `Number Format' as in 'A-12' where '12' is read as both the numeric value of the page label
       `(folio-widget-integer
@@ -173,8 +173,8 @@
     children))
 
 (define-widget 'folio-widget-page-rules 'repeat
-  "A widget for editing the page label rule."
-  :tag "Page labels"
+  "A widget for editing the page numbering rule."
+  :tag "Page numbering"
   :format "%{%t%}:\n\n%v  %i\n"
   :entry-format "  %i %d   %v\n"
   :insert-button-args '(:button-face custom-button)
