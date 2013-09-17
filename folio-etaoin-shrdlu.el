@@ -1162,7 +1162,7 @@ Collation Algorithm."
 ;;;###autoload
 (defun folio-next-misspelling (&optional type skip-doublon)
   "Move point forward to the next misspelling."
-  (interactive (list 'folio-spellcheckor current-prefix-arg))
+  (interactive (list 'folio-spellcheck current-prefix-arg))
   (setq type (or type 'folio-spellcheck))
   ;; XXX TODO add support for skipping doublons, primary or secondary
   (let ((pos (point))
