@@ -79,7 +79,8 @@ value of a list `l'."
 
 ;;;###autoload
 (defmacro folio-assoc-pop (key alist)
-  "From ALIST pop element with key KEY.
+  "Pop element with key KEY from ALIST.
+
 Return the first element of ALIST whose car is `equal' to KEY, and
 delete it from the list.  For a non-existant KEY nil is returned."
   `(let ((result (assoc ,key ,alist)))
@@ -88,7 +89,8 @@ delete it from the list.  For a non-existant KEY nil is returned."
 
 ;;;###autoload
 (defmacro folio-assq-pop (key alist)
-  "From ALIST pop element with key KEY.
+  "Pop element with key KEY from ALIST.
+
 Return the first element of ALIST whose car is `eq' to KEY, and
 delete it from the list.  For a non-existant KEY nil is returned."
   `(let ((result (assq ,key ,alist)))
@@ -148,10 +150,11 @@ numbers."
 ;;;###autoload
 (defun folio-cycle-state (state &optional item &rest keywords)
   "Advance the cyclic state variable STATE by one.
+
 STATE should be the symbol of a non-empty sequence.  If item is
-non-nil assume its position in STATE for the current state.  KEYS
-are additional keyword parameters.  Return a cons of the state
-index positions of the old and the new state.
+non-nil assume its position in STATE for the current state.
+KEYWORDS are additional keyword parameters.  Return a cons of the
+state index positions of the old and the new state.
 \nKeywords supported:  :test :scope
 \n(fn STATE [ITEM [KEYWORD VALUE]...])"
   (let ((num-states (length (symbol-value state)))
@@ -408,7 +411,10 @@ also `folio-string-prefix-p'."
                              suffix 0 suffix-len ignore-case)))))
 
 (defun folio-cprintcharfun (c)
-  "Print character function for `folio-cprinc'."
+  "Print character function for `folio-cprinc', see which.
+
+C should be an 8-bit character.  Return its string
+representation."
   (cond
    ((>= c 127)
     (format "\\%03o" c))
