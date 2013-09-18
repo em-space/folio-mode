@@ -230,6 +230,43 @@ PROPS and FONTIFY have the same meaning as for
     (when fontify
       (font-lock-fontify-region beg end))))
 
+;;;###autoload
+(defun folio-property-bounds (prop &optional which)
+  "Return point positions of a change to property PROP.
+
+As seen from current point return begin and end positions or nil
+if PROP is not set in the current buffer.  That is if within a
+stretch of text with constant PROP return that region or
+otherwise the positions of the previous and the next change.
+
+If WHICH is the symbol 'begin or 'end return either boundary."
+  (let ((pos (point))
+
+        restrict beg end)
+    (when (get-text-property pos prop)
+      (cond
+       ((null which)
+        (setq restrict (point-max)
+              end (next-single-char-property-change
+                   pos prop nil restrict)
+              beg (previous-single-char-property-change end prop))
+        (unless (and (= beg 1)
+                     (= end restrict))
+          (cons beg end)))
+       ((eq which 'begin)
+        (setq beg (previous-single-char-property-change pos prop))
+        (unless (= beg 1)
+          beg))
+       ((eq which 'end)
+        (setq restrict (point-max)
+              end (next-single-char-property-change
+                   pos prop nil restrict))
+        (unless (= end restrict)
+          end))
+       (t
+        (signal 'wrong-type-argument (cons which (type-of which)))
+        nil)))))
+
 ;;;; motion
 
 
