@@ -170,6 +170,17 @@
   "Face for a dictionary heading in corresponding views."
   :group 'folio-faces)
 
+(defface folio-outline-section-title
+  ;; Try to maintain some sense for typography by making section
+  ;; titles scaled versions of the body font rather than :weight'ing
+  ;; them 'bold
+  '((((min-colors 88) (class color) (background dark))
+     :foreground "#f0dfaf" :height 1.44)
+    (((min-colors 88) (class color) (background light))
+     :foreground "#f0dfaf" :height 1.44))
+  "Face for a outline section title."
+  :group 'folio-faces)
+
 ;;;###autoload
 (defface folio-widget-field
   '((((class color)
