@@ -131,32 +131,42 @@
  :group 'folio-faces)
 
 (defface folio-frequency-tag
-  '((((min-colors 88) (class color) (background dark)) :foreground "#93e0e3")
-    (((min-colors 88) (class color) (background light)) :foreground "red1"))
+  '((((min-colors 88) (class color) (background dark))
+     :foreground "#93e0e3")
+    (((min-colors 88) (class color) (background light))
+     :foreground "red1"))
   "Face for word frequency tags in dictionary views."
   :group 'folio-faces)
 
 (defface folio-dict
-  '((((min-colors 88) (class color) (background dark)) :foreground "#dfaf8f")
-    (((min-colors 88) (class color) (background light)) :foreground "red1"))
+  '((((min-colors 88) (class color) (background dark))
+     :foreground "#dfaf8f")
+    (((min-colors 88) (class color) (background light))
+     :foreground "red1"))
   "Face for a dictionary heading in corresponding views."
   :group 'folio-faces)
 
 (defface folio-dict-tag
-  '((((min-colors 88) (class color) (background dark)) :foreground "CadetBlue1")
-    (((min-colors 88) (class color) (background light)) :foreground "red1"))
+  '((((min-colors 88) (class color) (background dark))
+     :foreground "CadetBlue1")
+    (((min-colors 88) (class color) (background light))
+     :foreground "red1"))
   "Face for dictionary tags in corresponding views."
   :group 'folio-faces)
 
 (defface folio-gwl-tag
-  '((((min-colors 88) (class color) (background dark)) :foreground "green")
-    (((min-colors 88) (class color) (background light)) :foreground "green"))
+  '((((min-colors 88) (class color) (background dark))
+     :foreground "green")
+    (((min-colors 88) (class color) (background light))
+     :foreground "green"))
   "Face for `good word' tags in dictionary views."
   :group 'folio-faces)
 
 (defface folio-soundslike
-  '((((min-colors 88) (class color) (background dark)) :foreground "#dfaf8f")
-    (((min-colors 88) (class color) (background light)) :foreground "red1"))
+  '((((min-colors 88) (class color) (background dark))
+     :foreground "#dfaf8f")
+    (((min-colors 88) (class color) (background light))
+     :foreground "red1"))
   "Face for a dictionary heading in corresponding views."
   :group 'folio-faces)
 
