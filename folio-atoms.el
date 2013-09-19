@@ -253,7 +253,7 @@ If WHICH is the symbol 'begin or 'end return either boundary."
               beg (previous-single-property-change end prop))
         (unless (and (= beg 1)
                      (= end restrict))
-          (cons beg end)))
+          (cons beg (1- end))))
        ((eq which 'begin)
         (setq beg (previous-single-property-change pos prop))
         (unless (= beg 1)
@@ -263,7 +263,7 @@ If WHICH is the symbol 'begin or 'end return either boundary."
               end (next-single-property-change
                    pos prop nil restrict))
         (unless (= end restrict)
-          end))
+          (1- end)))
        (t
         (signal 'wrong-type-argument (cons which (type-of which)))
         nil)))))
