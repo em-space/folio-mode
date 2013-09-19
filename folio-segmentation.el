@@ -626,6 +626,47 @@ Point only is moved if a \"front-matter\" section actually was found."
     (when called-interactively
       (recenter))))
 
+(defconst folio-section-alist
+  '((folio-chapter . 2)
+    (folio-section . 3))
+  "Alist mapping well-known section type to section level.")
+
+(defun folio-index-section (type index beg end &optional props)
+  "Add indexing properties to a section.
+TYPE should be a symbol such as 'folio-chapter from
+`folio-section-alist'.  INDEX is a unique sequence number.  BEG
+and END are begin and end buffer positions.  PROPS if non-nil
+should be a property list specifying any additional properties to
+add.  Properties of a section always are rear-sticky."
+  (with-silent-modifications
+    (let ((section (plist-put nil type index)))
+      (add-text-properties beg end `(,@section ,@props)))))
+
+(defun folio-unindex-sections (types &optional beg end props)
+  "Remove indexing properties from a section.
+TYPES is a list of symbols specifying one or more section types.
+BEG and END are begin and end buffer positions with defaults
+`point-min' and `point-max'.  PROPS are additional text
+properties to remove."
+  (with-silent-modifications
+    (or beg (setq beg (point-min)))
+    (or end (setq end (point-max)))
+    (remove-list-of-text-properties beg end `(,@types ,@props))
+    (font-lock-fontify-region beg end)))
+
+(defun folio-current-section ()
+  "Return a cons of type and index of the current section.
+Return nil if no indexing information is available."
+  (let ((pos (point))
+        section index)
+    (catch 'break
+      (mapc (lambda (x)
+              (when (setq index (get-text-property pos (car x)))
+                (setq section (car x))
+                (throw 'break section))) folio-section-alist))
+    (when section
+      (cons section index))))
+
 (defun folio-forward-section-thing (thing &optional arg verb)
   "Move forward by section of type THING.
 
@@ -661,6 +702,34 @@ non-nil print a message if THING is not found."
           (message "No %s found" (downcase (symbol-value thing))))
       (goto-char pos))
     count))
+
+(defun folio-forward-indexed-section (type &optional key value)
+  "Move point forward to the next misspelling."
+  (interactive (list 'folio-spellcheck current-prefix-arg))
+  (setq type (or type 'folio-spellcheck))
+  ;; XXX TODO add support for skipping doublons, primary or secondary
+  (let ((pos (point))
+        current next)
+    ;; Skip current.
+    (setq current (or (text-property-not-all
+                       pos (point-max) type t) pos))
+    ;; Seek next.
+    (setq next (or (text-property-any
+                    current (point-max) type t) current))
+    (if (> next current)
+        (setq pos (goto-char next))
+      ;; Wrap around and seek next.
+      (setq next (and (> pos (point-min))
+                      (text-property-any
+                       (point-min) (1- pos) type t)))
+      (if next
+          (progn
+            (when (called-interactively-p 'any)
+              (message "Wrapped around"))
+            (setq pos (goto-char next)))
+        (when (called-interactively-p 'any)
+          (message "No more misspellings"))
+        pos))))
 
 (defconst folio-section "Section"
   "Structural element of a text section.")
