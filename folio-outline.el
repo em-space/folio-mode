@@ -45,6 +45,16 @@ process.")
 (defvar folio-outline-sequence 0
   "Running sequence number for sections when indexing.")
 
+(defconst folio-outline-skip-regexp
+  (concat "^\\(/[*#FPL]\\)\\|^\\([*#FPL]/\\)\\|"
+          "^\\(-----File: \\(?:[pi]_\\)?[0-9]+[^-]+\\)")
+  "Regexp for lines to skip when assembling outline context.")
+
+(defconst folio-outline-kill-regexp
+  (concat "</?\\(i\\|b\\|g\\|f\\|u\\|sc\\|tb\\)\\(\\)>\\|"
+          "\\[\\*\\*[^]]+\\]")
+  "Regexp for tokens to kill when assembling outline context.")
+
 (defvar folio-outline-marker nil
   "Progress marker for outline indexing.")
 (make-variable-buffer-local 'folio-outline-marker)
