@@ -178,12 +178,13 @@ the trivial is one that matches `folio-outline-skip-regexp'."
         ;; as the chapter.
         (let ((ov (make-overlay
                    beg head-end nil nil 'rear-advance)))
-          (overlay-put ov 'folio-outline t)
-          (overlay-put ov 'evaporate t)
-          (overlay-put ov 'help-echo "TAB to cycle visibility")
-          (overlay-put ov 'modification-hooks
-                       '(folio-outline-modification-hook))
-          (overlay-put ov 'face 'folio-outline-section-title))))
+          (dolist (prop `((folio-outline . t)
+                          (evaporate . t)
+                          (modification-hooks
+                           . (folio-outline-modification-hook))
+                          (face . folio-outline-section-title)
+                          (help-echo . "TAB to cycle visibility")))
+            (overlay-put ov (car prop) (cdr prop))))))
     (cons head-beg head-end)))
 
 (defun folio-outline-unpropertize (&optional beg end props)
