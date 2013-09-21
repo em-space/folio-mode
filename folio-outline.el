@@ -40,6 +40,10 @@ process.")
 (defvar folio-outline-sequence 0
   "Running sequence number for sections when indexing.")
 
+(defvar folio-outline-headings nil
+  "*List caching outline headings.")
+(make-variable-buffer-local 'folio-outline-headings)
+
 (defconst folio-outline-skip-regexp
   (concat "^\\(/[*#FPL]\\)\\|^\\([*#FPL]/\\)\\|"
           "^\\(-----File: \\(?:[pi]_\\)?[0-9]+[^-]+\\)")
@@ -73,80 +77,137 @@ process.")
   :secs (lambda () folio-outline-delay)
   :pause (lambda () folio-outline-pause))
 
-(defvar folio-outline-props
-  '(folio-outline folio-chapter folio-section folio-target)
-  "*List of text properties used for outlines.")
 
-(defun folio-outline-propertize (beg end props &optional undo)
-  "Mark a region interesting by adding outline properties.
+(defun folio-outline-skip ()
+  "Move forward to the first non-empty line of a heading.
+An empty line apart from the trivial is one that matches
+`folio-outline-skip-regexp'."
+  (let (n)
+    (while (or (> (setq n (skip-chars-forward "\n")) 0)
+               (when (looking-at-p folio-outline-skip-regexp)
+                 (forward-line)
+                 t)))
+    n))
 
-BEG and END are buffer positions.  PROPS should be a plist with
-text properties from `folio-outline-props', like 'folio-chapter
-or 'folio-section.  If UNDO is non-nil remove any outline
-properties instead, ignoring PROPS.  If adding font-lock face
-properties `font-lock-fontify-region' or
-`font-lock-fontify-buffer' should be called at an appropriate
-time.  This is omitted here for performance reasons."
-  (with-silent-modifications
-    (if undo
-        (progn ;; XXX TODO selective w.r.t. section prop
-          (remove-list-of-text-properties
-           beg end folio-outline-props)
-          (font-lock-fontify-region beg end))
-      (add-text-properties
-       beg end `(rear-sticky ,folio-outline-props
-                 folio-outline t ,@props)))))
 
-(defsubst folio-outline-unpropertize (&optional props beg end)
-  "Remove any text properties of the outline scanner.
+(defun folio-outline-section-hidden-p (&optional section)
+  "Return t if SECTION is hidden."
+  (let ((ov (car (overlays-at
+                  (1- (cdr (or section
+                               (folio-section-bounds))))))))
+    (when ov
+      (eq (overlay-get ov 'invisible) 'folio-outline))))
 
-BEG and END restrict the operation to a region.  If omitted the
-respective buffer beginning or end position is used."
-  (folio-outline-propertize
-   (or beg (point-min)) (or end (point-max)) props 'undo))
+(defun folio-outline-section-heading ()
+  "Return outline heading for section at point."
+  (let* ((section (folio-current-section))
+         (level (cdr (assq (car section) folio-section-alist)))
+         (seqnum (- (length folio-outline-headings)
+                    (cdr section) 1))
+         (heading (or (cdr (elt folio-outline-headings seqnum))
+                      "<Unknown Section>")))
+    (concat (make-string level ?*) " " heading "...")))
 
-(defun folio-outline-propertize-heading (section seq)
-  (let (beg end props)
+(defun folio-outline-propertize-section (section seq-num last-pos)
+  "Propertize a section at point for outline processing.
+
+SECTION is a well-known symbol indicating the type of the
+section.  This symbol also should be member of
+`folio-section-alist'.  SEQ-NUM is a running sequence number;
+whether ascending naturally or descending is implementation
+defined.  It should be unique within this section level.
+
+Return a cons of point positions marking the beginning and end of the
+first non-empty line within this heading.  An empty line apart from
+the trivial is one that matches `folio-outline-skip-regexp'."
+  (let (beg head-beg head-end props)
     (save-excursion
       (beginning-of-line)
       (set-marker folio-outline-marker (setq beg (point)))
-      (skip-chars-forward "\n")
-      (setq end (line-end-position)
-            props (plist-put props section seq))
-      ;; Propertize leading blank lines and the first non-empty line
-      ;; as the chapter.
-      (folio-outline-propertize beg end props))))
+      (folio-outline-skip)
+      (unless (eobp) ;; sanity
+        (setq head-beg (line-beginning-position)
+              head-end (line-end-position))
+        (message "---index %s %s" beg last-pos)
+        (folio-index-section section seq-num beg last-pos props)
+        ;; Propertize leading blank lines and the first non-empty line
+        ;; as the chapter.
+        (let ((ov (make-overlay
+                   beg head-end nil nil 'rear-advance)))
+          (overlay-put ov 'folio-outline t)
+          (overlay-put ov 'evaporate t)
+          (overlay-put ov 'help-echo "TAB to cycle visibility")
+          (overlay-put ov 'modification-hooks
+                       '(folio-outline-modification-hook))
+          (overlay-put ov 'face 'folio-outline-section-title))))
+    (cons head-beg head-end)))
+
+(defun folio-outline-unpropertize (&optional beg end props)
+  "Remove any text properties of the outline scanner.
+BEG and END restrict the operation to a region.  If omitted the
+respective buffer beginning or end position is used."
+  (or beg (setq beg (point-min)))
+  (or end (setq end (point-max)))
+  (remove-overlays beg end 'folio-outline t)
+  (let ((types (mapcar (lambda (x)
+                         (car x))
+                       folio-section-alist)))
+    (folio-unindex-section types beg end props)))
 
 (defun folio-outline-process-buffer ()
   "Index document structure for use in outline views.
-
 The actual process is just to propertize the section beginning
 including the first non-empty line of a heading."
   ;; Yield for updating the display.
   (folio-yield (/ 2 (1+ folio-outline-sequence)))
-  (let ((section (cdr (assoc folio-outline-level
-                             folio-outline-level-alist))))
+  (let ((section (car (rassoc folio-outline-level
+                              folio-section-alist))))
     (save-excursion
       ;; Scanning the buffer bottom-up is slightly faster because
       ;; moving forward requires two jumps for this purpose.
+      (when (and folio-outline-marker
+                 (= (marker-position
+                     folio-outline-marker) (point-min)))
+        (setq folio-outline-marker nil))
       (unless folio-outline-marker
         (folio-outline-unpropertize)
         (setq folio-outline-marker (make-marker)
-              folio-outline-sequence 0)
+              folio-outline-sequence 0
+              folio-outline-headings
+              (delq nil (mapcar (lambda (x)
+                                  (when (/= (car x) 1)
+                                    x)) folio-outline-headings)))
         (set-marker folio-outline-marker (point-max)))
-      (goto-char (marker-position folio-outline-marker))
       ;; Defer C-g quitting to keep marker and meta data in
       ;; sync.
-      (let ((inhibit-quit nil))
-        (while (not (folio-activity-interrupted-p
-                     'outline (or (bobp)
-                                  (not (zerop
-                                        (folio-forward-section-thing
-                                         section -1))))))
-          (folio-outline-propertize-heading
-           section folio-outline-sequence)
-          (setq folio-outline-sequence
-                (1+ folio-outline-sequence)))))))
+      (let ((inhibit-quit nil)
+            (looking-at-section-p t)
+            (last-pos (marker-position
+                       (goto-char folio-outline-marker)))
+            pos heading)
+        (while (and (not (folio-activity-interrupted-p
+                          'outline (bobp)))
+                    looking-at-section-p)
+          (when (setq looking-at-section-p
+                      (zerop (folio-forward-section-thing
+                              section -1)))
+            (setq pos (folio-outline-propertize-section
+                       section folio-outline-sequence last-pos)
+                  heading (replace-regexp-in-string
+                           folio-outline-kill-regexp ""
+                           (buffer-substring-no-properties
+                            (car pos) (cdr pos))))
+            (message "** %s" heading)
+            (push (cons folio-outline-level heading)
+                  folio-outline-headings)
+            (setq last-pos
+                  (marker-position folio-outline-marker)
+                  folio-outline-sequence
+                  (1+ folio-outline-sequence))))
+;;(message "--**%s" looking-at-section-p)
+        )))
+ ;; (message "** %s" folio-outline-headings)
+  )
 
 
 (provide 'folio-outline)
