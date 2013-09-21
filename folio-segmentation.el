@@ -668,6 +668,12 @@ Return nil if no indexing information is available."
     (when section
       (cons section index))))
 
+(defun folio-section-bounds ()
+  "Return cons of start and end positions of the current section."
+  (let ((section (folio-current-section)))
+    (when section
+      (folio-property-bounds (car section)))))
+
 (defun folio-forward-section-thing (thing &optional arg verb)
   "Move forward by section of type THING.
 
