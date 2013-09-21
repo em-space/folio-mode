@@ -262,6 +262,43 @@ including the first non-empty line of a heading."
    (lambda (x)
      (not (folio-outline-section-hidden-p x)))))
 
+
+(defvar folio-outline-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-i" 'folio-outline-cycle)
+    (define-key map [(tab)] 'folio-outline-cycle)
+    map)
+  "Keymap for Folio outline mode.")
+
+(defun folio-outline-mode-enable ()
+  "Turn on Folio outline mode."
+  (folio-schedule-timer 'outline))
+
+(defun folio-outline-mode-disable ()
+  "Turn off Folio outline mode."
+  (folio-cancel-timer 'outline)
+  (save-excursion
+    (folio-outline-unpropertize)))
+
+;;;###autoload
+(define-minor-mode folio-outline-mode
+  "Toggle Folio outline mode.
+
+With a prefix argument ARG, enable the mode if ARG is positive,
+and disable it otherwise.  If called from Lisp, enable the mode
+if ARG is omitted or nil."
+  :lighter nil
+  :keymap folio-outline-mode-map
+  (if folio-outline-mode
+      (condition-case err
+          (progn
+            (folio-outline-mode-enable))
+        (error (message "Error enabling Folio outline mode:\n%s"
+                        (cdr err)))
+        (folio-outline-mode -1))
+    (folio-outline-mode-disable)
+    (setq folio-outline-mode nil)))
+
 
 (provide 'folio-outline)
 
