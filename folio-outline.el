@@ -255,6 +255,13 @@ including the first non-empty line of a heading."
  ;; (message "** %s" folio-outline-headings)
   )
 
+(defun folio-outline-cycle (&optional arg)
+  "Cycle visibility of the current section."
+  (interactive "P")
+  (folio-outline-section-hideshow
+   (lambda (x)
+     (not (folio-outline-section-hidden-p x)))))
+
 
 (provide 'folio-outline)
 
