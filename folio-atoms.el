@@ -249,19 +249,21 @@ If WHICH is the symbol 'begin or 'end return either boundary."
       (cond
        ((null which)
         (setq restrict (point-max)
-              end (next-single-property-change
+              end (next-single-char-property-change
                    pos prop nil restrict)
-              beg (previous-single-property-change end prop))
+              beg (previous-single-char-property-change
+                   end prop))
         (unless (and (= beg 1)
                      (= end restrict))
           (cons beg (1- end))))
        ((eq which 'begin)
-        (setq beg (previous-single-property-change pos prop))
+        (setq beg (previous-single-char-property-change
+                   pos prop))
         (unless (= beg 1)
           beg))
        ((eq which 'end)
         (setq restrict (point-max)
-              end (next-single-property-change
+              end (next-single-char-property-change
                    pos prop nil restrict))
         (unless (= end restrict)
           (1- end)))
