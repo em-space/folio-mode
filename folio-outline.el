@@ -37,11 +37,6 @@ Chapters commonly are associated with level 1, sections with
 level 2.  This variable can be let-bound in the indexing
 process.")
 
-(defconst folio-outline-level-alist
-  '((1 . folio-chapter)
-    (2 . folio-section))
-  "Alist mapping outline level to section symbol.")
-
 (defvar folio-outline-sequence 0
   "Running sequence number for sections when indexing.")
 
