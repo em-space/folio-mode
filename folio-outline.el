@@ -30,11 +30,11 @@
 (require 'folio-segmentation)
 (require 'folio-time)
 
-(defvar folio-outline-level 1
+(defvar folio-outline-level 2
   "The current outline level.
 
-Chapters commonly are associated with level 1, sections with
-level 2.  This variable can be let-bound in the indexing
+Chapters commonly are associated with level 2, sections with
+level 3.  This variable can be let-bound in the indexing
 process.")
 
 (defvar folio-outline-sequence 0
