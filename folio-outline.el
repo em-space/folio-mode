@@ -196,7 +196,7 @@ respective buffer beginning or end position is used."
   (let ((types (mapcar (lambda (x)
                          (car x))
                        folio-section-alist)))
-    (folio-unindex-section types beg end props)))
+    (folio-unindex-sections types beg end props)))
 
 (defun folio-outline-process-buffer ()
   "Index document structure for use in outline views.
