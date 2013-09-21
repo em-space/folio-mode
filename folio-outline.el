@@ -44,9 +44,13 @@ process.")
   "*List caching outline headings.")
 (make-variable-buffer-local 'folio-outline-headings)
 
+(defconst folio-outline-skip-page-regexp
+  "^\\(-----File: \\(?:[pi]_\\)?[0-9]+[^-]+\\)"
+  "Regexp for skipping page separators when outline sectioning.")
+
 (defconst folio-outline-skip-regexp
   (concat "^\\(/[*#FPL]\\)\\|^\\([*#FPL]/\\)\\|"
-          "^\\(-----File: \\(?:[pi]_\\)?[0-9]+[^-]+\\)")
+          folio-outline-skip-page-regexp)
   "Regexp for lines to skip when assembling outline context.")
 
 (defconst folio-outline-kill-regexp
@@ -77,15 +81,21 @@ process.")
   :secs (lambda () folio-outline-delay)
   :pause (lambda () folio-outline-pause))
 
-(defun folio-outline-skip ()
+(defun folio-outline-skip (&optional regexp)
   "Move forward to the first non-empty line of a heading.
 An empty line apart from the trivial is one that matches
-`folio-outline-skip-regexp'."
-  (let (n)
-    (while (or (> (setq n (skip-chars-forward "\n")) 0)
-               (when (looking-at-p folio-outline-skip-regexp)
+`folio-outline-skip-regexp'.  Return the number of leading
+newlines lines skipped.  If REGEXP is non-nil use that for
+matching and always return zero."
+  (let ((n 0))
+    (if regexp
+        (while (when (looking-at-p regexp)
                  (forward-line)
-                 t)))
+                 t))
+      (while (or (> (setq n (skip-chars-forward "\n")) 0)
+                 (when (looking-at-p folio-outline-skip-regexp)
+                   (forward-line)
+                   t))))
     n))
 
 
@@ -175,6 +185,12 @@ apart from the trivial is one that matches
       (unless (eobp) ;; sanity
         (setq head-beg (line-beginning-position)
               head-end (line-end-position))
+        (when (= beg (point-min))
+          ;; Exclude any redundant first page separator
+          (goto-char beg)
+          (skip-chars-forward "\n")
+          (folio-outline-skip folio-outline-skip-page-regexp)
+          (setq beg (point)))
         (folio-index-section section seq-num beg last-pos props)
         ;; Propertize leading blank lines and the first non-empty line
         ;; as the chapter.
