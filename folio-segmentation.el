@@ -626,10 +626,11 @@ Point only is moved if a \"front-matter\" section actually was found."
     (when called-interactively
       (recenter))))
 
-(defconst folio-section-alist
-  '((folio-chapter . 2)
-    (folio-section . 3))
-  "Alist mapping well-known section type to section level.")
+(defvar folio-section-alist
+  '((folio-section . 3)
+    (folio-chapter . 2))
+  "Alist mapping well-known section type to section level.
+The list is maintained descending by section level.")
 
 (defun folio-index-section (type index beg end &optional props)
   "Add indexing properties to a section.
