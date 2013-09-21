@@ -173,7 +173,6 @@ apart from the trivial is one that matches
       (unless (eobp) ;; sanity
         (setq head-beg (line-beginning-position)
               head-end (line-end-position))
-        (message "---index %s %s" beg last-pos)
         (folio-index-section section seq-num beg last-pos props)
         ;; Propertize leading blank lines and the first non-empty line
         ;; as the chapter.
@@ -243,17 +242,12 @@ including the first non-empty line of a heading."
                            folio-outline-kill-regexp ""
                            (buffer-substring-no-properties
                             (car pos) (cdr pos))))
-            (message "** %s" heading)
             (push (cons folio-outline-level heading)
                   folio-outline-headings)
             (setq last-pos
                   (marker-position folio-outline-marker)
                   folio-outline-sequence
-                  (1+ folio-outline-sequence))))
-;;(message "--**%s" looking-at-section-p)
-        )))
- ;; (message "** %s" folio-outline-headings)
-  )
+                  (1+ folio-outline-sequence))))))))
 
 (defun folio-outline-cycle (&optional arg)
   "Cycle visibility of the current section."
