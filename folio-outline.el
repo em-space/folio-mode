@@ -108,6 +108,50 @@ An empty line apart from the trivial is one that matches
                       "<Unknown Section>")))
     (concat (make-string level ?*) " " heading "...")))
 
+(defun folio-outline-section-set-hidden (section hidden)
+  "Hide SECTION if HIDDEN is not nil, show it otherwise.
+SECTION is a cons of buffer start and end positions."
+  (let* ((beg (car section))
+         (end (cdr section))
+         ov display)
+    (if hidden ;; hide
+        (progn
+          (goto-char beg)
+          (setq ov (car (overlays-at beg))
+                display (folio-outline-section-heading))
+          (move-overlay ov beg end)
+          (with-silent-modifications
+            (put-text-property
+             (max (1- beg) (point-min)) end 'read-only t))
+          (dolist (prop `((invisible . folio-outline)
+                          (display . ,display)))
+            (overlay-put ov (car prop) (cdr prop))))
+      ;; show
+      (goto-char beg)
+      (setq ov (car (overlays-at beg)))
+      (folio-outline-skip)
+      (move-overlay ov beg (line-end-position))
+      (dolist (prop `((invisible . nil)
+                      (display . nil)))
+        (overlay-put ov (car prop) (cdr prop)))
+      (beginning-of-line)
+      (with-silent-modifications
+        (remove-text-properties
+         (max (1- beg) (point-min)) end '(read-only))))))
+
+(defun folio-outline-section-hideshow (flag-or-func)
+  "Show or hide current section depending on FLAG-OR-FUNC.
+If FLAG-OR-FUNC is a function, it will be run for the current
+section, i.e. with a cons of the section boundaries for the
+argument.  If FLAG-OR-FUNC is a boolean, the section will be
+hidden if it is t, or shown otherwise."
+  (let* ((bounds (folio-section-bounds))
+         (flag (if (functionp flag-or-func)
+                   (and (funcall flag-or-func bounds) t)
+                 flag-or-func)))
+      (when bounds
+        (folio-outline-section-set-hidden
+         bounds flag))))
 (defun folio-outline-propertize-section (section seq-num last-pos)
   "Propertize a section at point for outline processing.
 
