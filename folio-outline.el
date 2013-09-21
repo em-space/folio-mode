@@ -92,10 +92,10 @@ An empty line apart from the trivial is one that matches
 
 (defun folio-outline-section-hidden-p (&optional section)
   "Return t if SECTION is hidden."
-  (let ((ov (car (overlays-at
-                  (1- (cdr (or section
-                               (folio-section-bounds))))))))
-    (when ov
+  (let ((bounds (or section (folio-section-bounds)))
+        ov)
+    (when (and bounds (setq ov (car (overlays-at
+                                     (1- (cdr bounds))))))
       (eq (overlay-get ov 'invisible) 'folio-outline))))
 
 (defun folio-outline-section-heading ()
@@ -152,6 +152,7 @@ hidden if it is t, or shown otherwise."
       (when bounds
         (folio-outline-section-set-hidden
          bounds flag))))
+
 (defun folio-outline-propertize-section (section seq-num last-pos)
   "Propertize a section at point for outline processing.
 
