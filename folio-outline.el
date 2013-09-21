@@ -117,7 +117,14 @@ cons of buffer start and end positions."
                     (cdr section) 1))
          (heading (or (cdr (elt folio-outline-headings seqnum))
                       "<Unknown Section>")))
-    (concat (make-string level ?*) " " heading "...")))
+    (concat
+     (propertize (make-string level ?*)
+                 'face 'folio-outline-section-title-mark)
+     " "
+     (propertize heading
+                 'face 'folio-outline-section-title)
+     (propertize "..."
+                 'face 'folio-outline-section-title-mark))))
 
 (defun folio-outline-section-set-hidden (section hidden)
   "Hide SECTION if HIDDEN is not nil, show it otherwise.
@@ -135,6 +142,7 @@ SECTION is a cons of buffer start and end positions."
             (put-text-property
              (max (1- beg) (point-min)) end 'read-only t))
           (dolist (prop `((invisible . folio-outline)
+                          (face . nil)
                           (display . ,display)))
             (overlay-put ov (car prop) (cdr prop))))
       ;; show
@@ -143,6 +151,7 @@ SECTION is a cons of buffer start and end positions."
       (folio-outline-skip)
       (move-overlay ov beg (line-end-position))
       (dolist (prop `((invisible . nil)
+                      (face . folio-outline-section-title)
                       (display . nil)))
         (overlay-put ov (car prop) (cdr prop)))
       (beginning-of-line)

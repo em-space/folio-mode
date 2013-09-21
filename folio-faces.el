@@ -173,12 +173,20 @@
 (defface folio-outline-section-title
   ;; Try to maintain some sense for typography by making section
   ;; titles scaled versions of the body font rather than :weight'ing
-  ;; them 'bold
+  ;; them 'bold!
   '((((min-colors 88) (class color) (background dark))
      :foreground "#f0dfaf" :height 1.44)
     (((min-colors 88) (class color) (background light))
      :foreground "#f0dfaf" :height 1.44))
   "Face for a outline section title."
+  :group 'folio-faces)
+
+(defface folio-outline-section-title-mark
+  '((((min-colors 88) (class color) (background dark))
+     :foreground "#7cb8bb" :height 0.8)
+    (((min-colors 88) (class color) (background light))
+     :foreground "#7cb8bb" :height 0.8))
+  "Face for outline section fold-marks."
   :group 'folio-faces)
 
 ;;;###autoload
