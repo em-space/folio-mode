@@ -90,7 +90,9 @@ An empty line apart from the trivial is one that matches
 
 
 (defun folio-outline-section-hidden-p (&optional section)
-  "Return t if SECTION is hidden."
+  "Return t if the current section is hidden.
+If SECTION is non-nil check that instead.  SECTION should be a
+cons of buffer start and end positions."
   (let ((bounds (or section (folio-section-bounds)))
         ov)
     (when (and bounds (setq ov (car (overlays-at
