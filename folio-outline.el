@@ -162,9 +162,10 @@ section.  This symbol also should be member of
 whether ascending naturally or descending is implementation
 defined.  It should be unique within this section level.
 
-Return a cons of point positions marking the beginning and end of the
-first non-empty line within this heading.  An empty line apart from
-the trivial is one that matches `folio-outline-skip-regexp'."
+Return a cons of point positions marking the beginning and end of
+the first non-empty line within this heading.  An empty line
+apart from the trivial is one that matches
+`folio-outline-skip-regexp'."
   (let (beg head-beg head-end props)
     (save-excursion
       (beginning-of-line)
