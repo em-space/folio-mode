@@ -73,10 +73,9 @@ process.")
 (folio-define-timer 'outline
   "Idle timer driving the outline scanner."
   :function 'folio-outline-process-buffer
-  :repeat 'repeat
+  :repeat nil
   :secs (lambda () folio-outline-delay)
   :pause (lambda () folio-outline-pause))
-
 
 (defun folio-outline-skip ()
   "Move forward to the first non-empty line of a heading.
