@@ -223,7 +223,8 @@ respective buffer beginning or end position is used."
   (remove-overlays beg end 'folio-outline t)
   (let ((types (mapcar (lambda (x)
                          (car x))
-                       folio-section-alist)))
+                       folio-section-alist))
+        (props (cons 'read-only props)))
     (folio-unindex-sections types beg end props)))
 
 (defun folio-outline-process-buffer ()
