@@ -299,7 +299,8 @@ including the first non-empty line of a heading."
   "Turn off Folio outline mode."
   (folio-cancel-timer 'outline)
   (save-excursion
-    (folio-outline-unpropertize)))
+    (with-silent-modifications
+      (folio-outline-unpropertize))))
 
 ;;;###autoload
 (define-minor-mode folio-outline-mode
