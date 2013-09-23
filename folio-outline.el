@@ -77,7 +77,7 @@ process.")
 (folio-define-timer 'outline
   "Idle timer driving the outline scanner."
   :function 'folio-outline-process-buffer
-  :repeat nil
+  :repeat t
   :secs (lambda () folio-outline-delay)
   :pause (lambda () folio-outline-pause))
 
@@ -256,7 +256,7 @@ including the first non-empty line of a heading."
             (looking-at-section-p t)
             (last-pos (marker-position
                        (goto-char folio-outline-marker)))
-            pos heading)
+            (resume t) pos heading)
         (while (and (not (folio-activity-interrupted-p
                           'outline (bobp)))
                     looking-at-section-p)
@@ -277,7 +277,10 @@ including the first non-empty line of a heading."
                   (1+ folio-outline-sequence))))
         (when (bobp)
           (setq folio-outline-headings
-                (nreverse folio-outline-headings)))
+                (nreverse folio-outline-headings)
+                resume nil)
+          (folio-cancel-timer 'outline))
+        resume))))
 
 (defun folio-outline-cycle (&optional arg)
   "Cycle visibility of the current section."
@@ -303,7 +306,8 @@ including the first non-empty line of a heading."
   (folio-cancel-timer 'outline)
   (save-excursion
     (with-silent-modifications
-      (folio-outline-unpropertize))))
+      (folio-outline-unpropertize)))
+  (setq folio-outline-marker nil))
 
 ;;;###autoload
 (define-minor-mode folio-outline-mode
