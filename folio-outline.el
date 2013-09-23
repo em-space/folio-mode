@@ -113,9 +113,8 @@ cons of buffer start and end positions."
   "Return outline heading for section at point."
   (let* ((section (folio-current-section))
          (level (cdr (assq (car section) folio-section-alist)))
-         (seqnum (- (length folio-outline-headings)
-                    (cdr section) 1))
-         (heading (or (cdr (elt folio-outline-headings seqnum))
+         (index (cdr section))
+         (heading (or (cdr (elt folio-outline-headings index))
                       "<Unknown Section>")))
     (concat
      (propertize (make-string level ?*)
@@ -275,7 +274,10 @@ including the first non-empty line of a heading."
             (setq last-pos
                   (marker-position folio-outline-marker)
                   folio-outline-sequence
-                  (1+ folio-outline-sequence))))))))
+                  (1+ folio-outline-sequence))))
+        (when (bobp)
+          (setq folio-outline-headings
+                (nreverse folio-outline-headings)))
 
 (defun folio-outline-cycle (&optional arg)
   "Cycle visibility of the current section."
