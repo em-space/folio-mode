@@ -632,19 +632,28 @@ Point only is moved if a \"front-matter\" section actually was found."
   "Alist mapping well-known section type to section level.
 The list is maintained descending by section level.")
 
-(defun folio-index-section (type index beg end &optional props)
+(defvar folio-section-count-alist
+  '((folio-section . 0)
+    (folio-chapter . 0))
+  "Alist mapping well-known section type to section count.")
+(make-variable-buffer-local 'folio-section-count-alist)
+
+(defun folio-index-section (type seq-num beg end &optional props)
   "Add indexing properties to a section.
 TYPE should be a symbol such as 'folio-chapter from
-`folio-section-alist'.  INDEX is a unique sequence number.  BEG
-and END are begin and end buffer positions.  PROPS if non-nil
-should be a property list specifying any additional properties to
-add.  Properties of a section always are rear-sticky."
+`folio-section-alist'.  SEQ-NUM is a unique sequence number
+starting from zero.  BEG and END are begin and end buffer
+positions.  PROPS if non-nil should be a property list specifying
+any additional properties to add.  Properties of a section always
+are rear-sticky."
   (with-silent-modifications
-    (let ((section (plist-put nil type index)))
-      (add-text-properties beg end `(,@section ,@props)))))
+    (let ((section (plist-put nil type seq-num)))
+      (add-text-properties beg end `(,@section ,@props))
+      (setcdr (assq type folio-section-count-alist)
+              (1+ (cdr (assq type folio-section-count-alist)))))))
 
-(defun folio-unindex-sections (types &optional beg end props)
-  "Remove indexing properties from a section.
+(defun folio-unindex-sections (&optional types beg end props)
+  "Remove section index properties.
 TYPES is a list of symbols specifying one or more section types.
 BEG and END are begin and end buffer positions with defaults
 `point-min' and `point-max'.  PROPS are additional text
@@ -652,21 +661,28 @@ properties to remove."
   (with-silent-modifications
     (or beg (setq beg (point-min)))
     (or end (setq end (point-max)))
+    (or types (setq types (mapcar (lambda (x)
+                                    (car x)) folio-section-alist)))
     (remove-list-of-text-properties beg end `(,@types ,@props))
+    (mapc (lambda (x)
+            (setcdr (assq x folio-section-count-alist) 0)) types)
     (font-lock-fontify-region beg end)))
 
-(defun folio-current-section ()
+(defun folio-current-section (&optional top-down)
   "Return a cons of type and index of the current section.
 Return nil if no indexing information is available."
   (let ((pos (point))
-        section index)
+        section seq-num)
     (catch 'break
       (mapc (lambda (x)
-              (when (setq index (get-text-property pos (car x)))
+              (when (setq seq-num (get-text-property pos (car x)))
                 (setq section (car x))
                 (throw 'break section))) folio-section-alist))
     (when section
-      (cons section index))))
+      (if top-down
+          (cons section seq-num)
+        (cons section (- (cdr (assq section folio-section-count-alist))
+                         seq-num 1))))))
 
 (defun folio-section-bounds ()
   "Return cons of start and end positions of the current section."
