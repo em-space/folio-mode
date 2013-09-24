@@ -186,31 +186,32 @@ the first non-empty line within this heading.  An empty line
 apart from the trivial is one that matches
 `folio-outline-skip-regexp'."
   (let (beg head-beg head-end props)
-    (save-excursion
-      (beginning-of-line)
-      (set-marker folio-outline-marker (setq beg (point)))
-      (folio-outline-skip)
-      (unless (eobp) ;; sanity
-        (setq head-beg (line-beginning-position)
-              head-end (line-end-position))
-        (when (= beg (point-min))
-          ;; Exclude any redundant first page separator
-          (goto-char beg)
-          (skip-chars-forward "\n")
-          (folio-outline-skip folio-outline-skip-page-regexp)
-          (setq beg (point)))
-        (folio-index-section section seq-num beg last-pos props)
-        ;; Propertize leading blank lines and the first non-empty line
-        ;; as the chapter.
-        (let ((ov (make-overlay
-                   beg head-end nil nil 'rear-advance)))
-          (dolist (prop `((folio-outline . t)
-                          (evaporate . t)
-                          (modification-hooks
-                           . (folio-outline-modification-hook))
-                          (face . folio-outline-section-title)
-                          (help-echo . "TAB to cycle visibility")))
-            (overlay-put ov (car prop) (cdr prop))))))
+    (folio-with-disabled-undo
+      (save-excursion
+        (beginning-of-line)
+        (set-marker folio-outline-marker (setq beg (point)))
+        (folio-outline-skip)
+        (unless (eobp) ;; sanity
+          (setq head-beg (line-beginning-position)
+                head-end (line-end-position))
+          (when (= beg (point-min))
+            ;; Exclude any redundant first page separator
+            (goto-char beg)
+            (skip-chars-forward "\n")
+            (folio-outline-skip folio-outline-skip-page-regexp)
+            (setq beg (point)))
+          (folio-index-section section seq-num beg last-pos props)
+          ;; Propertize leading blank lines and the first non-empty line
+          ;; as the chapter.
+          (let ((ov (make-overlay
+                     beg head-end nil nil 'rear-advance)))
+            (dolist (prop `((folio-outline . t)
+                            (evaporate . t)
+                            (modification-hooks
+                             . (folio-outline-modification-hook))
+                            (face . folio-outline-section-title)
+                            (help-echo . "TAB to cycle visibility")))
+              (overlay-put ov (car prop) (cdr prop)))))))
     (cons head-beg head-end)))
 
 (defun folio-outline-unpropertize (&optional beg end props)
@@ -219,12 +220,13 @@ BEG and END restrict the operation to a region.  If omitted the
 respective buffer beginning or end position is used."
   (or beg (setq beg (point-min)))
   (or end (setq end (point-max)))
-  (remove-overlays beg end 'folio-outline t)
-  (let ((types (mapcar (lambda (x)
-                         (car x))
-                       folio-section-alist))
-        (props (cons 'read-only props)))
-    (folio-unindex-sections types beg end props)))
+  (folio-with-disabled-undo
+    (remove-overlays beg end 'folio-outline t)
+    (let ((types (mapcar (lambda (x)
+                           (car x))
+                         folio-section-alist))
+          (props (cons 'read-only props)))
+      (folio-unindex-sections types beg end props))))
 
 (defun folio-outline-process-buffer ()
   "Index document structure for use in outline views.
