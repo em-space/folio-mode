@@ -585,6 +585,22 @@ return restore the normal behaviour of `message'."
        (fset 'message save-message))))
 
 
+;;;; maintaining undo
+
+(defmacro folio-with-disabled-undo (&rest body)
+  "Disable undo recording in current buffer; execute BODY.
+BODY is executed just like `progn'.
+
+Eval BODY forms sequentially and return value of last one.  Upon
+return restore the normal undo recording and history."
+  (declare (indent 0) (debug t))
+  `(let ((save-undo-list (symbol-value 'buffer-undo-list)))
+     (set 'buffer-undo-list t)
+     (unwind-protect
+         (progn ,@body)
+       (set 'buffer-undo-list save-undo-list))))
+
+
 ;;;; external processes
 
 (defsubst folio-process-running-p (process)
