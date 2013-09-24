@@ -693,6 +693,24 @@ Return nil if no indexing information is available."
     (when section
       (folio-property-bounds (car section)))))
 
+(defun folio-previous-section (&optional restrict pos)
+  (let* ((type (or restrict (car (folio-current-section))))
+         (begin (folio-property-bounds type 'begin pos)))
+    (when (and begin (/= begin (point-min)))
+      (setq begin (folio-property-bounds type 'begin begin))
+      (when begin
+        (if pos
+            begin
+          (goto-char begin))))))
+
+(defun folio-next-section (&optional restrict pos)
+  (let* ((type (or restrict (car (folio-current-section))))
+         (begin (folio-property-bounds type 'end pos)))
+    (when (and begin (/= begin (point-max)))
+      (if pos
+          (1+ begin)
+        (goto-char (1+ begin))))))
+
 (defun folio-forward-section-thing (thing &optional arg verb)
   "Move forward by section of type THING.
 
