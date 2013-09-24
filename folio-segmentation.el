@@ -668,7 +668,7 @@ properties to remove."
             (setcdr (assq x folio-section-count-alist) 0)) types)
     (font-lock-fontify-region beg end)))
 
-(defun folio-current-section (&optional top-down)
+(defun folio-current-section (&optional restrict top-down)
   "Return a cons of type and index of the current section.
 Return nil if no indexing information is available."
   (let ((pos (point))
@@ -677,16 +677,19 @@ Return nil if no indexing information is available."
       (mapc (lambda (x)
               (when (setq seq-num (get-text-property pos (car x)))
                 (setq section (car x))
-                (throw 'break section))) folio-section-alist))
+                (throw 'break section)))
+            (if restrict
+                (list (assq restrict folio-section-alist))
+              folio-section-alist)))
     (when section
       (if top-down
           (cons section seq-num)
         (cons section (- (cdr (assq section folio-section-count-alist))
                          seq-num 1))))))
 
-(defun folio-section-bounds ()
+(defun folio-section-bounds (&optional restrict)
   "Return cons of start and end positions of the current section."
-  (let ((section (folio-current-section)))
+  (let ((section (folio-current-section restrict)))
     (when section
       (folio-property-bounds (car section)))))
 
