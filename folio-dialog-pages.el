@@ -112,7 +112,8 @@
                       (cond
                        ((eq source 'folio-widget-integer)
                         (widget-apply parent :notify parent
-                                      `(label-number ,(widget-value child))))
+                                      `(label-number
+                                        ,(widget-value child))))
                        ((eq source 'choice)
                         (widget-apply parent :notify
                                       parent `(label-type ,value)))

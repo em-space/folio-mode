@@ -379,8 +379,10 @@ form \"projectID\" followed by a combination of lower-case
 letters and digits, a hexadecimal number."
   (interactive
    (let ((hist (folio-find-project-id)))
-     (list (completing-read "Project ID: " hist nil 'confirm (car hist)))))
-  (let ((id (car-safe (or (and id (list id)) (folio-find-project-id))))
+     (list (completing-read
+            "Project ID: " hist nil 'confirm (car hist)))))
+  (let ((id (car-safe (or (and id (list id))
+                          (folio-find-project-id))))
         (old-id folio-project-id))
     (unless (string-equal id old-id)
       (setq folio-project-id id)
@@ -388,7 +390,8 @@ letters and digits, a hexadecimal number."
     (when (called-interactively-p 'any)
       (message (if (string-equal id old-id)
                    "Project ID unchanged from %s"
-                 "Project ID assigned to %s") (or folio-project-id "<none>")))
+                 "Project ID assigned to %s")
+               (or folio-project-id "<none>")))
     folio-project-id))
 
 (defun folio-default-save-list (buffer)
