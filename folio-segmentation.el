@@ -687,7 +687,6 @@ Return nil if no indexing information is available."
         (cons section (- (cdr (assq section folio-section-count-alist))
                          seq-num 1))))))
 
-(defun folio-section-bounds (&optional restrict)
 (defun folio-section-beginning (&optional restrict top-down pos)
   "Return buffer start position of a section.
 With argument RESTRICT only search for sections of type RESTRICT.
@@ -724,8 +723,23 @@ indexing direction is from buffer beginning to buffer end."
     (when section
       (folio-property-bounds section pos 'end))))
 
-  "Return cons of start and end positions of the current section."
-  (let ((section (folio-current-section restrict)))
+(defun folio-section-bounds (&optional restrict top-down pos)
+  "Return section boundaries.
+With argument RESTRICT only search for sections of type RESTRICT.
+RESTRICT should be a symbol from `folio-section-alist' such as
+`folio-chapter'.
+
+If the optional second argument POS is non-nil use that as the
+starting position instead.
+
+The optional third argument TOP-DOWN should be non-nil if the
+indexing direction is from buffer beginning to buffer end.
+
+Return cons of start and end positions of the current section."
+  (let* ((pos (or pos (point)))
+         (section (or restrict
+                      (car (folio-current-section
+                            restrict top-down pos)))))
     (when section
       (folio-property-bounds (car section)))))
 
@@ -746,6 +760,7 @@ indexing direction is from buffer beginning to buffer end."
       (if pos
           (1+ begin)
         (goto-char (1+ begin))))))
+      (folio-property-bounds section pos))))
 
 (defun folio-forward-section-thing (thing &optional arg verb)
   "Move forward by section of type THING.
