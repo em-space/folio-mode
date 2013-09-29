@@ -233,16 +233,6 @@ PROPS and FONTIFY have the same meaning as for
     (when fontify
       (font-lock-fontify-region beg end))))
 
-;;;###autoload
-(defun folio-property-bounds (prop &optional which pos)
-  "Return point positions of a change to property PROP.
-As seen from current point return begin and end positions or nil
-if PROP is not set in the current buffer.  That is if within a
-stretch of text with constant PROP return that region or
-otherwise the positions of the previous and the next change.  If POS
-is non-nil use that as a start position instead.
-
-If WHICH is the symbol 'begin or 'end return either boundary."
 (defun folio-next-property-bound (prop &optional pos)
   "Search for the next change to property PROP.
 If POS is non-nil use that as a start position instead of the
@@ -271,6 +261,16 @@ value."
                                      change prop))))
         change))))
 
+(defun folio-property-bounds (prop &optional pos which)
+  "Return point positions of a region with constant property PROP.
+If within a stretch of text with constant PROP return start and
+end positions of that region or nil.
+
+If the optional second argument POS is non-nil use that for
+searching the boundaries instead.
+
+If the optional third argument WHICH is the symbol 'begin or 'end
+return either boundary."
   (let ((pos (or pos (point)))
         restrict beg end)
     (when (get-text-property pos prop)
