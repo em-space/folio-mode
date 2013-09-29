@@ -689,7 +689,16 @@ Return nil if no indexing information is available."
 
 (defun folio-section-bounds (&optional restrict)
 (defun folio-section-beginning (&optional restrict top-down pos)
-  "Return start position of the current section."
+  "Return buffer start position of a section.
+With argument RESTRICT only search for sections of type RESTRICT.
+RESTRICT should be a symbol from `folio-section-alist' such as
+`folio-chapter'.
+
+If the optional second argument POS is non-nil use that as the
+starting position instead.
+
+The optional third argument TOP-DOWN should be non-nil if the
+indexing direction is from buffer beginning to buffer end."
   (let* ((pos (or pos (point)))
          (section (or restrict
                       (car (folio-current-section
@@ -698,7 +707,16 @@ Return nil if no indexing information is available."
       (folio-property-bounds section pos 'begin))))
 
 (defun folio-section-end (&optional restrict top-down pos)
-  "Return end position of the current section."
+  "Return buffer end position of a section.
+With argument RESTRICT only search for sections of type RESTRICT.
+RESTRICT should be a symbol from `folio-section-alist' such as
+`folio-chapter'.
+
+If the optional second argument POS is non-nil use that as the
+starting position instead.
+
+The optional third argument TOP-DOWN should be non-nil if the
+indexing direction is from buffer beginning to buffer end."
   (let* ((pos (or pos (point)))
          (section (or restrict
                       (car (folio-current-section
