@@ -688,6 +688,24 @@ Return nil if no indexing information is available."
                          seq-num 1))))))
 
 (defun folio-section-bounds (&optional restrict)
+(defun folio-section-beginning (&optional restrict top-down pos)
+  "Return start position of the current section."
+  (let* ((pos (or pos (point)))
+         (section (or restrict
+                      (car (folio-current-section
+                            restrict top-down pos)))))
+    (when section
+      (folio-property-bounds section pos 'begin))))
+
+(defun folio-section-end (&optional restrict top-down pos)
+  "Return end position of the current section."
+  (let* ((pos (or pos (point)))
+         (section (or restrict
+                      (car (folio-current-section
+                            restrict top-down pos)))))
+    (when section
+      (folio-property-bounds section pos 'end))))
+
   "Return cons of start and end positions of the current section."
   (let ((section (folio-current-section restrict)))
     (when section
