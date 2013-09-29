@@ -723,6 +723,9 @@ indexing direction is from buffer beginning to buffer end."
     (when section
       (folio-property-bounds section pos 'end))))
 
+;; XXX save section index to .aux file
+;; XXX properly deal with nested sections
+
 (defun folio-section-bounds (&optional restrict top-down pos)
   "Return section boundaries.
 With argument RESTRICT only search for sections of type RESTRICT.
