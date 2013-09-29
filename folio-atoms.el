@@ -252,7 +252,10 @@ value."
   (let ((change (next-single-char-property-change
                  pos prop)))
     (when change
-      (cons change (get-text-property change prop)))))
+      (when (cdr (setq change
+                       (cons change (get-text-property
+                                     change prop))))
+        change))))
 
 (defun folio-previous-property-bound (prop &optional pos)
   "Search for the previous change to property PROP.
@@ -263,7 +266,10 @@ value."
   (let ((change (previous-single-char-property-change
                  pos prop)))
     (when change
-      (cons change (get-text-property change prop)))))
+      (when (cdr (setq change
+                       (cons change (get-text-property
+                                     change prop))))
+        change))))
 
   (let ((pos (or pos (point)))
         restrict beg end)
