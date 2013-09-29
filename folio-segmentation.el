@@ -741,27 +741,75 @@ Return cons of start and end positions of the current section."
                       (car (folio-current-section
                             restrict top-down pos)))))
     (when section
-      (folio-property-bounds (car section)))))
-
-(defun folio-previous-section (&optional restrict pos)
-  (let* ((type (or restrict (car (folio-current-section))))
-         (begin (folio-property-bounds type 'begin pos)))
-    (when (and begin (/= begin (point-min)))
-      (setq begin (folio-property-bounds type 'begin begin))
-      (when begin
-        (if pos
-            begin
-          (goto-char begin))))))
-
-(defun folio-next-section (&optional restrict pos)
-  (let* ((type (or restrict (car (folio-current-section))))
-         (begin (folio-property-bounds type 'end pos)))
-    (when (and begin (/= begin (point-max)))
-      (if pos
-          (1+ begin)
-        (goto-char (1+ begin))))))
       (folio-property-bounds section pos))))
 
+(defun folio-next-section (&optional restrict top-down pos)
+  "Search next section.
+With argument RESTRICT only search for sections of type RESTRICT.
+RESTRICT should be a symbol from `folio-section-alist' such as
+`folio-chapter'.
+
+If the optional second argument POS is non-nil use that as the
+starting position instead.
+
+The optional third argument TOP-DOWN should be non-nil if the
+indexing direction is from buffer beginning to buffer end.
+
+Return a list of section beginning and type."
+  (let* ((pos (or pos (point)))
+         (pos-max (point-max))
+         (restrict (or restrict
+                       (car (folio-current-section
+                             nil top-down pos))))
+         beg)
+    (if restrict
+        (setq beg (folio-next-property-bound restrict pos))
+      (let (cand)
+        (mapc (lambda (x)
+                (setq restrict (car x)
+                      cand (folio-next-property-bound
+                            restrict pos))
+                (when (and cand
+                           (/= (car cand) pos-max)
+                           (or (null beg)
+                               (< (car cand) (car beg))))
+                  (setq beg cand)))
+              folio-section-alist)))
+    (when beg
+      (list (car beg) restrict))))
+
+(defun folio-previous-section (&optional restrict top-down pos)
+  "Search previous section.
+With argument RESTRICT only search for sections of type RESTRICT.
+RESTRICT should be a symbol from `folio-section-alist' such as
+`folio-chapter'.
+
+If the optional second argument POS is non-nil use that as the
+starting position instead.
+
+The optional third argument TOP-DOWN should be non-nil if the
+indexing direction is from buffer beginning to buffer end.
+
+Return a list of section beginning and type."
+  (let ((pos (folio-section-beginning
+              nil top-down (or pos (point))))
+        beg)
+    (or pos (setq pos (point)))
+    (if restrict
+        (setq beg (folio-previous-property-bound
+                   restrict pos))
+      (let (cand)
+        (mapc (lambda (x)
+                (setq restrict (car x)
+                      cand (folio-previous-property-bound
+                            restrict pos))
+                (when (and cand
+                           (or (null beg)
+                               (> (car cand) (car beg))))
+                  (setq beg cand)))
+              folio-section-alist)))
+    (when beg
+      (list (car beg) restrict))))
 (defun folio-forward-section-thing (thing &optional arg verb)
   "Move forward by section of type THING.
 THING is the symbol of a structural element like `folio-section',
