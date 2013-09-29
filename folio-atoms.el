@@ -272,28 +272,27 @@ searching the boundaries instead.
 If the optional third argument WHICH is the symbol 'begin or 'end
 return either boundary."
   (let ((pos (or pos (point)))
-        restrict beg end)
+        (limit (point-max))
+        beg end)
     (when (get-text-property pos prop)
       (cond
-       ((null which)
-        (setq restrict (point-max)
-              end (next-single-char-property-change
-                   pos prop nil restrict)
+       ((or (null which) (eq which 'any))
+        (setq end (next-single-char-property-change
+                   pos prop nil limit)
               beg (previous-single-char-property-change
                    end prop))
         (unless (and (= beg 1)
-                     (= end restrict))
+                     (= end limit))
           (cons beg (1- end))))
        ((eq which 'begin)
         (setq beg (previous-single-char-property-change
-                   pos prop))
+                   (if (= pos limit) pos (1+ pos)) prop))
         (unless (= beg 1)
           beg))
        ((eq which 'end)
-        (setq restrict (point-max)
-              end (next-single-char-property-change
-                   pos prop nil restrict))
-        (unless (= end restrict)
+        (setq end (next-single-char-property-change
+                   pos prop nil limit))
+        (when end
           (1- end)))
        (t
         (signal 'wrong-type-argument (cons which (type-of which)))
