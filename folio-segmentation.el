@@ -765,34 +765,6 @@ non-nil print a message if THING is not found."
       (goto-char pos))
     count))
 
-(defun folio-forward-indexed-section (type &optional key value)
-  "Move point forward to the next misspelling."
-  (interactive (list 'folio-spellcheck current-prefix-arg))
-  (setq type (or type 'folio-spellcheck))
-  ;; XXX TODO add support for skipping doublons, primary or secondary
-  (let ((pos (point))
-        current next)
-    ;; Skip current.
-    (setq current (or (text-property-not-all
-                       pos (point-max) type t) pos))
-    ;; Seek next.
-    (setq next (or (text-property-any
-                    current (point-max) type t) current))
-    (if (> next current)
-        (setq pos (goto-char next))
-      ;; Wrap around and seek next.
-      (setq next (and (> pos (point-min))
-                      (text-property-any
-                       (point-min) (1- pos) type t)))
-      (if next
-          (progn
-            (when (called-interactively-p 'any)
-              (message "Wrapped around"))
-            (setq pos (goto-char next)))
-        (when (called-interactively-p 'any)
-          (message "No more misspellings"))
-        pos))))
-
 (defconst folio-section "Section"
   "Structural element of a text section.")
 
