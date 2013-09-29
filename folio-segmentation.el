@@ -668,10 +668,10 @@ properties to remove."
             (setcdr (assq x folio-section-count-alist) 0)) types)
     (font-lock-fontify-region beg end)))
 
-(defun folio-current-section (&optional restrict top-down)
+(defun folio-current-section (&optional restrict top-down pos)
   "Return a cons of type and index of the current section.
 Return nil if no indexing information is available."
-  (let ((pos (point))
+  (let ((pos (or pos (point)))
         section seq-num)
     (catch 'break
       (mapc (lambda (x)
