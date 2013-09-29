@@ -177,9 +177,9 @@
   ;; titles scaled versions of the body font rather than :weight'ing
   ;; them 'bold!
   '((((min-colors 88) (class color) (background dark))
-     :foreground "#f0dfaf" :height 1.44)
+     :height 1.44)
     (((min-colors 88) (class color) (background light))
-     :foreground "#f0dfaf" :height 1.44))
+     :height 1.44))
   "Face for a outline section title."
   :group 'folio-faces)
 
