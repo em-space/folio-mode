@@ -243,6 +243,28 @@ otherwise the positions of the previous and the next change.  If POS
 is non-nil use that as a start position instead.
 
 If WHICH is the symbol 'begin or 'end return either boundary."
+(defun folio-next-property-bound (prop &optional pos)
+  "Search for the next change to property PROP.
+If POS is non-nil use that as a start position instead of the
+current point.  Return a cons of change position and property
+value."
+  (or pos (setq pos (point)))
+  (let ((change (next-single-char-property-change
+                 pos prop)))
+    (when change
+      (cons change (get-text-property change prop)))))
+
+(defun folio-previous-property-bound (prop &optional pos)
+  "Search for the previous change to property PROP.
+If POS is non-nil use that as a start position instead of the
+current point.  Return a cons of change position and property
+value."
+  (or pos (setq pos (point)))
+  (let ((change (previous-single-char-property-change
+                 pos prop)))
+    (when change
+      (cons change (get-text-property change prop)))))
+
   (let ((pos (or pos (point)))
         restrict beg end)
     (when (get-text-property pos prop)
