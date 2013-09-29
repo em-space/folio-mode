@@ -813,6 +813,33 @@ Return a list of section beginning and type."
               folio-section-alist)))
     (when beg
       (list (car beg) restrict))))
+
+(defun folio-map-sections (func &optional restrict top-down pos)
+  "Run FUNC for each section following current point.
+Call FUNC with a list of section type and the beginning and end
+positions of the current section for each section excluding the
+section at point, if any.
+
+With argument RESTRICT only search for sections of type RESTRICT.
+RESTRICT should be a symbol from `folio-section-alist' such as
+`folio-chapter'.
+
+If the optional second argument POS is non-nil use that as the
+starting position instead.
+
+The optional third argument TOP-DOWN should be non-nil if the
+indexing direction is from buffer beginning to buffer end."
+  (let ((pos (or pos (point)))
+        (pos-max (point-max))
+        current next beg end)
+    (setq current (folio-next-section restrict top-down pos)
+          beg (car current))
+    (while (and beg (/= beg pos-max))
+      (setq next (folio-next-section restrict top-down beg)
+            end (car next))
+      (funcall func (list (cadr current) beg (1- end)))
+      (setq beg end current next))))
+
 (defun folio-forward-section-thing (thing &optional arg verb)
   "Move forward by section of type THING.
 THING is the symbol of a structural element like `folio-section',
