@@ -170,6 +170,8 @@
   "Face for a dictionary heading in corresponding views."
   :group 'folio-faces)
 
+;; XXX make that folio-outline-level-2, folio-outline-level-3,
+;; etc. and define alist folio-outline-section-faces
 (defface folio-outline-section-title
   ;; Try to maintain some sense for typography by making section
   ;; titles scaled versions of the body font rather than :weight'ing
