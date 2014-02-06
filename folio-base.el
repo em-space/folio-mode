@@ -283,6 +283,20 @@ key EXCEPT is non-nil."
                         (if (plist-get x except) nil v)))
                     (symbol-value list))))
 
+(defun folio-narrow-to-region-indirect
+  (start end &optional new-name display-flag no-record)
+  "Restrict editing to the current region, indirectly.
+START and END are start and end positions of the region.
+NEW-NAME, DISPLAY-FLAG and NO-RECORD have the same meaning like
+for `clone-indirect-buffer', see which."
+  (interactive "r")
+  (deactivate-mark)
+  (let ((buf (clone-indirect-buffer
+              new-name display-flag no-record)))
+    (with-current-buffer buf
+      (narrow-to-region start end))
+    (switch-to-buffer buf)))
+
 
 (defun folio-activity-interrupted-p (activity &optional reset)
   "Return non-nil when input has arrived while processing ACTIVITY.
