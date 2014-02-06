@@ -221,7 +221,6 @@ is non-nil additionally fontify the tagged text."
     (when fontify
       (font-lock-fontify-region beg end))))
 
-;;;###autoload
 (defun folio-unpropertize-region (beg end props
                                       &optional fontify)
   "Remove the text properties PROPS from the region BEG, END.
